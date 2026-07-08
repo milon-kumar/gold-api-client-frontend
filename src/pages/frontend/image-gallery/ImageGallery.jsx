@@ -1,0 +1,103 @@
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, ZoomIn } from 'lucide-react';
+import { useApiQuery } from '@/hooks/useAppQuery';
+import SectionHeader from '@/components/partials/frontend/SectionHeader';
+import { asset } from '@/lib/helper';
+
+const photos = [
+  { id: 1, src: 'https://images.unsplash.com/photo-1585036156171-384164a8c675?w=600&q=80', title: 'মাহফিল ২০২৬', span: 'col-span-2 row-span-2' },
+  { id: 2, src: 'https://images.unsplash.com/photo-1564769625905-50e93615e769?w=400&q=80', title: 'তালীম সেশন', span: '' },
+  { id: 3, src: 'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=80', title: 'সেবা কার্যক্রম', span: '' },
+  { id: 4, src: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&q=80', title: 'যুব সমাবেশ', span: '' },
+  { id: 5, src: 'https://images.unsplash.com/photo-1542816417-0983c9c9ad53?w=400&q=80', title: 'দাওয়াহ কাফেলা', span: '' },
+  { id: 6, src: 'https://images.unsplash.com/photo-1466442929976-97f336a657be?w=600&q=80', title: 'ইজতেমা', span: 'col-span-2' },
+];
+
+export default function PhotoGallery() {
+  const getDynamicSpan = (index) => {
+    if (index === 0) {
+      return "col-span-2 row-span-2";
+    }
+    if (index % 6 === 0) {
+      return "col-span-2";
+    }
+    if (index % 4 === 0) {
+      return "row-span-2";
+    }
+
+    return "";
+  };
+
+  const [lightbox, setLightbox] = useState(null);
+
+  const { data, isLoading, error } = useApiQuery({
+    url: '/image-gallery',
+    queryKey: ['image-gallery']
+  });
+
+  const images = data?.data?.gallery_images
+
+  return (
+    <section id="gallery" className="py-10 sm:py-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 auto-rows-[180px] sm:auto-rows-[220px]">
+          {images?.map((img, i) => (
+            <motion.div
+              key={img.id}
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.08 }}
+              className={`group relative rounded-2xl overflow-hidden cursor-pointer ${getDynamicSpan(i)}`}
+              onClick={() => setLightbox(img)}
+            >
+              <img
+                src={asset(img.image_url)}
+                alt={img.title}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <ZoomIn className="w-5 h-5 text-white" />
+                </div>
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                <p className="text-white text-sm font-semibold font-bengali">{img.title}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* Lightbox */}
+      <AnimatePresence>
+        {lightbox && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4"
+            onClick={() => setLightbox(null)}
+          >
+            <button
+              className="absolute top-6 right-6 text-white/80 hover:text-white"
+              onClick={() => setLightbox(null)}
+            >
+              <X className="w-8 h-8" />
+            </button>
+            <motion.img
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              src={asset(lightbox?.image_url)}
+              alt={lightbox.title}
+              className="max-w-full max-h-[85vh] rounded-xl object-contain"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </section>
+  );
+}
