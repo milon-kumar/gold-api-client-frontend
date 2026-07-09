@@ -23,7 +23,7 @@ const navLinks = [
     { label: 'যোগাযোগ', href: '#contact' },
 ];
 
-function DropdownMenu({ items, isOpen }) {
+const DropdownMenu = ({ items, isOpen }) => {
     return (
         <AnimatePresence>
             {isOpen && (
@@ -104,7 +104,7 @@ export default function Navbar({ websiteSettings, webPages }) {
                 initial={{ y: -100 }}
                 animate={{ y: 0 }}
                 className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled
-                    ? 'bg-white/80 backdrop-blur-2xl shadow-lg shadow-black/[0.03] border-b border-white/50'
+                    ? 'bg-white/80 backdrop-blur-2xl shadow-lg shadow-black/3 border-b border-white/50'
                     : 'bg-transparent'
                     }`}
             >
@@ -112,7 +112,7 @@ export default function Navbar({ websiteSettings, webPages }) {
                     <div className="flex items-center justify-between h-16 md:h-20">
                         <Link
                             to="/"
-                            className="flex items-center gap-3 max-w-[200px] px-2 py-1 rounded-sm bg-[#641B8C]"
+                            className="flex items-center gap-3 max-w-50 px-2 py-1 rounded-sm bg-[#641B8C]"
                         >
                             <img
                                 src={asset(websiteSettings?.banner_image)}
@@ -151,7 +151,7 @@ export default function Navbar({ websiteSettings, webPages }) {
                                                             : page?.page_title
                                                     )
                                                 }
-                                                className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-secondary font-bengali"
+                                                className="flex items-center cursor-pointer gap-1 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-secondary font-bengali"
                                             >
                                                 {page?.page_title}
 

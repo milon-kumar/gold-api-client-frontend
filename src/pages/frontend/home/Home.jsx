@@ -243,7 +243,7 @@ export default function Home() {
         <>
             {
                 sliders && (
-                    <HeroSection sectionType="carousel" template="classicCarousel"
+                    <HeroSection sectionType="carousel" template="simpleImageSlider"
                         sliders={sliderItems}
                         statistics={statistics}
                         webNotices={webNotices}
@@ -396,7 +396,7 @@ export default function Home() {
 
             {
                 archiveItems?.length > 0 && (() => {
-                    const items = archiveItems.map((item) => {
+                    const items = archiveItems?.map((item) => {
                         return {
                             id: item?.id,
                             title: item?.title,
@@ -422,7 +422,7 @@ export default function Home() {
 
             {
                 anualPlanItems?.length > 0 && (() => {
-                    const items = archiveItems.map((item) => {
+                    const items = archiveItems?.map((item) => {
                         return {
                             id: item?.id,
                             title: item?.title,

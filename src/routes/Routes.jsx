@@ -56,7 +56,11 @@ import RegularActivitieSave from "@/pages/admin/businesss/modules/regular-activi
 import SocialActivitiesList from "@/pages/admin/businesss/modules/social-activities/List.jsx"
 import SocialActivitiesSave from "@/pages/admin/businesss/modules/social-activities/save/Save.jsx"
 
+import NavigationList from "@/pages/admin/businesss/modules/navigation/List.jsx"
+import NavigationSave from "@/pages/admin/businesss/modules/navigation/save/Save.jsx"
+
 import Settings from "@/pages/admin/businesss/modules/settings";
+
 // import Error404 from "@/pages/Error404";
 
 
@@ -244,6 +248,14 @@ const router = createBrowserRouter([
                     {
                         path: "settings",
                         element: <Settings />
+                    },
+                    {
+                        path: "navigations",
+                        element:<NavigationList/>
+                    },
+                    {
+                        path: "navigations/save/:id?",
+                        element:<NavigationSave/>
                     }
                 ]
             }

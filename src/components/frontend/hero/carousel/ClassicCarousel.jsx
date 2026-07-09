@@ -43,7 +43,7 @@ export default function HeroSlider({ sliders }) {
         const meta = parseMetaData(item.meta);
 
         // Split title into parts for highlighting (you can customize this logic)
-        const titleParts = item.title.split(' ');
+        const titleParts = item?.title?.split(' ');
         const midIndex = Math.ceil(titleParts.length / 2);
         const title = titleParts.slice(0, midIndex).join(' ') + ' ';
         const titleHighlight = titleParts.slice(midIndex, midIndex + 1).join(' ') || ' ';

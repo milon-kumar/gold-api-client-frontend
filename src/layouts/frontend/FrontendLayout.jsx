@@ -1,52 +1,69 @@
-import React from 'react'
-import Navbar from '@/layouts/frontend/Navbar'
-import Footer from '@/layouts/frontend/Footer'
-import { Outlet, useLocation } from 'react-router'
-import { useApiQuery } from '@/hooks/useAppQuery'
-import { asset } from '@/lib/helper'
+import React from "react";
+import Navbar from "@/layouts/frontend/Navbar";
+import Footer from "@/layouts/frontend/Footer";
+import { Outlet, useLocation } from "react-router";
+import { useApiQuery } from "@/hooks/useAppQuery";
+import { asset } from "@/lib/helper";
 const FrontendLayout = () => {
+  const { pathname } = useLocation();
 
-    const { pathname } = useLocation();
+  const { data:settingResponse } = useApiQuery({
+    url: `/settings`,
+  });
 
-    const { data } = useApiQuery({
-        url: `/website-settings`,
-    });
+  const { data: pagesResponse } = useApiQuery({
+    url: "/pages",
+  });
 
-    const {data: pagesResponse} = useApiQuery({
-        url: '/pages'
-    })
+  const { data: linkPagesResponse } = useApiQuery({
+    url: "/pages",
+    params: {
+      page_type: "link",
+    },
+  });
 
-    console.log("Pages Response -",pagesResponse)
-    
+  const { data: customPagesResponse } = useApiQuery({
+    url: "/pages",
+    params: {
+      page_type: "custom",
+    },
+  });
 
-    const websiteSettings = data?.data?.web_settings || {};
-    const webPages = pagesResponse?.data?.data || [];
+  const websiteSettings = settingResponse?.data?.data || {};
+  const webPages = pagesResponse?.data || [];
+  const linkPages = linkPagesResponse?.data || [];
+  const customPages = customPagesResponse?.data || [];
 
-    console.log("websiteSettings", websiteSettings)
-    console.log("webPages", webPages)
+  console.log("What is the pages data - ", {
+    websiteSettings,
+    webPages,
+    linkPages,
+    customPages,
+  });
 
+  document.title = `${pathname === "/" ? "Home" : pathname?.split("/")?.pop()?.charAt(0)?.toUpperCase() + pathname?.split("/")?.pop()?.slice(1)} | ${websiteSettings?.web_title}`;
 
-    console.log("What is the path name ",pathname === '/')
+  const favicon = document.getElementById("app-favicon");
 
-    document.title = `${pathname === '/' ? 'Home' : pathname?.split('/')?.pop()?.charAt(0)?.toUpperCase() + pathname?.split('/')?.pop()?.slice(1)} | ${websiteSettings?.web_title}`;
+  if (favicon) {
+    const href = websiteSettings?.favicon_url || websiteSettings?.logo_url;
 
-    const favicon = document.getElementById('app-favicon');
+    favicon.href = asset(href) || "/favicon.ico";
+  }
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar websiteSettings={websiteSettings} webPages={webPages} />
 
-    if (favicon) {
-        const href =
-            websiteSettings?.favicon_url ||
-            websiteSettings?.logo_url;
+      <Outlet />
 
-        favicon.href =
-            asset(href) || "/favicon.ico";
-    }
-    return (
-        <div className="min-h-screen bg-background">
-            <Navbar websiteSettings={websiteSettings} webPages={webPages} />
-            <Outlet />
-            <Footer websiteSettings={websiteSettings} webPages={webPages} />
-        </div>
-    )
-}
+      <Footer
+        websiteSettings={websiteSettings}
+        webPages={webPages}
+        linkPages={linkPages}
+        customPages={customPages}
+      />
+    </div>
+  );
+};
 
-export default FrontendLayout
+export default FrontendLayout;

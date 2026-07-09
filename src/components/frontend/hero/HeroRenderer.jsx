@@ -8,6 +8,7 @@ import SimpleCarousel from "@/components/frontend/hero/carousel/SimpleCarousel"
 import ModernCarousel from "@/components/frontend/hero/carousel/ModernCarousel"
 import ImageCarousel from "@/components/frontend/hero/carousel/ImageCarousel"
 import ImmersiveSlider from "@/components/frontend/hero/carousel/ImmersiveSlider"
+import SimpleImageSlider from "@/components/frontend/hero/carousel/SimpleImageSlider"
 
 const HeroRenderer = ({ sectionType = "banner", template = 'classicBanner', ...rest }) => {
 
@@ -23,7 +24,8 @@ const HeroRenderer = ({ sectionType = "banner", template = 'classicBanner', ...r
             simpleCarousel: <SimpleCarousel {...rest} />,
             modernCarousel: <ModernCarousel {...rest} />,
             imageCarousel: <ImageCarousel {...rest} />,
-            immersiveSlider: <ImmersiveSlider {...rest} />
+            immersiveSlider: <ImmersiveSlider {...rest} />,
+            simpleImageSlider: <SimpleImageSlider {...rest}/>
         }
     }
 

@@ -19,4 +19,6 @@ export const MODULES = {
     SETTINGS: 'settings',
     ORGANIZATIONAL_LEVEL: 'organizational-level',
     STAFFS: 'staffs',
+
+    CATEGORIES: 'categories',
 };

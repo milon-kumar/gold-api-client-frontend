@@ -53,7 +53,7 @@ const CategoriesListing = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
-  const [viewMode, setViewMode] = useState('grid');
+  const [viewMode, setViewMode] = useState('table');
   const [openViewModal, setOpenViewModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -65,7 +65,7 @@ const CategoriesListing = () => {
     loading: itemsLoading,
     refetch: refetchItems
   } = useApiQuery({
-    url: "/admin/categories",
+    url: "/admin/business-module-item-categories",
     params: {
       search: searchTerm || undefined,
       type: typeFilter !== 'all' ? typeFilter : undefined,
@@ -134,8 +134,8 @@ const CategoriesListing = () => {
   // Grid View Card Component
   const CategoryGridCard = ({ item }) => {
     return (
-      <Card className="group relative overflow-hidden cursor-pointer rounded-xl border-0 bg-white pt-0 shadow-sm transition-all duration-300 hover:shadow-md">
-        <div className="relative overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 p-8">
+      <Card className="group relative overflow-hidden cursor-pointer rounded-[5px] border-0 bg-white pt-0 shadow-sm transition-all duration-300 hover:shadow-md">
+        <div className="relative overflow-hidden bg-linear-to-br from-gray-100 to-gray-200 p-8">
           {item.image ? (
             <img
               src={item.image_full_path || item.image}
@@ -217,7 +217,7 @@ const CategoriesListing = () => {
 
   // Table View
   const TableView = () => (
-    <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
+    <div className="overflow-hidden rounded-[5px] border bg-white shadow-sm">
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/40">
@@ -248,10 +248,10 @@ const CategoriesListing = () => {
                     <img
                       src={item.image_full_path || item.image}
                       alt={item.name}
-                      className="h-10 w-10 rounded-lg border object-cover"
+                      className="h-10 w-10 rounded-[5px] border object-cover"
                     />
                   ) : (
-                    <div className="h-10 w-10 rounded-lg border bg-gray-100 flex items-center justify-center">
+                    <div className="h-10 w-10 rounded-[5px] border bg-gray-100 flex items-center justify-center">
                       <FolderOpen className="h-5 w-5 text-gray-400" />
                     </div>
                   )}
@@ -337,7 +337,7 @@ const CategoriesListing = () => {
           </DialogHeader>
 
           <div className="space-y-6">
-            <div className="relative overflow-hidden rounded-lg bg-gray-100 p-8">
+            <div className="relative overflow-hidden rounded-[5px] bg-gray-100 p-8">
               {item.image ? (
                 <img
                   src={item.image_full_path || item.image}
