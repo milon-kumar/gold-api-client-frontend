@@ -112,10 +112,10 @@ export default function Navbar({ websiteSettings, webPages }) {
                     <div className="flex items-center justify-between h-16 md:h-20">
                         <Link
                             to="/"
-                            className="flex items-center gap-3 max-w-50 px-2 py-1 rounded-sm bg-[#641B8C]"
+                            className="flex items-center gap-3 max-w-50 px-2 py-1 rounded-sm"
                         >
                             <img
-                                src={asset(websiteSettings?.banner_image)}
+                                src={websiteSettings?.logo_full_path}
                                 alt="logo"
                                 className="h-full w-auto object-contain"
                             />

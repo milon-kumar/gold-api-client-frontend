@@ -105,7 +105,7 @@ export default function HeroSection(props) {
             </div>
 
             {/* Floating Particles */}
-            {[...Array(20)].map((_, i) => (
+            {[...Array(20)]?.map((_, i) => (
                 <FloatingParticle
                     key={i}
                     delay={i * 0.5}
@@ -228,7 +228,7 @@ export default function HeroSection(props) {
                                     transition={{ delay: 0.6 }}
                                 >
                                     <div className="flex -space-x-2">
-                                        {staffs?.slice(0, 6).map((staff) => (
+                                        {staffs?.slice(0, 6)?.map((staff) => (
                                             <div key={staff.id} className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent border-2 border-white dark:border-gray-900 flex items-center justify-center text-white text-xs font-bold">
                                                 {
                                                     staff?.photo ? (
@@ -248,15 +248,13 @@ export default function HeroSection(props) {
                                 </motion.div>
                             )}
                     </motion.div>
-
-                    {/* Right - Stats Grid */}
+                    
                     <motion.div
                         initial={{ opacity: 0, x: 40 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.8, delay: 0.3 }}
                         className="relative"
                     >
-                        {/* Decorative rotating ring */}
                         <motion.div
                             className="absolute -top-20 -right-20 w-60 h-60 rounded-full border-2 border-dashed border-primary/20"
                             animate={{ rotate: 360 }}
@@ -264,7 +262,7 @@ export default function HeroSection(props) {
                         />
 
                         <div className="grid grid-cols-2 gap-5 relative z-10">
-                            {statistics.map((stat, i) => {
+                            {statistics?.map((stat, i) => {
                                 const randomIndex = Math.floor(Math.random() * 4); // 0 to 3
                                 const gradient = stats[randomIndex].gradient;
                                 const color = stats[randomIndex].color;

@@ -108,7 +108,6 @@ const PageHeader = ({
                     {secondaryAction && (
                         <Button
                             variant={secondaryAction.variant || "outline"}
-                            size="sm"
                             onClick={secondaryAction.onClick}
                             disabled={secondaryAction.disabled}
                         >

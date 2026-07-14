@@ -8,7 +8,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,14 +41,19 @@ import {
   Upload,
   Trash2,
   Globe,
+  Phone,
+  Mail,
+  MapPin,
+  Plus,
+  X,
+  Key,
 } from "lucide-react";
-import { FiFacebook, FiYoutube } from "react-icons/fi";
+import { FiFacebook, FiYoutube, FiInstagram, FiLinkedin } from "react-icons/fi";
 import { toast } from "sonner";
 import { useApiQuery } from "@/hooks/useAppQuery";
 import { useApiMutation } from "@/hooks/useAppMutation";
 import PageHeader from "@/components/shear/PageHeader";
 import useImageUpload from "@/hooks/use-image-upload";
-import AboutMeta from "./partials/AboutMeta";
 
 const SettingsView = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -58,8 +62,12 @@ const SettingsView = () => {
   const [editLabel, setEditLabel] = useState("");
   const [editKey, setEditKey] = useState("");
   const [isImageUpload, setIsImageUpload] = useState(false);
+  const [isJsonField, setIsJsonField] = useState(false);
+  const [isMetaField, setIsMetaField] = useState(false);
+  const [metaEntries, setMetaEntries] = useState([]);
+  const [newMetaKey, setNewMetaKey] = useState("");
+  const [newMetaValue, setNewMetaValue] = useState("");
 
-  // Image upload hook for logo and favicon
   const {
     image: imageBase64,
     preview,
@@ -69,7 +77,6 @@ const SettingsView = () => {
     setImageUrl,
   } = useImageUpload(5);
 
-  // Fetch settings
   const {
     data: settingsResponse,
     isLoading: settingsLoading,
@@ -82,7 +89,11 @@ const SettingsView = () => {
   const business = data?.business || {};
   const settings = data?.settings || {};
 
-  // Update mutation
+  console.log("Business - ", {
+    business,
+    settings,
+  });
+
   const { mutate: updateMutation, isLoading: updateLoading } = useApiMutation({
     url: "/admin/business-settings",
     method: "POST",
@@ -100,13 +111,31 @@ const SettingsView = () => {
     label,
     isImage = false,
     previewUrl = null,
+    isJson = false,
+    isMeta = false,
   ) => {
     setEditKey(key);
     setEditValue(value || "");
     setEditLabel(label);
     setIsImageUpload(isImage);
+    setIsJsonField(isJson);
+    setIsMetaField(isMeta);
 
-    // If it's an image field, set the preview
+    if (isMeta && value) {
+      try {
+        const parsed = typeof value === "string" ? JSON.parse(value) : value;
+        const entries = Object.entries(parsed).map(([k, v]) => ({
+          key: k,
+          value: typeof v === "string" ? v : JSON.stringify(v),
+        }));
+        setMetaEntries(entries);
+      } catch (error) {
+        setMetaEntries([]);
+      }
+    } else {
+      setMetaEntries([]);
+    }
+
     if (isImage && value) {
       setImageUrl({
         image: value,
@@ -119,11 +148,41 @@ const SettingsView = () => {
     setEditModalOpen(true);
   };
 
+  const handleAddMetaEntry = () => {
+    if (!newMetaKey.trim()) {
+      toast.error("Please enter a key");
+      return;
+    }
+    if (!newMetaValue.trim()) {
+      toast.error("Please enter a value");
+      return;
+    }
+    if (metaEntries.some((entry) => entry.key === newMetaKey.trim())) {
+      toast.error("Key already exists");
+      return;
+    }
+    setMetaEntries([
+      ...metaEntries,
+      { key: newMetaKey.trim(), value: newMetaValue.trim() },
+    ]);
+    setNewMetaKey("");
+    setNewMetaValue("");
+  };
+
+  const handleRemoveMetaEntry = (index) => {
+    setMetaEntries(metaEntries.filter((_, i) => i !== index));
+  };
+
+  const handleUpdateMetaEntry = (index, field, value) => {
+    const updated = [...metaEntries];
+    updated[index][field] = value;
+    setMetaEntries(updated);
+  };
+
   const handleSave = async () => {
     let payload = {};
 
     if (isImageUpload) {
-      // For image uploads, send base64
       if (!imageBase64 && !editValue) {
         toast.error("Please select an image");
         return;
@@ -131,6 +190,26 @@ const SettingsView = () => {
       payload = {
         [editKey]: imageBase64 || null,
       };
+    } else if (isMetaField) {
+      const metaObject = {};
+      metaEntries.forEach((entry) => {
+        if (entry.key.trim()) {
+          metaObject[entry.key.trim()] = entry.value.trim();
+        }
+      });
+      payload = {
+        [editKey]: metaObject,
+      };
+    } else if (isJsonField) {
+      try {
+        const parsedValue = JSON.parse(editValue);
+        payload = {
+          [editKey]: parsedValue,
+        };
+      } catch (error) {
+        toast.error("Invalid JSON format");
+        return;
+      }
     } else {
       payload = {
         [editKey]: editValue,
@@ -144,6 +223,7 @@ const SettingsView = () => {
         await refetchSettings();
         setEditModalOpen(false);
         resetImage();
+        setMetaEntries([]);
       } else {
         toast.error(response?.message || "Failed to update");
       }
@@ -156,6 +236,65 @@ const SettingsView = () => {
   const handleRemoveImage = () => {
     resetImage();
     setEditValue("");
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  const renderMetaEntries = () => {
+    if (metaEntries.length === 0) {
+      return (
+        <div className="text-center py-8 text-muted-foreground">
+          <Key className="h-12 w-12 mx-auto mb-3 opacity-50" />
+          <p>No meta entries added yet</p>
+          <p className="text-sm">Add key-value pairs below</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-3 max-h-80 overflow-y-auto">
+        {metaEntries.map((entry, index) => (
+          <div
+            key={index}
+            className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg group"
+          >
+            <div className="flex-1 grid grid-cols-2 gap-2">
+              <Input
+                value={entry.key}
+                onChange={(e) =>
+                  handleUpdateMetaEntry(index, "key", e.target.value)
+                }
+                placeholder="Key"
+                className="bg-white"
+              />
+              <Input
+                value={entry.value}
+                onChange={(e) =>
+                  handleUpdateMetaEntry(index, "value", e.target.value)
+                }
+                placeholder="Value"
+                className="bg-white"
+              />
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleRemoveMetaEntry(index)}
+              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        ))}
+      </div>
+    );
   };
 
   if (settingsLoading) {
@@ -185,10 +324,9 @@ const SettingsView = () => {
       />
 
       <div className="space-y-6">
-        {/* Business Information Card */}
         <Card className="shadow-sm mb-0">
           <CardHeader className="border-b bg-linear-to-r from-blue-50 to-indigo-50 p-0 m-0">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between p-6">
               <div>
                 <CardTitle className="flex items-center gap-2 text-2xl">
                   <Building2 className="h-6 w-6 text-blue-600" />
@@ -207,7 +345,6 @@ const SettingsView = () => {
 
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Business Name */}
               <div className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -236,7 +373,6 @@ const SettingsView = () => {
                 </div>
               </div>
 
-              {/* Business ID */}
               <div className="p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-purple-100 rounded-full">
@@ -256,7 +392,6 @@ const SettingsView = () => {
                 </div>
               </div>
 
-              {/* Status */}
               <div className="p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-green-100 rounded-full">
@@ -271,7 +406,6 @@ const SettingsView = () => {
                 </div>
               </div>
 
-              {/* Created At */}
               <div className="p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-indigo-100 rounded-full">
@@ -280,15 +414,12 @@ const SettingsView = () => {
                   <div>
                     <p className="text-xs text-muted-foreground">Created</p>
                     <p className="font-medium text-sm">
-                      {business.created_at
-                        ? new Date(business.created_at).toLocaleDateString()
-                        : "N/A"}
+                      {formatDate(business.created_at)}
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Subdomain */}
               <div className="p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-cyan-100 rounded-full">
@@ -314,7 +445,6 @@ const SettingsView = () => {
                 </div>
               </div>
 
-              {/* Domain */}
               <div className="p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-teal-100 rounded-full">
@@ -338,7 +468,6 @@ const SettingsView = () => {
                 </div>
               </div>
 
-              {/* Database Type */}
               <div className="p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-orange-100 rounded-full">
@@ -355,7 +484,6 @@ const SettingsView = () => {
                 </div>
               </div>
 
-              {/* Language */}
               <div className="p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-pink-100 rounded-full">
@@ -369,13 +497,62 @@ const SettingsView = () => {
                   </div>
                 </div>
               </div>
+
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-yellow-100 rounded-full">
+                    <Mail className="h-4 w-4 text-yellow-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs text-muted-foreground">Email</p>
+                    <p className="font-medium text-sm truncate">
+                      {business.email || "N/A"}
+                    </p>
+                  </div>
+                  {business.email && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyToClipboard(business.email, "Email")}
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-green-100 rounded-full">
+                    <Phone className="h-4 w-4 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Phone</p>
+                    <p className="font-medium text-sm">
+                      {business.phone || "N/A"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-red-100 rounded-full">
+                    <MapPin className="h-4 w-4 text-red-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Location</p>
+                    <p className="font-medium text-sm truncate">
+                      {business.location || "N/A"}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Settings Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Branding Settings */}
           <Card className="shadow-sm">
             <CardHeader className="border-b bg-linear-to-r from-emerald-50 to-teal-50">
               <CardTitle className="flex items-center gap-2 text-xl">
@@ -385,7 +562,6 @@ const SettingsView = () => {
               <CardDescription>Logo, favicon and brand assets</CardDescription>
             </CardHeader>
             <CardContent className="pt-6 space-y-4">
-              {/* Logo */}
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg group">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-emerald-100 rounded-full">
@@ -426,7 +602,6 @@ const SettingsView = () => {
                 </Button>
               </div>
 
-              {/* Favicon */}
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg group">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-orange-100 rounded-full">
@@ -466,10 +641,49 @@ const SettingsView = () => {
                   <Edit className="h-4 w-4" />
                 </Button>
               </div>
+
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg group">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-100 rounded-full">
+                    <ImageIcon className="h-4 w-4 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Footer Logo</p>
+                    {settings.footer_logo && settings.footer_logo_full_path ? (
+                      <div className="mt-1">
+                        <img
+                          src={settings.footer_logo_full_path}
+                          alt="Footer Logo"
+                          className="h-10 w-auto object-contain"
+                        />
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">
+                        No footer logo uploaded
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    handleEdit(
+                      "footer_logo",
+                      settings.footer_logo,
+                      "Footer Logo",
+                      true,
+                      settings?.footer_logo_full_path,
+                    )
+                  }
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
-          {/* Social Media Settings */}
           <Card className="shadow-sm">
             <CardHeader className="border-b bg-gradient-to-r from-blue-50 to-sky-50">
               <CardTitle className="flex items-center gap-2 text-xl">
@@ -481,13 +695,12 @@ const SettingsView = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6 space-y-4">
-              {/* Facebook */}
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg group">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-blue-100 rounded-full">
                     <FiFacebook className="h-4 w-4 text-blue-600" />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm font-medium">Facebook</p>
                     <p className="text-xs text-muted-foreground truncate max-w-[200px]">
                       {settings.facebook_link || "Not set"}
@@ -510,13 +723,12 @@ const SettingsView = () => {
                 </Button>
               </div>
 
-              {/* YouTube */}
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg group">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-red-100 rounded-full">
                     <FiYoutube className="h-4 w-4 text-red-600" />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm font-medium">YouTube</p>
                     <p className="text-xs text-muted-foreground truncate max-w-[200px]">
                       {settings.youtube_link || "Not set"}
@@ -538,10 +750,121 @@ const SettingsView = () => {
                   <Edit className="h-4 w-4" />
                 </Button>
               </div>
+
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg group">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-pink-100 rounded-full">
+                    <FiInstagram className="h-4 w-4 text-pink-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Instagram</p>
+                    <p className="text-xs text-muted-foreground truncate max-w-[200px]">
+                      {settings.instagram_link || "Not set"}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    handleEdit(
+                      "instagram_link",
+                      settings.instagram_link,
+                      "Instagram Link",
+                    )
+                  }
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg group">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-indigo-100 rounded-full">
+                    <FiLinkedin className="h-4 w-4 text-indigo-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">LinkedIn</p>
+                    <p className="text-xs text-muted-foreground truncate max-w-[200px]">
+                      {settings.linkedin_link || "Not set"}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    handleEdit(
+                      "linkedin_link",
+                      settings.linkedin_link,
+                      "LinkedIn Link",
+                    )
+                  }
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg group">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-green-100 rounded-full">
+                    <Link2 className="h-4 w-4 text-green-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Play Store</p>
+                    <p className="text-xs text-muted-foreground truncate max-w-[200px]">
+                      {settings.play_store_link || "Not set"}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    handleEdit(
+                      "play_store_link",
+                      settings.play_store_link,
+                      "Play Store Link",
+                    )
+                  }
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg group">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 rounded-full">
+                    <Link2 className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">App Store</p>
+                    <p className="text-xs text-muted-foreground truncate max-w-[200px]">
+                      {settings.app_store_link || "Not set"}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    handleEdit(
+                      "app_store_link",
+                      settings.app_store_link,
+                      "App Store Link",
+                    )
+                  }
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
-          {/* Database Information */}
           <Card className="shadow-sm">
             <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-slate-50">
               <CardTitle className="flex items-center gap-2 text-xl">
@@ -594,27 +917,54 @@ const SettingsView = () => {
               </div>
             </CardContent>
           </Card>
-          {/* Content Settings */}
+
           <Card className="shadow-sm">
             <CardHeader className="border-b bg-linear-to-r from-purple-50 to-violet-50">
               <CardTitle className="flex items-center gap-2 text-xl">
                 <FileText className="h-5 w-5 text-purple-600" />
-                Content
+                Content & Settings
               </CardTitle>
               <CardDescription>
-                Contract text and copyright information
+                Contract text, copyright information and configurations
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6 space-y-4">
-              {/* Copyright */}
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg group">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-indigo-100 rounded-full">
                     <Copy className="h-4 w-4 text-indigo-600" />
                   </div>
                   <div>
+                    <p className="text-sm font-medium">Footer Text</p>
+                    <p className="text-xs text-muted-foreground truncate max-w-[200px]">
+                      {settings.footer_text || "Not set"}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    handleEdit(
+                      "footer_text",
+                      settings.footer_text,
+                      "Footer Text",
+                    )
+                  }
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg group">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-amber-100 rounded-full">
+                    <Copy className="h-4 w-4 text-amber-600" />
+                  </div>
+                  <div>
                     <p className="text-sm font-medium">Copyright Text</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground truncate max-w-[200px]">
                       {settings.copyright_text || "Not set"}
                     </p>
                   </div>
@@ -635,36 +985,10 @@ const SettingsView = () => {
                 </Button>
               </div>
 
-              {/* Language */}
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg group">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-pink-100 rounded-full">
-                    <Globe className="h-4 w-4 text-pink-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Language</p>
-                    <p className="text-xs text-muted-foreground uppercase">
-                      {settings.lang_slug || "Not set"}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() =>
-                    handleEdit("lang_slug", settings.lang_slug, "Language")
-                  }
-                  className="opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {/* Module Order */}
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg group">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-amber-100 rounded-full">
-                    <Layout className="h-4 w-4 text-amber-600" />
+                  <div className="p-2 bg-cyan-100 rounded-full">
+                    <Layout className="h-4 w-4 text-cyan-600" />
                   </div>
                   <div>
                     <p className="text-sm font-medium">Module Order</p>
@@ -681,8 +1005,47 @@ const SettingsView = () => {
                   onClick={() =>
                     handleEdit(
                       "module_order",
-                      settings.module_order,
+                      settings.module_order
+                        ? JSON.stringify(settings.module_order, null, 2)
+                        : "[]",
                       "Module Order",
+                      false,
+                      null,
+                      true,
+                    )
+                  }
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg group">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-teal-100 rounded-full">
+                    <SettingsIcon className="h-4 w-4 text-teal-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Meta Settings</p>
+                    <p className="text-xs text-muted-foreground">
+                      {settings.meta
+                        ? `${Object.keys(settings.meta).length} entries configured`
+                        : "No entries"}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    handleEdit(
+                      "meta",
+                      settings.meta ? settings.meta : {},
+                      "Meta Settings",
+                      false,
+                      null,
+                      false,
+                      true,
                     )
                   }
                   className="opacity-0 group-hover:opacity-100 transition-opacity"
@@ -693,22 +1056,20 @@ const SettingsView = () => {
             </CardContent>
           </Card>
         </div>
-        
-        <div className="w-full">
-          <AboutMeta />
-        </div>
 
-        {/* Edit Modal with Image Upload */}
         <Dialog
           open={editModalOpen}
           onOpenChange={(open) => {
             if (!open) {
               resetImage();
+              setMetaEntries([]);
+              setNewMetaKey("");
+              setNewMetaValue("");
             }
             setEditModalOpen(open);
           }}
         >
-          <DialogContent className="max-w-md">
+          <DialogContent className={isMetaField ? "max-w-2xl" : "max-w-md"}>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <SettingsIcon className="h-5 w-5 text-blue-600" />
@@ -717,13 +1078,14 @@ const SettingsView = () => {
               <DialogDescription>
                 {isImageUpload
                   ? `Upload a new ${editLabel.toLowerCase()} for your business`
-                  : `Update the ${editLabel.toLowerCase()} for your business`}
+                  : isMetaField
+                    ? `Add key-value pairs for your meta settings`
+                    : `Update the ${editLabel.toLowerCase()} for your business`}
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 py-4">
               {isImageUpload ? (
-                // Image Upload Section
                 <div className="space-y-4">
                   {preview ? (
                     <div className="relative">
@@ -791,20 +1153,53 @@ const SettingsView = () => {
                     </Alert>
                   )}
                 </div>
-              ) : // Regular Input
-              editKey === "abouts.title" ? (
+              ) : isMetaField ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 grid grid-cols-2 gap-2">
+                      <Input
+                        value={newMetaKey}
+                        onChange={(e) => setNewMetaKey(e.target.value)}
+                        placeholder="Enter key"
+                        className="bg-white"
+                      />
+                      <Input
+                        value={newMetaValue}
+                        onChange={(e) => setNewMetaValue(e.target.value)}
+                        placeholder="Enter value"
+                        className="bg-white"
+                      />
+                    </div>
+                    <Button
+                      onClick={handleAddMetaEntry}
+                      size="sm"
+                      className="gap-1"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add
+                    </Button>
+                  </div>
+
+                  <div className="border rounded-lg p-4 bg-gray-50/50">
+                    {renderMetaEntries()}
+                  </div>
+
+                  {metaEntries.length > 0 && (
+                    <div className="bg-blue-50 rounded-lg p-3">
+                      <p className="text-xs text-blue-700">
+                        <strong>{metaEntries.length}</strong> meta entries
+                        configured
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : isJsonField ? (
                 <Textarea
                   value={editValue}
                   onChange={(e) => setEditValue(e.target.value)}
-                  placeholder={`Enter ${editLabel.toLowerCase()}`}
-                  rows={4}
-                  className="resize-none"
-                />
-              ) : editKey === "module_order" ? (
-                <Input
-                  value={editValue}
-                  onChange={(e) => setEditValue(e.target.value)}
-                  placeholder="e.g., ['slider','photos','video']"
+                  placeholder={`Enter ${editLabel.toLowerCase()} in JSON format`}
+                  rows={8}
+                  className="resize-none font-mono text-sm"
                 />
               ) : (
                 <Input
@@ -814,10 +1209,21 @@ const SettingsView = () => {
                 />
               )}
 
-              {!isImageUpload && (
+              {!isImageUpload && !isJsonField && !isMetaField && (
                 <p className="text-xs text-muted-foreground">
                   This will update the {editLabel.toLowerCase()} for your
                   business
+                </p>
+              )}
+              {isJsonField && (
+                <p className="text-xs text-muted-foreground">
+                  Enter valid JSON format for the {editLabel.toLowerCase()}
+                </p>
+              )}
+              {isMetaField && (
+                <p className="text-xs text-muted-foreground">
+                  Add key-value pairs for your meta settings. These will be
+                  stored as JSON.
                 </p>
               )}
             </div>
@@ -828,6 +1234,9 @@ const SettingsView = () => {
                 onClick={() => {
                   setEditModalOpen(false);
                   resetImage();
+                  setMetaEntries([]);
+                  setNewMetaKey("");
+                  setNewMetaValue("");
                 }}
               >
                 Cancel
@@ -835,7 +1244,9 @@ const SettingsView = () => {
               <Button
                 onClick={handleSave}
                 disabled={
-                  updateLoading || (isImageUpload && !imageBase64 && !editValue)
+                  updateLoading ||
+                  (isImageUpload && !imageBase64 && !editValue) ||
+                  (isMetaField && metaEntries.length === 0)
                 }
                 className="gap-2"
               >

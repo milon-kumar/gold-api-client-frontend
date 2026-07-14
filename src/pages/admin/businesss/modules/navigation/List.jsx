@@ -418,16 +418,18 @@ const PageListing = () => {
                         <Edit2 className="mr-2 h-4 w-4" />
                         Edit
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-red-600"
-                        onClick={() => {
-                          setSelectedPage(page);
-                          setOpenDeleteModal(true);
-                        }}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuItem>
+                      {page?.is_deletable && (
+                        <DropdownMenuItem
+                          className="text-red-600"
+                          onClick={() => {
+                            setSelectedPage(page);
+                            setOpenDeleteModal(true);
+                          }}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
@@ -497,10 +499,19 @@ const PageListing = () => {
             Manage your website pages and their hierarchy
           </p>
         </div>
-        <Button onClick={onCreate}>
-          <Plus className="mr-2 h-4 w-4" />
-          Create Page
-        </Button>
+        <div className="flex gap-3">
+          <Button onClick={() => navigate("/admin/settings/themes")}>
+            Theme builder
+          </Button>
+
+          <Button onClick={() => navigate("/admin/navigations/builder")}>
+            Nav and footer builder
+          </Button>
+          <Button onClick={onCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create Page
+          </Button>
+        </div>
       </div>
 
       {/* Search and Filters */}

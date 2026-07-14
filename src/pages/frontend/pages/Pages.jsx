@@ -21,7 +21,7 @@ const Pages = () => {
         isLoading,
         refetch,
     } = useApiQuery({
-        url: `/page/${slug}`,
+        url: `/page-by-slug/${slug}`,
         enabled: false,
     });
 
@@ -31,15 +31,13 @@ const Pages = () => {
         }
     }, [slug]);
 
-    const pageContent =
-        data?.data?.page_data;
+    const pageContent = data?.data;
 
-    console.log("pageContent", pageContent);
+    console.log("pageContent", data);
 
-    // ✅ Loading State
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center h-[300px]">
+            <div className="flex items-center justify-center h-75">
                 <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
         );

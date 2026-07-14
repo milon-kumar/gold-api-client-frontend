@@ -58,8 +58,13 @@ import SocialActivitiesSave from "@/pages/admin/businesss/modules/social-activit
 
 import NavigationList from "@/pages/admin/businesss/modules/navigation/List.jsx"
 import NavigationSave from "@/pages/admin/businesss/modules/navigation/save/Save.jsx"
+import NavigationBuilder from "@/pages/admin/businesss/modules/navigation/builder/Builder.jsx"
+import CustomPageBuilder from "@/pages/admin/businesss/modules/navigation/builder/CustomPageBuilder.jsx"
 
 import Settings from "@/pages/admin/businesss/modules/settings";
+
+import Themes from "@/pages/admin/businesss/modules/aperience/Themes";
+import ThemeBuilder from "@/pages/admin/businesss/modules/aperience/ThemeBuilder";
 
 // import Error404 from "@/pages/Error404";
 
@@ -256,6 +261,22 @@ const router = createBrowserRouter([
                     {
                         path: "navigations/save/:id?",
                         element:<NavigationSave/>
+                    },
+                    {
+                        path: "navigations/builder",
+                        element:<NavigationBuilder/>
+                    },
+                    {
+                        path: "navigations/custom-page/:id?",
+                        element: <CustomPageBuilder/>
+                    },
+                    {
+                        path: "settings/themes",
+                        element: <Themes/>
+                    },
+                    {
+                        path: "settings/themes/builder/:id?",
+                        element: <ThemeBuilder/>
                     }
                 ]
             }

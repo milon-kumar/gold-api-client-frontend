@@ -80,9 +80,14 @@ const pageTypes = [
     value: "custom",
     icon: "Link2",
   },
+  // {
+  //   label: "Link",
+  //   value: "link",
+  //   icon: "FilePenLine",
+  // },
   {
-    label: "Link",
-    value: "link",
+    label: "Custom Page",
+    value: "custom_page",
     icon: "FilePenLine",
   },
 ];
@@ -346,6 +351,10 @@ const SavePage = () => {
     method: "POST",
   });
 
+  const handelPageCustomize = () =>{
+    navigate(`/admin/navigations/custom-page/${pageGetQuery.data.id}`)
+  }
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -373,6 +382,9 @@ const SavePage = () => {
       const response = await pagePostMutation(payload);
       console.log("What is the response - ", response);
       if (response?.success) {
+        if (response.data.page_type === "custom_page") {
+          navigate("/admin/navigations/custom-page");
+        }
         toast.success(response?.message || "Page saved successfully!");
         navigate("/admin/navigations");
       } else {
@@ -439,12 +451,22 @@ const SavePage = () => {
           }
           showBackButton={true}
           onBackClick={() => navigate("/admin/navigations")}
+             secondaryAction={
+            pageGetQuery?.data?.page_type === "custom_page" && {
+              onClick: handelPageCustomize,
+              disabled: pagePostLoading,
+              icon: "save",
+              title: "Customize Page",
+              variant: "default",
+            }
+          }
           primaryAction={{
             onClick: handleSubmit,
             disabled: pagePostLoading,
             icon: "save",
             title: id && id !== "new" ? "Update Page" : "Create Page",
           }}
+       
         />
 
         <form onSubmit={handleSubmit}>
