@@ -1,72 +1,52 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Eye,
-  EyeOff,
-  LayoutTemplate,
-  Palette,
-  Plus,
-  Settings2,
-  Sparkles,
-  Trash2,
-  Wand2,
-} from "lucide-react";
+import { LayoutTemplate, Wand2 } from "lucide-react";
 import { toast } from "sonner";
+import { useParams } from "react-router";
 import { useApiQuery } from "@/hooks/useAppQuery";
-import CustomPageLeftControl from "./partials/CustomPageLeftControlPanel";
+import { useApiMutation } from "@/hooks/useAppMutation";
+import { setByPath } from "@/lib/builderHelper";
+import { migrateComponent, reorderArray } from "@/lib/builderHelper";
+import CustomPageLeftControlPanel from "./partials/CustomPageLeftControlPanel";
 import CustomPageRightControlPanel from "./partials/CustomPageRightControlPanel";
 import CustomPagePreviewControlPanel from "./partials/CustomPagePreviewControlPanel";
-import { setByPath } from "@/lib/helper";
-import { useParams } from "react-router";
-import { useApiMutation } from "@/hooks/useAppMutation";
 
 const CustomPageBuilder = () => {
-  // All hooks must be called unconditionally at the top level
-  const { data: navs } = useApiQuery({
-    url: "/admin/navbars/list",
-  });
-
   const { id } = useParams();
+
   const { data: pageResponse, isLoading: pageLoading } = useApiQuery({
     url: `/admin/pages/${id}`,
     enabled: !!id,
   });
 
-  const { mutate: pageMetaMutation, isLoading: pageMetaLoading } =
-    useApiMutation({
-      url: "/admin/pages",
-      method: "POST",
-    });
+  const { mutate: pageMetaMutation } = useApiMutation({
+    url: "/admin/pages",
+    method: "POST",
+  });
 
   const [themeName, setThemeName] = useState("Dynamic Theme");
   const [sections, setSections] = useState([]);
   const [selectedSectionId, setSelectedSectionId] = useState(null);
   const [selectedComponentId, setSelectedComponentId] = useState(null);
 
-  useMemo(() => {
+  /* Load saved config (useMemo নয় — side effect তাই useEffect) */
+  useEffect(() => {
     if (pageResponse?.data?.meta) {
       try {
         const pageMeta = JSON.parse(pageResponse.data.meta);
-        console.log("pageMeta", pageMeta);
         if (pageMeta?.page_config) {
-          setSections(pageMeta.page_config);
+          const parsed =
+            typeof pageMeta.page_config === "string"
+              ? JSON.parse(pageMeta.page_config)
+              : pageMeta.page_config;
+          setSections(parsed);
         }
       } catch (error) {
         console.error("Failed to parse page meta:", error);
@@ -76,7 +56,7 @@ const CustomPageBuilder = () => {
 
   if (pageLoading) {
     return (
-      <div className="h-full flex justify-center items-center">Loading...</div>
+      <div className="flex h-full items-center justify-center">Loading...</div>
     );
   }
 
@@ -88,112 +68,108 @@ const CustomPageBuilder = () => {
         page_config: JSON.stringify(sections),
       },
     };
-
-    const response = await pageMetaMutation(payload);
-    console.log("clicked on save theme - ", {
-      payload,
-      response,
-    });
-
+    await pageMetaMutation(payload);
     toast.success(`Theme saved: ${themeName}`);
   };
 
-  const handleAddSection = (section) => {
+  /* ---------------- Section handlers ---------------- */
+
+  const handleAddSection = (section) =>
     setSections((prev) => [...prev, section]);
-  };
 
   const handleRemoveSection = (section) => {
     setSections((prev) => prev.filter((item) => item.id !== section.id));
+    if (selectedSectionId === section.id) {
+      setSelectedSectionId(null);
+      setSelectedComponentId(null);
+    }
   };
 
-  const handleToggleVisibleSection = (section) => {
+  const handleToggleVisibleSection = (section) =>
     setSections((prev) =>
       prev.map((item) =>
         item.id === section.id
-          ? {
-              ...item,
-              is_visible: !item.is_visible,
-            }
+          ? { ...item, is_visible: !item.is_visible }
           : item,
       ),
     );
-  };
 
-  const handleAddComponent = (sectionId, component) => {
+  const handleReorderSection = (fromIndex, toIndex) =>
+    setSections((prev) => reorderArray(prev, fromIndex, toIndex));
+
+  /* ---------------- Component handlers ---------------- */
+
+  const updateSection = (sectionId, updater) =>
     setSections((prev) =>
       prev.map((section) =>
-        section.id === sectionId
-          ? {
-              ...section,
-              components: [...section.components, component],
-            }
-          : section,
+        section.id === sectionId ? updater(section) : section,
       ),
     );
-  };
+
+  const handleAddComponent = (sectionId, component) =>
+    updateSection(sectionId, (section) => ({
+      ...section,
+      components: [...section.components, component],
+    }));
 
   const handleRemoveComponent = (sectionId, componentId) => {
-    setSections((prev) =>
-      prev.map((section) =>
-        section.id === sectionId
-          ? {
-              ...section,
-              components: section.components.filter(
-                (item) => item.id !== componentId,
-              ),
-            }
-          : section,
+    updateSection(sectionId, (section) => ({
+      ...section,
+      components: section.components.filter((item) => item.id !== componentId),
+    }));
+    if (selectedComponentId === componentId) setSelectedComponentId(null);
+  };
+
+  const handleToggleVisibleComponent = (sectionId, componentId) =>
+    updateSection(sectionId, (section) => ({
+      ...section,
+      components: section.components.map((component) =>
+        component.id === componentId
+          ? { ...component, is_visible: !component.is_visible }
+          : component,
       ),
-    );
-  };
+    }));
 
-  const handleToggleVisibleComponent = (sectionId, componentId) => {
-    setSections((prev) =>
-      prev.map((section) =>
-        section.id === sectionId
-          ? {
-              ...section,
-              components: section.components.map((component) =>
-                component.id === componentId
-                  ? {
-                      ...component,
-                      is_visible: !component.is_visible,
-                    }
-                  : component,
-              ),
-            }
-          : section,
+  const handleReorderComponent = (sectionId, fromIndex, toIndex) =>
+    updateSection(sectionId, (section) => ({
+      ...section,
+      components: reorderArray(section.components, fromIndex, toIndex),
+    }));
+
+  /* ---------------- Property panel handlers ---------------- */
+
+  /** যেকোনো field change: path যেমন "content.title" বা "settings.autoplay" */
+  const handleChange = (sectionId, componentId, path, value) =>
+    updateSection(sectionId, (section) => ({
+      ...section,
+      components: section.components.map((component) =>
+        component.id === componentId
+          ? setByPath(component, path, value)
+          : component,
       ),
-    );
-  };
+    }));
 
-  const handleChange = (sectionId, componentId, path, value) => {
-    console.log("handleChange - builder - ", {
-      sectionId,
-      componentId,
-      path,
-      value,
-    });
-    setSections((prev) =>
-      prev.map((section) => {
-        if (section.id !== sectionId) return section;
+  /** Type change → template reset to new type's default + fields migrate */
+  const handleChangeType = (sectionId, componentId, newType) =>
+    updateSection(sectionId, (section) => ({
+      ...section,
+      components: section.components.map((component) =>
+        component.id === componentId
+          ? migrateComponent(component, newType)
+          : component,
+      ),
+    }));
 
-        return {
-          ...section,
-          components: section.components.map((component) => {
-            if (component.id !== componentId) return component;
-
-            console.log("bulder handel change - ", {
-              component,
-              path,
-              value,
-            });
-            return setByPath(component, path, value);
-          }),
-        };
-      }),
-    );
-  };
+  /** Template change → নতুন template-এর configuration অনুযায়ী fields migrate */
+  const handleChangeTemplate = (sectionId, componentId, newTemplate) =>
+    updateSection(sectionId, (section) => ({
+      ...section,
+      components: section.components.map((component) =>
+        component.id === componentId
+          ? migrateComponent(component, component.type, newTemplate)
+          : component,
+      ),
+    }));
 
   return (
     <div className="space-y-6">
@@ -223,37 +199,49 @@ const CustomPageBuilder = () => {
           </div>
         </CardHeader>
       </Card>
-      
-      <div className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)_320px] h-[calc(100vh-120px)]">
-        <div className="sticky top-20 h-[calc(100vh-100px)] overflow-y-auto hide-scrollbar">
-            <CustomPageLeftControl
-              sections={sections}
-              onAddSection={handleAddSection}
-              onRemoveSection={handleRemoveSection}
-              onToggleVisibleSection={handleToggleVisibleSection}
-              onAddComponent={handleAddComponent}
-              onRemoveComponent={handleRemoveComponent}
-              onToggleVisibleComponent={handleToggleVisibleComponent}
-              setSelectedSectionId={setSelectedSectionId}
-              setSelectedComponentId={setSelectedComponentId}
-            />
+
+      <div className="grid h-[calc(100vh-120px)] gap-6 xl:grid-cols-[280px_minmax(0,1fr)_320px]">
+        {/* -------- Left: structure -------- */}
+        <div className="hide-scrollbar sticky top-20 h-[calc(100vh-100px)] overflow-y-auto">
+          <CustomPageLeftControlPanel
+            sections={sections}
+            selectedSectionId={selectedSectionId}
+            selectedComponentId={selectedComponentId}
+            onAddSection={handleAddSection}
+            onRemoveSection={handleRemoveSection}
+            onToggleVisibleSection={handleToggleVisibleSection}
+            onReorderSection={handleReorderSection}
+            onAddComponent={handleAddComponent}
+            onRemoveComponent={handleRemoveComponent}
+            onToggleVisibleComponent={handleToggleVisibleComponent}
+            onReorderComponent={handleReorderComponent}
+            setSelectedSectionId={setSelectedSectionId}
+            setSelectedComponentId={setSelectedComponentId}
+          />
         </div>
 
-        {/* <div className="sticky top-20 h-[calc(100vh-100px)] overflow-y-auto hide-scrollbar">
+        {/* -------- Middle: live preview -------- */}
+        <div className="hide-scrollbar sticky top-20 h-[calc(100vh-100px)] overflow-y-auto">
           <CustomPagePreviewControlPanel
             sections={sections}
             selectedSectionId={selectedSectionId}
             selectedComponentId={selectedComponentId}
+            setSelectedSectionId={setSelectedSectionId}
+            setSelectedComponentId={setSelectedComponentId}
           />
         </div>
-        <div className="sticky top-20 h-[calc(100vh-100px)] overflow-y-auto hide-scrollbar">
+
+        {/* -------- Right: dynamic property panel -------- */}
+        <div className="hide-scrollbar sticky top-20 h-[calc(100vh-100px)] overflow-y-auto">
           <CustomPageRightControlPanel
             sections={sections}
             selectedSectionId={selectedSectionId}
             selectedComponentId={selectedComponentId}
             handleChange={handleChange}
+            onChangeType={handleChangeType}
+            onChangeTemplate={handleChangeTemplate}
           />
-        </div> */}
+        </div>
       </div>
     </div>
   );

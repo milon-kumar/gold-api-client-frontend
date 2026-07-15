@@ -1,98 +1,106 @@
-import HeroRenderer from "@/components/frontend/hero/HeroRenderer";
-import SplitCardRenderer from "@/components/frontend/split-card/SplitCardRenderer";
-import React, { useState, useMemo } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { MonitorPlay } from "lucide-react";
+import { getComponentConfig } from "@/store/default/componentRegistry";
+import { getRenderer } from "../renderers";
 
+/**
+ * =====================================================================
+ * MIDDLE PANEL — Live Preview
+ * =====================================================================
+ * - সব visible Section ও Component render করে
+ * - Selected Section / Component highlight হয়
+ * - State change হলে সাথে সাথে re-render (instant update, no reload)
+ * - Preview-তে click করলেও select করা যায় (bonus)
+ * =====================================================================
+ */
 const CustomPagePreviewControlPanel = ({
   sections,
   selectedSectionId,
   selectedComponentId,
+  setSelectedSectionId,
+  setSelectedComponentId,
 }) => {
-  const selectedSection = useMemo(() => {
-    return sections.find((section) => section.id === selectedSectionId) ?? null;
-  }, [sections, selectedSectionId]);
+  const visibleSections = sections.filter((s) => s.is_visible);
 
-  const selectedComponent = useMemo(() => {
-    if (!selectedComponentId) return null;
-
-    for (const section of sections) {
-      const component = section.components?.find(
-        (component) => component.id === selectedComponentId,
-      );
-
-      if (component) {
-        return component;
-      }
-    }
-
-    return null;
-  }, [sections, selectedComponentId]);
-
-  const ComponentRenderer = ({ component }) => {
-    switch (component.type) {
-      case "banner":
-      case "carousel":
-        return (
-          <HeroRenderer
-            sectionType={component.type}
-            template={component.template}
-            settings={component.settings}
-          />
-        );
-
-      case "information":
-        return <Information selectedComponent={component} />;
-
-      case "list":
-        return <List settings={component.settings} />;
-      default:
-        return null;
-    }
-  };
+  if (!visibleSections.length) {
+    return (
+      <Card className="h-full">
+        <CardContent className="flex h-full flex-col items-center justify-center gap-2 py-16 text-center">
+          <MonitorPlay className="h-8 w-8 text-muted-foreground/50" />
+          <p className="text-sm font-medium">Nothing to preview</p>
+          <p className="text-xs text-muted-foreground">
+            Add a section and some components to see the live preview.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <div className="">
-      {sections
-        .filter((section) => section.is_visible)
-        .map((section) => (
-          <div key={section.id}>
+    <Card className="bg-slate-50">
+      <CardContent className="space-y-6 p-4">
+        {visibleSections.map((section) => (
+          <div
+            key={section.id}
+            onClick={() => {
+              setSelectedSectionId?.(section.id);
+              setSelectedComponentId?.(null);
+            }}
+            className={cn(
+              "space-y-4 rounded-lg p-2 transition-shadow",
+              selectedSectionId === section.id && !selectedComponentId
+                ? "border border-primary border-dashed"
+                : "ring-1 ring-transparent",
+            )}
+          >
             {section.components
-              ?.filter((component) => component.is_visible)
-              .map((component) => (
-                <ComponentRenderer key={component.id} component={component} />
-              ))}
+              .filter((c) => c.is_visible)
+              .map((component) => {
+                const config = getComponentConfig(component.component);
+                const Renderer = getRenderer(config?.renderer);
+
+                return (
+                  <div
+                    key={component.id}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedSectionId?.(section.id);
+                      setSelectedComponentId?.(component.id);
+                    }}
+                    className={cn(
+                      "cursor-pointer rounded-lg transition-shadow",
+                      selectedComponentId === component.id
+                        ? "border border-primary border-dashed"
+                        : "hover:ring-1 hover:ring-primary/30",
+                    )}
+                  >
+                    {Renderer ? (
+                      <Renderer
+                        type={component.type}
+                        template={component.template}
+                        content={component.content}
+                        settings={component.settings}
+                      />
+                    ) : (
+                      <div className="rounded border border-dashed p-6 text-center text-xs text-muted-foreground">
+                        No renderer registered for “{component.component}”
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+            {section.components.filter((c) => c.is_visible).length === 0 && (
+              <div className="rounded border border-dashed p-8 text-center text-xs text-muted-foreground">
+                {section.name} — empty section
+              </div>
+            )}
           </div>
         ))}
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
 export default CustomPagePreviewControlPanel;
-
-const Information = ({ selectedComponent }) => {
-  const template = selectedComponent.template;
-  const component = selectedComponent?.[template];
-
-  if (!component) return null;
-
-  const { content = {}, style = {} } = component;
-
-  return (
-    <SplitCardRenderer
-      showSectionHeader={false}
-      showFounder={true}
-      imagePosition="left"
-      sectionBgColor="bg-white"
-      historyTitle={content.title}
-      historyContent={content.fullDescription || content.shortDescription}
-      image={{
-        src: content.imageFullPath || content.image,
-        alt: content.title,
-      }}
-      {...style}
-    />
-  );
-};
-
-const List = () => {
-  return <div>List Preview</div>;
-};

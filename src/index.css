@@ -8,6 +8,13 @@ body[data-scroll-locked] {
 
 :root {
   --radius: 5px;
+  body[data-scroll-locked][data-scroll-locked] {
+    overflow: auto !important;
+  }
+  
+  body[data-scroll-locked] {
+    margin-right: 0 !important;
+  }
 }
 
 @import "tailwindcss";

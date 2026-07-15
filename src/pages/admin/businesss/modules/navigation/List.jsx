@@ -369,7 +369,7 @@ const PageListing = () => {
             <React.Fragment key={page.id}>
               <TableRow>
                 <TableCell>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 cursor-pointer" onClick={() => onEdit(page)}>
                     {page.children?.length > 0 && (
                       <Button
                         variant="ghost"

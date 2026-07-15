@@ -14,7 +14,7 @@ export const formatDate = (date, format = "DD MMM YY", locale = "en") => {
 
 export const getWords = (text, limit = 20) => {
   if (!text) return "";
-  return text.trim().split(/\s+/).slice(0, limit).join(" ");
+  return text.trim().split(/\s+/).slice(0, limit).join(" ")+" ...";
 };
 
 export const getHtmlContent = (data, limit) => {
