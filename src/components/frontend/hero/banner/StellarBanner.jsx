@@ -1,375 +1,541 @@
-import React, { useEffect, useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { ArrowRight, Play, Users, BookOpen, Heart, Mic, Sparkles, Star, Zap } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import { motion } from "framer-motion";
+import {
+  ArrowRight,
+  Play,
+  Star,
+  Sparkles,
+  Shield,
+  Zap,
+  Rocket,
+  Globe,
+  Users,
+  Award,
+  TrendingUp,
+  Clock,
+  Coffee,
+  Briefcase,
+  Code,
+  Heart,
+  BookOpen,
+  Mic,
+} from "lucide-react";
 
-const stats = [
-    { icon: Users, value: '৫০,০০০+', label: 'সদস্য', color: 'from-primary to-emerald-400' },
-    { icon: BookOpen, value: '১,২০০+', label: 'প্রোগ্রাম', color: 'from-amber-400 to-orange-500' },
-    { icon: Heart, value: '৩০০+', label: 'সেবা প্রকল্প', color: 'from-rose-400 to-pink-500' },
-    { icon: Mic, value: '৮০০+', label: 'বয়ান', color: 'from-violet-400 to-purple-500' },
-];
-
-// Animated particle component
-const FloatingParticle = ({ delay, duration, x, y, size, color }) => (
-    <motion.div
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ 
-            opacity: [0, 0.5, 0],
-            scale: [0, 1, 0],
-            x: [x, x + (Math.random() - 0.5) * 100],
-            y: [y, y + (Math.random() - 0.5) * 100]
-        }}
-        transition={{ 
-            duration: duration,
-            delay: delay,
-            repeat: Infinity,
-            repeatType: "loop",
-            ease: "easeInOut"
-        }}
-        className="absolute rounded-full"
-        style={{
-            width: size,
-            height: size,
-            background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
-            filter: 'blur(2px)'
-        }}
-    />
-);
-
-// Animated shape component
-const AnimatedShape = ({ type, delay, duration, x, y, color, size }) => {
-    const shapes = {
-        circle: (size) => (
-            <div 
-                className="rounded-full border-2"
-                style={{ width: size, height: size, borderColor: color }}
-            />
-        ),
-        square: (size) => (
-            <div 
-                className="border-2 rotate-45"
-                style={{ width: size, height: size, borderColor: color }}
-            />
-        ),
-        triangle: (size) => (
-            <div 
-                className="triangle"
-                style={{ 
-                    width: 0,
-                    height: 0,
-                    borderLeft: `${size/2}px solid transparent`,
-                    borderRight: `${size/2}px solid transparent`,
-                    borderBottom: `${size}px solid ${color}`,
-                    opacity: 0.3
-                }}
-            />
-        ),
-        ring: (size) => (
-            <div 
-                className="rounded-full border"
-                style={{ width: size, height: size, borderColor: color, borderWidth: '2px' }}
-            />
-        )
-    };
-
-    return (
-        <motion.div
-            className="absolute"
-            style={{ x, y }}
-            animate={{
-                x: [x, x + 20, x - 20, x],
-                y: [y, y - 20, y + 20, y],
-                rotate: [0, 180, 360],
-                scale: [1, 1.2, 0.8, 1]
-            }}
-            transition={{
-                duration: duration,
-                delay: delay,
-                repeat: Infinity,
-                repeatType: "reverse",
-                ease: "easeInOut"
-            }}
-        >
-            {shapes[type](size)}
-        </motion.div>
-    );
+// Icon mapping for dynamic icons
+const iconMap = {
+  Users: Users,
+  Award: Award,
+  Globe: Globe,
+  TrendingUp: TrendingUp,
+  Star: Star,
+  Rocket: Rocket,
+  Clock: Clock,
+  Coffee: Coffee,
+  Briefcase: Briefcase,
+  Code: Code,
+  Sparkles: Sparkles,
+  Shield: Shield,
+  Zap: Zap,
+  Heart: Heart,
+  BookOpen: BookOpen,
+  Mic: Mic,
 };
 
-export default function HeroSection({ ...rest }) {
-    const containerRef = useRef(null);
-    const { scrollYProgress } = useScroll({
-        target: containerRef,
-        offset: ["start start", "end start"]
-    });
+// Floating Star Particles
+const StarParticle = ({ delay, duration, x, y, size, color, rotation }) => (
+  <motion.div
+    className="absolute"
+    style={{
+      left: x,
+      top: y,
+      width: size,
+      height: size,
+      color: color,
+    }}
+    initial={{ opacity: 0, rotate: 0 }}
+    animate={{
+      opacity: [0, 1, 0],
+      scale: [0, 1.5, 0],
+      rotate: [0, rotation || 360],
+      y: [0, -80, -160],
+    }}
+    transition={{
+      duration: duration,
+      delay: delay,
+      repeat: Infinity,
+      ease: "easeOut",
+    }}
+  >
+    <Star size={size} fill="currentColor" stroke="none" />
+  </motion.div>
+);
 
-    const y = useTransform(scrollYProgress, [0, 1], [0, 200]);
-    const opacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
+// Floating Orb
+const Orb = ({ color, size, x, y, delay, duration }) => (
+  <motion.div
+    className="absolute rounded-full blur-3xl"
+    style={{
+      width: size,
+      height: size,
+      background: `radial-gradient(circle, ${color}40, ${color}10)`,
+      left: x,
+      top: y,
+    }}
+    animate={{
+      scale: [1, 1.3, 1],
+      x: [0, 30, 0],
+      y: [0, -20, 0],
+      opacity: [0.3, 0.6, 0.3],
+    }}
+    transition={{
+      duration: duration,
+      delay: delay,
+      repeat: Infinity,
+      ease: "easeInOut",
+    }}
+  />
+);
 
-    return (
-        <section 
-            ref={containerRef}
-            className="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900"
-            style={{
-                background: 'radial-gradient(ellipse at top, rgba(139, 92, 246, 0.15), transparent), radial-gradient(ellipse at bottom, rgba(6, 182, 212, 0.1), transparent)'
-            }}
-        >
-            {/* Animated Background Particles */}
-            <div className="absolute inset-0 overflow-hidden">
-                {/* Floating particles */}
-                {[...Array(30)].map((_, i) => (
-                    <FloatingParticle
-                        key={`particle-${i}`}
-                        delay={i * 0.5}
-                        duration={5 + (i % 5)}
-                        x={`${Math.random() * 100}%`}
-                        y={`${Math.random() * 100}%`}
-                        size={2 + (i % 8)}
-                        color={i % 3 === 0 ? 'rgba(139, 92, 246, 0.6)' : i % 3 === 1 ? 'rgba(6, 182, 212, 0.6)' : 'rgba(236, 72, 153, 0.6)'}
-                    />
-                ))}
+// Constellation lines
+const Constellation = () => (
+  <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-10">
+    <motion.line
+      x1="10%"
+      y1="20%"
+      x2="30%"
+      y2="40%"
+      stroke="white"
+      strokeWidth="1"
+      initial={{ pathLength: 0 }}
+      animate={{ pathLength: 1 }}
+      transition={{ duration: 2, delay: 0.5 }}
+    />
+    <motion.line
+      x1="30%"
+      y1="40%"
+      x2="50%"
+      y2="25%"
+      stroke="white"
+      strokeWidth="1"
+      initial={{ pathLength: 0 }}
+      animate={{ pathLength: 1 }}
+      transition={{ duration: 2, delay: 1 }}
+    />
+    <motion.line
+      x1="50%"
+      y1="25%"
+      x2="70%"
+      y2="45%"
+      stroke="white"
+      strokeWidth="1"
+      initial={{ pathLength: 0 }}
+      animate={{ pathLength: 1 }}
+      transition={{ duration: 2, delay: 1.5 }}
+    />
+    <motion.line
+      x1="70%"
+      y1="45%"
+      x2="90%"
+      y2="30%"
+      stroke="white"
+      strokeWidth="1"
+      initial={{ pathLength: 0 }}
+      animate={{ pathLength: 1 }}
+      transition={{ duration: 2, delay: 2 }}
+    />
+    <motion.circle cx="10%" cy="20%" r="3" fill="white" />
+    <motion.circle cx="30%" cy="40%" r="3" fill="white" />
+    <motion.circle cx="50%" cy="25%" r="3" fill="white" />
+    <motion.circle cx="70%" cy="45%" r="3" fill="white" />
+    <motion.circle cx="90%" cy="30%" r="3" fill="white" />
+  </svg>
+);
 
-                {/* Animated geometric shapes */}
-                <AnimatedShape 
-                    type="circle" 
-                    delay={0} 
-                    duration={8} 
-                    x="10%" 
-                    y="20%" 
-                    color="rgba(139, 92, 246, 0.3)"
-                    size={80}
-                />
-                <AnimatedShape 
-                    type="square" 
-                    delay={1} 
-                    duration={12} 
-                    x="85%" 
-                    y="15%" 
-                    color="rgba(6, 182, 212, 0.3)"
-                    size={60}
-                />
-                <AnimatedShape 
-                    type="ring" 
-                    delay={2} 
-                    duration={10} 
-                    x="75%" 
-                    y="70%" 
-                    color="rgba(236, 72, 153, 0.3)"
-                    size={100}
-                />
-                <AnimatedShape 
-                    type="triangle" 
-                    delay={1.5} 
-                    duration={9} 
-                    x="15%" 
-                    y="80%" 
-                    color="rgba(245, 158, 11, 0.3)"
-                    size={50}
-                />
-                <AnimatedShape 
-                    type="circle" 
-                    delay={0.5} 
-                    duration={15} 
-                    x="50%" 
-                    y="85%" 
-                    color="rgba(139, 92, 246, 0.2)"
-                    size={120}
-                />
+// Glowing ring
+const GlowingRing = ({ delay = 0 }) => (
+  <motion.div
+    className="absolute rounded-full border border-white/10"
+    style={{
+      width: "500px",
+      height: "500px",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+    }}
+    animate={{
+      scale: [1, 1.2, 1],
+      rotate: [0, 180, 360],
+      opacity: [0.1, 0.3, 0.1],
+    }}
+    transition={{
+      duration: 20,
+      delay: delay,
+      repeat: Infinity,
+      ease: "linear",
+    }}
+  />
+);
 
-                {/* Glowing orbs */}
+const IconRenderer = ({ icon: Icon, size, color, className }) => {
+  if (!Icon) return null;
+  const IconComponent = typeof Icon === 'string' ? iconMap[Icon] || Star : Icon;
+  return <IconComponent size={size} color={color} className={className} />;
+};
+
+export default function StellarBanner({ 
+  content = {},
+  className = "",
+}) {
+    console.log("content - ",content)
+
+  const {
+    slogan = "Welcome",
+    title = "Build Your Future",
+    subtitle = "Simple, modern, and powerful solutions.",
+    primaryButtonTitle = "Get Started",
+    primaryButtonLink = "/about",
+    secondaryButtonTitle = "Learn More",
+    secondaryButtonLink = "/contact",
+    items = [],
+    theme = "cosmic",
+  } = content;
+
+  // Process title for animated display
+  const words = title?.trim().split(/\s+/) || [];
+  const firstWord = words[0] || "";
+  const secondPart = words.slice(1, 3).join(" ");
+  const restWords = words.slice(3).join(" ");
+
+  // Theme colors
+  const themes = {
+    cosmic: {
+      bg: "from-gray-900 via-indigo-950 to-purple-950",
+      accent: "from-purple-500 to-pink-500",
+      primary: "from-blue-500 to-cyan-400",
+      glow: "from-blue-500/30 to-purple-500/30",
+      particles: ["#818CF8", "#C084FC", "#F472B6", "#34D399", "#60A5FA"],
+      button: "from-purple-500 to-pink-500",
+    },
+    nebula: {
+      bg: "from-slate-900 via-blue-950 to-indigo-950",
+      accent: "from-indigo-500 to-purple-500",
+      primary: "from-cyan-400 to-blue-500",
+      glow: "from-cyan-500/30 to-indigo-500/30",
+      particles: ["#22D3EE", "#818CF8", "#C084FC", "#F472B6", "#34D399"],
+      button: "from-cyan-500 to-blue-500",
+    },
+    galaxy: {
+      bg: "from-black via-purple-950 to-pink-950",
+      accent: "from-pink-500 to-rose-500",
+      primary: "from-purple-400 to-pink-400",
+      glow: "from-purple-500/30 to-pink-500/30",
+      particles: ["#D946EF", "#F472B6", "#60A5FA", "#A78BFA", "#34D399"],
+      button: "from-pink-500 to-rose-500",
+    },
+  };
+
+  const currentTheme = themes[theme] || themes.cosmic;
+
+  // Stats data from items or default
+  const defaultItems = [
+    { _id: 1, count: 50000, title: "Users", icon: "Users" },
+    { _id: 2, count: 1200, title: "Programs", icon: "BookOpen" },
+    { _id: 3, count: 300, title: "Projects", icon: "Heart" },
+    { _id: 4, count: 800, title: "Speeches", icon: "Mic" },
+  ];
+
+  const statsData = (items?.length > 0 ? items : defaultItems).map((item, index) => ({
+    id: item._id || index,
+    total: item.count || 0,
+    title: item.title || "Stat",
+    icon: iconMap[item.icon] || Star,
+    color: [
+      "from-blue-500 to-cyan-500",
+      "from-purple-500 to-pink-500",
+      "from-emerald-500 to-green-500",
+      "from-orange-500 to-amber-500",
+    ][index % 4],
+    gradient: [
+      "from-blue-500/20 to-cyan-500/20",
+      "from-purple-500/20 to-pink-500/20",
+      "from-emerald-500/20 to-green-500/20",
+      "from-orange-500/20 to-amber-500/20",
+    ][index % 4],
+  }));
+
+  return (
+    <section className={`relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br ${currentTheme.bg} ${className}`}>
+      {/* Background Effects */}
+      <div className="absolute inset-0">
+        {/* Primary Orbs */}
+        <Orb 
+          color="#818CF8" 
+          size="600px" 
+          x="-10%" 
+          y="-20%" 
+          delay={0} 
+          duration={10}
+        />
+        <Orb 
+          color="#C084FC" 
+          size="500px" 
+          x="70%" 
+          y="60%" 
+          delay={2} 
+          duration={12}
+        />
+        <Orb 
+          color="#F472B6" 
+          size="400px" 
+          x="50%" 
+          y="-10%" 
+          delay={4} 
+          duration={8}
+        />
+
+        {/* Glowing Rings */}
+        <GlowingRing delay={0} />
+        <GlowingRing delay={5} />
+        <GlowingRing delay={10} />
+
+        {/* Constellation */}
+        <Constellation />
+
+        {/* Star Particles */}
+        {[...Array(30)].map((_, i) => (
+          <StarParticle
+            key={i}
+            delay={i * 0.3}
+            duration={4 + Math.random() * 3}
+            size={4 + Math.random() * 8}
+            x={`${Math.random() * 100}%`}
+            y={`${Math.random() * 100}%`}
+            color={currentTheme.particles[Math.floor(Math.random() * currentTheme.particles.length)]}
+            rotation={180 + Math.random() * 180}
+          />
+        ))}
+
+        {/* Grid Pattern */}
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            backgroundSize: "30px 30px",
+          }}
+        />
+      </div>
+
+      {/* Main Content */}
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-28 pb-16 w-full z-10">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+          {/* Left Column - Text Content */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            {/* Slogan Badge */}
+            {slogan && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 mb-6"
+              >
+                <Sparkles className="w-4 h-4 text-cyan-400" />
+                <span className="text-cyan-400 text-sm font-medium tracking-wider">
+                  {slogan}
+                </span>
                 <motion.div
-                    className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-purple-500/20 blur-3xl"
-                    animate={{
-                        scale: [1, 1.2, 1],
-                        x: [0, 50, 0],
-                        y: [0, -30, 0]
-                    }}
-                    transition={{
-                        duration: 10,
-                        repeat: Infinity,
-                        repeatType: "reverse"
-                    }}
+                  className="w-1.5 h-1.5 rounded-full bg-cyan-400"
+                  animate={{ scale: [1, 1.5, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
                 />
-                <motion.div
-                    className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-cyan-500/20 blur-3xl"
-                    animate={{
-                        scale: [1, 1.3, 1],
-                        x: [0, -40, 0],
-                        y: [0, 40, 0]
-                    }}
-                    transition={{
-                        duration: 12,
-                        repeat: Infinity,
-                        repeatType: "reverse"
-                    }}
-                />
+              </motion.div>
+            )}
 
-                {/* Grid pattern overlay */}
-                <div 
-                    className="absolute inset-0 opacity-[0.03]"
-                    style={{
-                        backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-                                        linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
-                        backgroundSize: '50px 50px'
-                    }}
-                />
+            {/* Title */}
+            <motion.h1
+              className="text-5xl sm:text-6xl lg:text-7xl font-black leading-tight"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              <span className="text-white">
+                {firstWord}
+              </span>
+              <br />
+              <span className={`bg-gradient-to-r ${currentTheme.accent} bg-clip-text text-transparent`}>
+                {secondPart}
+              </span>
+              <br />
+              {restWords && (
+                <span className="text-white/80">
+                  {restWords}
+                </span>
+              )}
+            </motion.h1>
+
+            {/* Subtitle */}
+            {subtitle && (
+              <motion.p
+                className="mt-6 text-lg text-white/60 max-w-lg leading-relaxed"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                {subtitle}
+              </motion.p>
+            )}
+
+            {/* Buttons */}
+            {(primaryButtonTitle || secondaryButtonTitle) && (
+              <motion.div
+                className="flex flex-wrap gap-4 mt-8"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+              >
+                {primaryButtonTitle && primaryButtonLink && (
+                  <motion.a
+                    href={primaryButtonLink}
+                    className="group relative inline-flex items-center px-8 py-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white font-medium shadow-xl shadow-purple-500/30 transition-all duration-300 overflow-hidden"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <span className="relative z-10 flex items-center">
+                      {primaryButtonTitle}
+                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                  </motion.a>
+                )}
+                {secondaryButtonTitle && secondaryButtonLink && (
+                  <motion.a
+                    href={secondaryButtonLink}
+                    className="group inline-flex items-center px-8 py-3 rounded-full border border-white/20 hover:border-white/40 hover:bg-white/5 transition-all duration-300 text-white font-medium"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Play className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                    {secondaryButtonTitle}
+                  </motion.a>
+                )}
+              </motion.div>
+            )}
+          </motion.div>
+
+          {/* Right Column - Stats Cards */}
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="relative"
+          >
+            <div className="grid grid-cols-2 gap-5 relative z-10">
+              {statsData.map((stat, i) => (
+                <motion.div
+                  key={stat.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 + i * 0.1 }}
+                  className="group relative"
+                >
+                  {/* Glow Effect */}
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
+                  />
+                  
+                  {/* Card */}
+                  <motion.div
+                    className={`relative p-6 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:border-white/20 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/10 ${
+                      i === 0 ? "lg:translate-y-8" : ""
+                    } ${i === 3 ? "lg:-translate-y-8" : ""}`}
+                    whileHover={{ scale: 1.03 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    {/* Icon */}
+                    <div
+                      className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-purple-500/20`}
+                    >
+                      <IconRenderer icon={stat.icon} size={24} color="white" />
+                    </div>
+                    
+                    {/* Count */}
+                    <motion.h3
+                      className="text-3xl sm:text-4xl font-black text-white"
+                      initial={{ scale: 0.5 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 0.7 + i * 0.1, type: "spring" }}
+                    >
+                      {stat.total.toLocaleString()}+
+                    </motion.h3>
+                    
+                    {/* Title */}
+                    <p className="text-sm text-white/60 mt-1">
+                      {stat.title}
+                    </p>
+                    
+                    {/* Hover Line */}
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-purple-500/50 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+                  </motion.div>
+                </motion.div>
+              ))}
             </div>
 
-            <motion.div 
-                style={{ y, opacity }}
-                className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-28 pb-16 w-full"
-            >
-                <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-                    {/* Left Content */}
-                    <motion.div
-                        initial={{ opacity: 0, x: -50 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.8 }}
-                    >
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.2 }}
-                            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-500/20 to-cyan-500/20 backdrop-blur-sm border border-purple-500/30 text-white text-sm font-medium mb-6"
-                        >
-                            <Sparkles className="w-4 h-4 text-purple-400" />
-                            <span className="font-bengali animate-pulse">দাওয়াহ ও তাবলীগের সেবায়</span>
-                            <Star className="w-3 h-3 text-cyan-400" />
-                        </motion.div>
-
-                        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black leading-tight font-bengali">
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400">
-                                গায়েবী মুসলিম
-                            </span>
-                            <br />
-                            <span className="text-white">পাহাড়ত্ব বন্ধু কত</span>
-                            <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">
-                                করতে হবে
-                            </span>
-                        </h1>
-
-                        <p className="mt-6 text-lg text-gray-300 max-w-lg leading-relaxed font-bengali backdrop-blur-sm">
-                            ইসলামিক দাওয়াহ ও শিক্ষামূলক কার্যক্রমের সবচেয়ে বড় ডিজিটাল প্ল্যাটফর্ম। 
-                            আমাদের সাথে যুক্ত হন এবং দ্বীনের খেদমতে অংশ নিন।
-                        </p>
-
-                        <div className="flex flex-wrap gap-3 mt-8">
-                            <motion.div
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                            >
-                                <Button className="bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700 text-white rounded-full px-8 py-6 text-base shadow-xl shadow-purple-500/30 font-bengali group">
-                                    শুরু করুন
-                                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                                </Button>
-                            </motion.div>
-                            <motion.div
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                            >
-                                <Button variant="outline" className="rounded-full px-8 py-6 text-base border-2 border-purple-500/50 text-white hover:bg-purple-500/20 group font-bengali">
-                                    <Play className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-                                    ভিডিও দেখুন
-                                </Button>
-                            </motion.div>
-                        </div>
-
-                        {/* Animated decorative line */}
-                        <motion.div 
-                            className="mt-12 flex gap-2"
-                            initial={{ width: 0 }}
-                            animate={{ width: 'auto' }}
-                            transition={{ delay: 0.5, duration: 1 }}
-                        >
-                            {[...Array(3)].map((_, i) => (
-                                <motion.div
-                                    key={i}
-                                    className="h-1 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500"
-                                    style={{ width: 30 + i * 20 }}
-                                    animate={{
-                                        opacity: [0.3, 1, 0.3]
-                                    }}
-                                    transition={{
-                                        duration: 2,
-                                        delay: i * 0.3,
-                                        repeat: Infinity
-                                    }}
-                                />
-                            ))}
-                        </motion.div>
-                    </motion.div>
-
-                    {/* Right - Stats Grid */}
-                    <motion.div
-                        initial={{ opacity: 0, x: 50 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.8, delay: 0.3 }}
-                        className="grid grid-cols-2 gap-5"
-                    >
-                        {stats.map((stat, i) => (
-                            <motion.div
-                                key={stat.label}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.5 + i * 0.1 }}
-                                whileHover={{ 
-                                    y: -10,
-                                    scale: 1.02,
-                                    transition: { duration: 0.3 }
-                                }}
-                                className={`group relative p-6 rounded-2xl backdrop-blur-xl bg-white/5 border border-white/10 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20 ${i === 0 ? 'lg:translate-y-8' : ''} ${i === 3 ? 'lg:-translate-y-8' : ''}`}
-                            >
-                                {/* Glow effect on hover */}
-                                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500/0 to-cyan-500/0 group-hover:from-purple-500/10 group-hover:to-cyan-500/10 transition-all duration-500" />
-                                
-                                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg relative`}>
-                                    <stat.icon className="w-6 h-6 text-white" />
-                                    <motion.div
-                                        className="absolute inset-0 rounded-xl bg-white"
-                                        initial={{ scale: 0, opacity: 0 }}
-                                        whileHover={{ scale: 1.5, opacity: 0.2 }}
-                                        transition={{ duration: 0.3 }}
-                                    />
-                                </div>
-                                
-                                <h3 className="text-2xl sm:text-3xl font-black text-white font-bengali">{stat.value}</h3>
-                                <p className="text-sm text-gray-400 mt-1 font-bengali">{stat.label}</p>
-                                
-                                {/* Decorative corner accent */}
-                                <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-gradient-to-br from-purple-500 to-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </motion.div>
-                        ))}
-                    </motion.div>
-                </div>
-            </motion.div>
-
-            {/* Scroll indicator */}
+            {/* Floating Trust Badge */}
             <motion.div
-                className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-                animate={{
-                    y: [0, 10, 0]
-                }}
-                transition={{
-                    duration: 1.5,
-                    repeat: Infinity,
-                    repeatType: "reverse"
-                }}
+              className="absolute -bottom-10 -left-10 p-4 bg-white/5 backdrop-blur-sm rounded-2xl shadow-xl border border-white/10"
+              animate={{
+                y: [0, -10, 0],
+                scale: [1, 1.02, 1],
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
             >
-                <div className="w-6 h-10 rounded-full border-2 border-white/30 flex justify-center">
-                    <motion.div
-                        className="w-1 h-2 rounded-full bg-white/50 mt-2"
-                        animate={{
-                            y: [0, 12, 0]
-                        }}
-                        transition={{
-                            duration: 1.5,
-                            repeat: Infinity,
-                            repeatType: "reverse"
-                        }}
-                    />
-                </div>
+              <div className="flex items-center gap-3">
+                <Shield className="w-5 h-5 text-cyan-400" />
+                <span className="text-sm font-medium text-white/80">Secure & Trusted</span>
+                <motion.div
+                  className="w-2 h-2 rounded-full bg-emerald-400"
+                  animate={{ scale: [1, 1.5, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                />
+              </div>
             </motion.div>
-        </section>
-    );
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Scroll Indicator */}
+      <motion.div
+        className="absolute bottom-8 left-1/2 -translate-x-1/2"
+        animate={{
+          y: [0, 10, 0],
+        }}
+        transition={{
+          duration: 1.5,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      >
+        <div className="w-6 h-10 rounded-full border border-white/20 flex justify-center">
+          <motion.div
+            className="w-1 h-2 bg-gradient-to-t from-cyan-400 to-purple-400 rounded-full mt-2"
+            animate={{
+              y: [0, 4, 0],
+            }}
+            transition={{
+              duration: 1.5,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+        </div>
+      </motion.div>
+    </section>
+  );
 }

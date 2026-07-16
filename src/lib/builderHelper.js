@@ -2,6 +2,7 @@ import {
   getComponentConfig,
   getTypeConfig,
   getTemplateConfig,
+  GLOBAL_STYLE_FIELDS,
 } from "@/store/default/componentRegistry";
 
 /* =====================================================================
@@ -37,24 +38,34 @@ export const uid = (prefix = "id") =>
  * =================================================================== */
 
 /**
- * Template-এর field list থেকে default { content, settings } তৈরি করে।
- * field.group === "settings" হলে settings-এ যাবে, নাহলে content-এ।
+ * Template-এর field list থেকে default { content, settings, styles } তৈরি করে।
+ * field.group অনুযায়ী value গুলো content / settings / styles-এ যায়।
+ * Global style field-গুলোর default-ও styles-এ seed হয়।
  */
 export const buildDefaults = (component, type, template) => {
   const templateConfig = getTemplateConfig(component, type, template);
   const content = {};
   const settings = {};
-  if (!templateConfig) return { content, settings };
+  const styles = {};
+
+  GLOBAL_STYLE_FIELDS.forEach((field) => {
+    styles[field.key] = field.default ?? "";
+  });
+
+  if (!templateConfig) return { content, settings, styles };
 
   templateConfig.fields.forEach((field) => {
-    const target = field.group === "settings" ? settings : content;
+    const target =
+      field.group === "settings" ? settings :
+      field.group === "style" ? styles :
+      content;
     target[field.key] =
       field.type === "array"
         ? (field.default || []).map((item) => ({ ...item, _id: uid("item") }))
         : field.default ?? "";
   });
 
-  return { content, settings };
+  return { content, settings, styles };
 };
 
 /** Array field-এর নতুন item (itemFields-এর default দিয়ে) */
@@ -128,7 +139,43 @@ export const migrateComponent = (component, nextType, nextTemplate) => {
     template,
     content: preserve(defaults.content, component.content),
     settings: preserve(defaults.settings, component.settings),
+    styles: preserve(defaults.styles, component.styles),
   };
+};
+
+/**
+ * component.styles → React inline style object।
+ * Preview-এর wrapper-এ apply হয়। খালি/০ value গুলো skip করা হয়
+ * যাতে template-এর নিজস্ব design override না হয়।
+ */
+export const toInlineStyle = (styles = {}) => {
+  const css = {};
+  if (styles.backgroundColor) css.backgroundColor = styles.backgroundColor;
+  if (styles.textColor) css.color = styles.textColor;
+  if (Number(styles.paddingY)) {
+    css.paddingTop = `${styles.paddingY}px`;
+    css.paddingBottom = `${styles.paddingY}px`;
+  }
+  if (Number(styles.paddingX)) {
+    css.paddingLeft = `${styles.paddingX}px`;
+    css.paddingRight = `${styles.paddingX}px`;
+  }
+  if (Number(styles.marginBottom)) css.marginBottom = `${styles.marginBottom}px`;
+  if (Number(styles.borderRadius)) {
+    css.borderRadius = `${styles.borderRadius}px`;
+    css.overflow = "hidden";
+  }
+  if (styles.maxWidth === "boxed") {
+    css.maxWidth = "1200px";
+    css.marginLeft = "auto";
+    css.marginRight = "auto";
+  }
+  if (styles.maxWidth === "narrow") {
+    css.maxWidth = "800px";
+    css.marginLeft = "auto";
+    css.marginRight = "auto";
+  }
+  return css;
 };
 
 /**

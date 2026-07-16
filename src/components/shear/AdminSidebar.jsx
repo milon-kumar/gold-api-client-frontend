@@ -58,14 +58,7 @@ const AdminSidebar = () => {
         enabled: !!user?.business_id,
     });
 
-    console.log("getBusinessModulesResponse Admin Sidebar- ", {
-        id: user?.business?.id,
-        getBusinessModulesResponse,
-        user,
-    })
-
     const businessModules = getBusinessModulesResponse?.data?.data || []
-    console.log("businessModules - ", businessModules)
 
     const handleModuleSet = (item) => {
         if (user?.type == 'super_admin') {

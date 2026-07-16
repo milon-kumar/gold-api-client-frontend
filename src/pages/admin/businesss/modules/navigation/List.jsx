@@ -385,6 +385,7 @@ const PageListing = () => {
                       </Button>
                     )}
                     <div>
+                       <div className="font-medium">ID: {page.id}</div>
                       <div className="font-medium">{page.page_title}</div>
                       <div className="text-sm text-muted-foreground">
                         /page/{page.page_slug}

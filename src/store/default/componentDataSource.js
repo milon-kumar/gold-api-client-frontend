@@ -25,11 +25,11 @@ export const DATA_SOURCES = {
   /* ---------------- Slider CRUD ---------------- */
   slider: {
     label: "Slider",
-    url: `/admin/business-module-items?module_slug=${MODULES.slider}`, // ⚠️ আপনার endpoint
+    url: `/admin/business-module-items?module_slug=${MODULES.SLIDERS}`, // ⚠️ আপনার endpoint
     getItems: (response) => response?.data?.data || [],
     display: {
       titleKey: "title", // list-এ যে field টা দেখাবে
-      imageKey: "image", // thumbnail (optional)
+      imageKey: "image_full_path", // thumbnail (optional)
       subtitleKey: "subtitle", // optional
     },
     // Slider record → slide/content shape
@@ -43,7 +43,7 @@ export const DATA_SOURCES = {
   },
 
   /* ---------------- Information CRUD (৪টি record) ---------------- */
-  introduction: {
+  information: {
     label: "Introduction",
     url: `/admin/business-modules-by-slugs?module_slugs=[${MODULES.PRESIDENT_MESSAGE},${MODULES.INTRODUCTION},${MODULES.WHAT_WE_WANT},${MODULES.FOUNDING_PRESIDENT}]`, // ⚠️ আপনার endpoint
     getItems: (response) => response?.data || [],
@@ -95,7 +95,7 @@ export const DATA_SOURCES = {
       subtitleKey: "sub_title",
     },
     mapItem: (item) => ({
-      title: item.name || "",
+      title: item.title || "",
       image: item.image_full_path || item.image || "",
       description: item.description || "",
     }),
@@ -103,6 +103,23 @@ export const DATA_SOURCES = {
 
   /* ---------------- List CRUDs ---------------- */
   photo: {
+    label: "Image",
+    url: `/admin/business-module-items?module_slug=${MODULES.PHOTOS}`, // ⚠️
+    getItems: (response) => response?.data?.data || [],
+    display: {
+      titleKey: "title",
+      imageKey: "image_full_path",
+      subtitleKey: "sub_title",
+    },
+    mapItem: (item) => ({
+      title: item.title || "",
+      caption: item.title || "",
+      image: item.image_full_path || item.url || "",
+      description: item.description || "",
+    }),
+  },
+
+  images: {
     label: "Image",
     url: `/admin/business-module-items?module_slug=${MODULES.PHOTOS}`, // ⚠️
     getItems: (response) => response?.data?.data || [],

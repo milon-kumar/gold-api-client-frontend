@@ -57,13 +57,6 @@ const ResourcePicker = ({
   const sourceOptions = getDataSourceOptions(sourceKeys);
   const source = getDataSource(activeSourceKey);
 
-  console.log("🚀 ~ ResourcePicker ~ source:", {
-    sourceKeys,
-    sourceOptions,
-    source,
-    activeSourceKey,
-  });
-
   /* Dialog খোলা হলেই কেবল fetch হবে */
   const { data: response, isLoading } = useApiQuery({
     url: source?.url,

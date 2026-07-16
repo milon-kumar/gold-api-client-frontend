@@ -8,9 +8,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { MousePointerClick, Settings2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  FileText,
+  MousePointerClick,
+  Paintbrush,
+  Settings2,
+  SlidersHorizontal,
+} from "lucide-react";
 import {
   getComponentConfig,
+  getStyleFields,
   getTemplateConfig,
   getTemplateOptions,
   getTypeOptions,
@@ -21,9 +29,15 @@ import { buildDefaults, mergeIntoShape } from "@/lib/builderHelper";
 
 /**
  * =====================================================================
- * RIGHT SIDEBAR — Dynamic Property Panel
+ * RIGHT SIDEBAR — Dynamic Property Panel (Tab System)
  * =====================================================================
  * Selected Component → Type → Template → Configuration → Form
+ *
+ * ৩টি Tab:
+ *  - Content  : group নেই / group: "content" — টেক্সট, ইমেজ, slides...
+ *  - Settings : group: "settings" — autoplay, speed, columns...
+ *  - Style    : group: "style" (template-specific) + GLOBAL_STYLE_FIELDS
+ *               → component.styles-এ save হয়, Preview-তে live apply হয়
  *
  * এখানে একটিও input hard code নেই। Template change হলেই
  * পুরনো form remove হয়ে নতুন Template-এর form generate হয়।
@@ -41,7 +55,7 @@ const CustomPageRightControlPanel = ({
   const component = section?.components.find(
     (c) => c.id === selectedComponentId,
   );
-  
+
   /* ---------- Empty state ---------- */
   if (!component) {
     return (
@@ -67,16 +81,42 @@ const CustomPageRightControlPanel = ({
   );
 
   const fields = templateConfig?.fields || [];
-  const contentFields = fields.filter((f) => f.group !== "settings");
+  const contentFields = fields.filter(
+    (f) => f.group !== "settings" && f.group !== "style",
+  );
   const settingsFields = fields.filter((f) => f.group === "settings");
+  const styleFields = getStyleFields(
+    component.component,
+    component.type,
+    component.template,
+  );
 
-  const fieldValue = (field) =>
-    field.group === "settings"
-      ? component.settings?.[field.key]
-      : component.content?.[field.key];
+  /* group অনুযায়ী value ও state path */
+  const groupOf = (field) =>
+    field.group === "settings" ? "settings" :
+    field.group === "style" ? "styles" :
+    "content";
 
-  const fieldPath = (field) =>
-    `${field.group === "settings" ? "settings" : "content"}.${field.key}`;
+  const fieldValue = (field) => component[groupOf(field)]?.[field.key];
+  const fieldPath = (field) => `${groupOf(field)}.${field.key}`;
+
+  const renderFields = (list) =>
+    list.map((field) => (
+      <FieldRenderer
+        key={`${component.template}-${groupOf(field)}-${field.key}`}
+        field={field}
+        value={fieldValue(field)}
+        onChange={(value) =>
+          handleChange(section.id, component.id, fieldPath(field), value)
+        }
+      />
+    ));
+
+  const EmptyTab = ({ label }) => (
+    <p className="rounded border border-dashed p-4 text-center text-xs text-muted-foreground">
+      This template has no {label} options.
+    </p>
+  );
 
   return (
     <Card>
@@ -173,46 +213,44 @@ const CustomPageRightControlPanel = ({
 
         <Separator />
 
-        {/* ---------- Content fields (configuration → form) ---------- */}
-        {contentFields.length > 0 && (
-          <div className="space-y-3">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Content
-            </p>
-            {contentFields.map((field) => (
-              <FieldRenderer
-                key={`${component.template}-${field.key}`}
-                field={field}
-                value={fieldValue(field)}
-                onChange={(value) =>
-                  handleChange(section.id, component.id, fieldPath(field), value)
-                }
-              />
-            ))}
-          </div>
-        )}
+        {/* ---------- Content | Settings | Style tabs ---------- */}
+        <Tabs defaultValue="content" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="content" className="gap-1 text-xs">
+              <FileText className="h-3 w-3" /> Content
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="gap-1 text-xs">
+              <SlidersHorizontal className="h-3 w-3" /> Settings
+            </TabsTrigger>
+            <TabsTrigger value="style" className="gap-1 text-xs">
+              <Paintbrush className="h-3 w-3" /> Style
+            </TabsTrigger>
+          </TabsList>
 
-        {/* ---------- Settings fields ---------- */}
-        {settingsFields.length > 0 && (
-          <>
-            <Separator />
-            <div className="space-y-3">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                Settings
-              </p>
-              {settingsFields.map((field) => (
-                <FieldRenderer
-                  key={`${component.template}-${field.key}`}
-                  field={field}
-                  value={fieldValue(field)}
-                  onChange={(value) =>
-                    handleChange(section.id, component.id, fieldPath(field), value)
-                  }
-                />
-              ))}
-            </div>
-          </>
-        )}
+          <TabsContent value="content" className="mt-3 space-y-3">
+            {contentFields.length > 0 ? (
+              renderFields(contentFields)
+            ) : (
+              <EmptyTab label="content" />
+            )}
+          </TabsContent>
+
+          <TabsContent value="settings" className="mt-3 space-y-3">
+            {settingsFields.length > 0 ? (
+              renderFields(settingsFields)
+            ) : (
+              <EmptyTab label="settings" />
+            )}
+          </TabsContent>
+
+          <TabsContent value="style" className="mt-3 space-y-3">
+            {styleFields.length > 0 ? (
+              renderFields(styleFields)
+            ) : (
+              <EmptyTab label="style" />
+            )}
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );

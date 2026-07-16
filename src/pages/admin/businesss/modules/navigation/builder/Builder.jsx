@@ -5,7 +5,6 @@ import { FooterBuilder } from "./partials/FooterBuilder";
 import { useApiQuery } from "@/hooks/useAppQuery";
 
 
-// ---------- Mock: আপনার ৩ টাইপের পেজ (API থেকে আসবে) ----------
 const PAGES = [
   { id: 1, title: "হোম", type: "default", slug: "/" },
   { id: 2, title: "আমাদের পরিচিতি", type: "default", slug: "/about" },
@@ -66,16 +65,16 @@ export default function Builder() {
       <div className="mx-auto space-y-5">
         <div>
           <h1 className="text-xl font-bold text-slate-900">
-            Appearance সেটিংস
+            Appearance Setting
           </h1>
           <p className="text-sm text-slate-500">
-            হেডার মেনু ও ফুটার — drag & drop দিয়ে ম্যানেজ করুন
+            Header menu and footer — manage with drag & drop
           </p>
         </div>
         <Tabs defaultValue="menu">
           <TabsList>
-            <TabsTrigger value="menu">হেডার মেনু</TabsTrigger>
-            <TabsTrigger value="footer">ফুটার</TabsTrigger>
+            <TabsTrigger value="menu">Header Navigation</TabsTrigger>
+            <TabsTrigger value="footer">Manage Footer</TabsTrigger>
           </TabsList>
           <TabsContent value="menu" className="mt-5">
             <HeaderMenuBuilder 

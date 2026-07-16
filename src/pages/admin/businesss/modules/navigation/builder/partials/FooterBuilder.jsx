@@ -3,7 +3,7 @@ import { DragDropProvider } from "@dnd-kit/react";
 import { useSortable } from "@dnd-kit/react/sortable";
 import { CollisionPriority } from "@dnd-kit/abstract";
 import { move } from "@dnd-kit/helpers";
-
+import { Badge } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,14 +35,17 @@ import {
   Phone,
   Share2,
   Type,
+  Copy,
+  Check,
 } from "lucide-react";
 import { useApiMutation } from "@/hooks/useAppMutation";
 import { toast } from "sonner";
+import { getUUId } from "@/lib/helper";
 
 /* ------------------------------------------------------------------
    Helpers
 ------------------------------------------------------------------ */
-let uid = 1000;
+let uid = getUUId();
 const newId = (prefix) => `${prefix}-${++uid}-${Date.now()}`;
 
 // কলামের ৫ ধরনের টাইপ
@@ -65,11 +68,13 @@ const SOCIAL_KEYS = [
 const defaultConfig = (type, setting) => {
   const s = setting?.settings || {};
   const b = setting?.business || {};
+
+  console.log("What is s - ",s)
   switch (type) {
     case "about":
       return {
         show_logo: true,
-        logo: s.footer_logo || s.logo || "",
+        logo: s.footer_logo_full_path || s.logo_full_path || "",
         about_text: s.abouts || s.footer_text || "",
       };
     case "contact":
@@ -321,6 +326,7 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
   // links শুধু 'links' টাইপ কলামের জন্য: Record<columnId, Link[]>
   const [links, setLinks] = useState({});
   const snapshot = useRef(null);
+  const [copiedId, setCopiedId] = useState(null);
 
   /* ---------------- API ---------------- */
   const { mutate: fetchFooters } = useApiMutation({
@@ -508,6 +514,37 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
     }
   };
 
+  const handleCopyId = async (id) => {
+    const text = String(id);
+
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+
+      setCopiedId(id);
+      if (copiedId) {
+        toast.success("Copied success.");
+      }
+      setTimeout(() => {
+        setCopiedId(null);
+      }, 1500);
+    } catch (err) {
+      console.error("Copy failed:", err);
+    }
+  };
   /* ================================================================
      UI
   ================================================================ */
@@ -537,26 +574,50 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
           {footers.map((f) => (
             <div
               key={f.id}
-              className={`flex items-center gap-1 rounded-md border px-2 py-1 text-sm cursor-pointer ${
+              className={`flex items-center gap-2 rounded-md border px-2 py-1 text-sm cursor-pointer ${
                 current.id === f.id
                   ? "border-primary bg-primary/5"
                   : "hover:bg-slate-50"
               }`}
               onClick={() => selectFooter(f)}
             >
-              <span>{f.name}</span>
+              <span className="font-medium">{f.name}</span>
+
+              {/* <Badge variant="secondary" className="text-[10px] px-1.5">
+                #{f.id}
+              </Badge> */}
+
               {!!f.is_active && (
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
               )}
-              <button
-                className="text-red-400 hover:text-red-600 ml-1"
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 ml-auto"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCopyId(f.id);
+                }}
+              >
+                {copiedId === f.id ? (
+                  <Check className="h-3.5 w-3.5 text-green-600" />
+                ) : (
+                  <Copy className="h-3.5 w-3.5" />
+                )}
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-red-500 hover:text-red-600"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleDelete(f.id);
                 }}
               >
-                <Trash2 className="w-3 h-3" />
-              </button>
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
             </div>
           ))}
         </CardContent>
@@ -585,7 +646,12 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
             />
             Active
           </label>
-          <Button size="sm" variant="outline" onClick={addColumn} disabled={columns.length >= 5}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={addColumn}
+            disabled={columns.length >= 5}
+          >
             <Plus className="w-4 h-4 mr-1" /> কলাম যোগ করুন ({columns.length}/5)
           </Button>
           <Button onClick={save} disabled={saving}>

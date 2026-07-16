@@ -36,10 +36,12 @@ import {
   Image as ImageIcon,
   LayoutPanelTop,
   MousePointerClick,
+  Copy,
+  Check,
 } from "lucide-react";
 import { useApiMutation } from "@/hooks/useAppMutation";
 import { toast } from "sonner";
-
+import { Badge } from "@/components/ui/badge";
 /* ------------------------------------------------------------------
    Helper
 ------------------------------------------------------------------ */
@@ -273,6 +275,7 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
   const [customLabel, setCustomLabel] = useState("");
   const [customUrl, setCustomUrl] = useState("");
   const [editingId, setEditingId] = useState(null);
+  const [copiedId, setCopiedId] = useState(null);
 
   /* ---------------- API hooks ---------------- */
   const { mutate: fetchNavbars } = useApiMutation({
@@ -488,6 +491,38 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
     }
   };
 
+  const handleCopyId = async (id) => {
+    const text = String(id);
+
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+
+      setCopiedId(id);
+      if(copiedId){
+        toast.success("Copied success.");
+      }
+      setTimeout(() => {
+        setCopiedId(null);
+      }, 1500);
+    } catch (err) {
+      console.error("Copy failed:", err);
+    }
+  };
+
   /* ================================================================
      UI
   ================================================================ */
@@ -498,10 +533,10 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
         <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
           <div>
             <CardTitle className="text-sm flex items-center gap-2">
-              <LayoutPanelTop className="w-4 h-4" /> আপনার Navbar গুলো
+              <LayoutPanelTop className="w-4 h-4" /> Navbars
             </CardTitle>
             <CardDescription className="text-xs">
-              একটা সিলেক্ট করে এডিট করুন, অথবা নতুন বানান
+              Select one and edit it, or create a new one.
             </CardDescription>
           </div>
           <Button
@@ -509,38 +544,62 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
             variant="outline"
             onClick={() => setCurrent(emptyNavbar())}
           >
-            <Plus className="w-4 h-4 mr-1" /> নতুন Navbar
+            <Plus className="w-4 h-4 mr-1" /> Create Navbar
           </Button>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
           {navbars.length === 0 && (
             <p className="text-xs text-slate-400">
-              এখনো কোনো navbar সেভ করা হয়নি।
+              No navbar has been saved yet.
             </p>
           )}
           {navbars.map((nb) => (
             <div
               key={nb.id}
-              className={`flex items-center gap-1 rounded-md border px-2 py-1 text-sm cursor-pointer ${
+              className={`flex items-center gap-2 rounded-md border px-2 py-1 text-sm cursor-pointer ${
                 current.id === nb.id
                   ? "border-primary bg-primary/5"
                   : "hover:bg-slate-50"
               }`}
               onClick={() => selectNavbar(nb)}
             >
-              <span>{nb.name}</span>
+              <span className="font-medium">{nb.name}</span>
+
+              <Badge variant="secondary" className="text-[10px] px-1.5">
+                #{nb.id}
+              </Badge>
+
               {!!nb.is_active && (
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
               )}
-              <button
-                className="text-red-400 hover:text-red-600 ml-1"
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 ml-auto"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCopyId(nb.id);
+                }}
+              >
+                {copiedId === nb.id ? (
+                  <Check className="h-3.5 w-3.5 text-green-600" />
+                ) : (
+                  <Copy className="h-3.5 w-3.5" />
+                )}
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-red-500 hover:text-red-600"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleDelete(nb.id);
                 }}
               >
-                <Trash2 className="w-3 h-3" />
-              </button>
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
             </div>
           ))}
         </CardContent>
@@ -550,13 +609,13 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
       <Card>
         <CardContent className="pt-4 flex flex-wrap items-end gap-4">
           <div className="space-y-1 flex-1 min-w-52">
-            <Label className="text-xs">Navbar এর নাম</Label>
+            <Label className="text-xs">Navbar name</Label>
             <Input
               value={current.name}
               onChange={(e) =>
                 setCurrent((c) => ({ ...c, name: e.target.value }))
               }
-              placeholder="যেমন: Main Navbar"
+              placeholder="EX: Main Navbar"
               className="h-9"
             />
           </div>
@@ -571,7 +630,7 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
           </label>
           <Button onClick={save} disabled={saving}>
             <Save className="w-4 h-4 mr-1" />
-            {saving ? "সেভ হচ্ছে..." : "Navbar সেভ করুন"}
+            {saving ? "Saving..." : "Navbar Save"}
           </Button>
         </CardContent>
       </Card>
@@ -580,13 +639,15 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
       <Tabs defaultValue="middle">
         <TabsList>
           <TabsTrigger value="left">
-            <ImageIcon className="w-3.5 h-3.5 mr-1" /> বাম (Logo)
+            <ImageIcon className="w-3.5 h-3.5 mr-1" /> Left Section (Logo)
           </TabsTrigger>
           <TabsTrigger value="middle">
-            <FileText className="w-3.5 h-3.5 mr-1" /> মাঝখান (Links)
+            <FileText className="w-3.5 h-3.5 mr-1" />
+            Middle Section (Links)
           </TabsTrigger>
           <TabsTrigger value="right">
-            <MousePointerClick className="w-3.5 h-3.5 mr-1" /> ডান (Buttons)
+            <MousePointerClick className="w-3.5 h-3.5 mr-1" />
+            Right Section (Buttons)
           </TabsTrigger>
         </TabsList>
 
@@ -594,14 +655,14 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
         <TabsContent value="left">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm">লোগো সেকশন</CardTitle>
+              <CardTitle className="text-sm">Logo Section</CardTitle>
               <CardDescription className="text-xs">
-                ছবি, টেক্সট বা দুটোই দেখাতে পারবেন
+                You can show images, text, or both.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 max-w-xl">
               <div className="space-y-1">
-                <Label className="text-xs">লোগো টাইপ</Label>
+                <Label className="text-xs">Logo type</Label>
                 <Select
                   value={current.left.logo_type}
                   onValueChange={(v) =>
@@ -615,9 +676,9 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="image">শুধু ছবি</SelectItem>
-                    <SelectItem value="text">শুধু টেক্সট</SelectItem>
-                    <SelectItem value="both">ছবি + টেক্সট</SelectItem>
+                    <SelectItem value="image">Image Only</SelectItem>
+                    <SelectItem value="text">Text Only</SelectItem>
+                    <SelectItem value="both">Image + Text</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -625,7 +686,7 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
               {current.left.logo_type !== "text" && (
                 <div className="grid grid-cols-3 gap-3">
                   <div className="space-y-1 col-span-2">
-                    <Label className="text-xs">লোগোর ছবির URL</Label>
+                    <Label className="text-xs">Logo Image URL</Label>
                     <Input
                       value={current.left.logo_url}
                       onChange={(e) =>
@@ -638,8 +699,9 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
                       className="h-9"
                     />
                   </div>
+
                   <div className="space-y-1">
-                    <Label className="text-xs">উচ্চতা (px)</Label>
+                    <Label className="text-xs">Height (px)</Label>
                     <Input
                       type="number"
                       value={current.left.height}
