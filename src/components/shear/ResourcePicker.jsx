@@ -66,10 +66,7 @@ const ResourcePicker = ({
   const items = useMemo(() => {
     if (!source || !response) return [];
     const list = source.getItems(response) || [];
-    console.log("response - ", {
-      response,
-      list,
-    });
+   
     if (!search.trim()) return list;
     const q = search.toLowerCase();
     return list.filter((item) =>
@@ -157,8 +154,6 @@ const ResourcePicker = ({
             )}
 
             {items.map((item, index) => {
-              console.log("Selected Item - ", item);
-
               const title =
                 item[source.display?.titleKey] || `Item ${index + 1}`;
               const image = source.display?.imageKey

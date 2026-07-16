@@ -322,26 +322,7 @@ const SavePage = () => {
     setParentPageOpen(false);
   };
 
-  // Generate slug from title
-  const generateSlug = (title) => {
-    if (!title) return "";
-    return title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "");
-  };
 
-  // Auto-generate slug when title changes
-  useEffect(() => {
-    if (!formData.page_slug && formData.page_title) {
-      setFormData((prev) => ({
-        ...prev,
-        page_slug: generateSlug(prev.page_title),
-      }));
-    }
-  }, [formData.page_title]);
-
-  // Save mutation
   const {
     mutate: pagePostMutation,
     isLoading: pagePostLoading,
@@ -363,7 +344,6 @@ const SavePage = () => {
     const payload = {
       id: id || null,
       page_title: formData.page_title,
-      page_slug: formData.page_slug,
       page_type: formData.page_type,
       lang_slug: formData.lang_slug,
       parent_id: formData.parent_id || null,
@@ -377,7 +357,6 @@ const SavePage = () => {
       seo_content: seoData.seo_content || "",
     };
 
-    console.log("Payload - ", payload);
     try {
       const response = await pagePostMutation(payload);
       console.log("What is the response - ", response);
@@ -527,10 +506,6 @@ const SavePage = () => {
                       placeholder="Enter page title"
                       required
                     />
-
-                    <p className="text-xs text-muted-foreground">
-                      URL: /page/{formData.page_slug || "page-slug"}
-                    </p>
                   </div>
 
                   <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">

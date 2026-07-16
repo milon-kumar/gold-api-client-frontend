@@ -113,9 +113,7 @@ const EmptySlides = () => (
 );
 
 const makeCarousel = (renderSlide, defaultHeight = 400) => {
-  const Carousel = ({ content, settings }) => {
-    console.log("content - ", content);
-
+  const Carousel = ({ content, settings,styles }) => {
     const slides = content.slides || content.images || [];
     const slider = useSlider(slides.length, settings);
     if (!slides.length) {
@@ -130,7 +128,7 @@ const makeCarousel = (renderSlide, defaultHeight = 400) => {
         settings={settings}
         slider={slider}
         count={slides.length}
-        height={settings.height || defaultHeight}
+        height={styles?.imageHeight || defaultHeight}
       >
         {slides.map((slide, i) => (
           <div
@@ -192,7 +190,7 @@ const TEMPLATES = {
   "banner.classicBanner": ClassicBanner,
   "banner.stellarBanner": StellarBanner,
   "banner.simpleBanner": SimpleBanner,
-  "carousel.classicCarousel": makeCarousel(TextImageSlide, 420),
+  "carousel.classicCarousel": makeCarousel(TextImageSlide, 700),
   "carousel.simpleCarousel": makeCarousel(TextImageSlide, 360),
   "carousel.modernCarousel": makeCarousel(TextImageSlide, 440),
   "carousel.imageCarousel": makeCarousel(ImageOnlySlide, 380),
@@ -215,7 +213,7 @@ const HeroRenderer = ({
       </div>
     );
   }
-  return <Template content={content} settings={settings} styles={styles} />;
+  return <Template content={content} settings={settings} styles={styles}/>;
 };
 
 export default HeroRenderer;

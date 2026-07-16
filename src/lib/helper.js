@@ -14,7 +14,7 @@ export const formatDate = (date, format = "DD MMM YY", locale = "en") => {
 
 export const getWords = (text, limit = 20) => {
   if (!text) return "";
-  return text.trim().split(/\s+/).slice(0, limit).join(" ")+" ...";
+  return text.trim().split(/\s+/).slice(0, limit).join(" ") + " ...";
 };
 
 export const getHtmlContent = (data, limit) => {
@@ -47,3 +47,13 @@ export const setByPath = (obj, path, value) =>
 
     current[keys[keys.length - 1]] = value;
   });
+
+export const safeJsonParse = (data, fallback = {}) => {
+  if (!data) return fallback;
+  try {
+    return JSON.parse(data);
+  } catch (error) {
+    console.error("JSON parse error:", error);
+    return fallback;
+  }
+};

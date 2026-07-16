@@ -3,6 +3,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { ValueSlider } from "@/components/ui/value-slider";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
 import {
   Select,
   SelectContent,
@@ -11,9 +14,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Eraser, GripVertical, Plus, Trash2 } from "lucide-react";
-import { buildArrayItem, mergeIntoShape, reorderArray } from "@/lib/builderHelper";
+import {
+  buildArrayItem,
+  mergeIntoShape,
+  reorderArray,
+} from "@/lib/builderHelper";
 import ResourcePicker from "./ResourcePicker";
 import { useRef } from "react";
+import { cn } from "@/lib/utils";
 
 /**
  * =====================================================================
@@ -62,7 +70,9 @@ const FieldRenderer = ({ field, value, onChange }) => {
             min={field.min}
             max={field.max}
             step={field.step}
-            onChange={(e) => onChange(e.target.value === "" ? "" : Number(e.target.value))}
+            onChange={(e) =>
+              onChange(e.target.value === "" ? "" : Number(e.target.value))
+            }
           />
         </Wrapper>
       );
@@ -78,14 +88,27 @@ const FieldRenderer = ({ field, value, onChange }) => {
     case "color":
       return (
         <Wrapper label={field.label}>
-          <div className="flex items-center gap-2">
-            <input
-              type="color"
-              className="h-9 w-10 cursor-pointer rounded border bg-transparent p-1"
-              value={toHex6(value)}
+          <div className="flex items-center gap-3">
+            <label className="group relative flex cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-border bg-background shadow-sm transition hover:border-primary hover:shadow">
+              <input
+                type="color"
+                value={toHex6(value)}
+                onChange={(e) => onChange(e.target.value)}
+                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+              />
+
+              <span
+                className="h-6 w-6 rounded-md border border-white shadow"
+                style={{ backgroundColor: toHex6(value) }}
+              />
+            </label>
+
+            <Input
+              value={value ?? ""}
+              placeholder="#2563EB"
               onChange={(e) => onChange(e.target.value)}
+              className="font-mono uppercase"
             />
-            <Input value={value ?? ""} onChange={(e) => onChange(e.target.value)} />
           </div>
         </Wrapper>
       );
@@ -114,10 +137,11 @@ const FieldRenderer = ({ field, value, onChange }) => {
       return (
         <Wrapper label={field.label}>
           <Select value={String(value ?? "")} onValueChange={onChange}>
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder={field.label} />
             </SelectTrigger>
-            <SelectContent>
+
+            <SelectContent className="min-w-(--radix-select-trigger-width)">
               {(field.options || []).map((opt) => (
                 <SelectItem key={opt.value} value={String(opt.value)}>
                   {opt.label}
@@ -130,6 +154,57 @@ const FieldRenderer = ({ field, value, onChange }) => {
 
     case "array":
       return <ArrayField field={field} value={value} onChange={onChange} />;
+
+    case "slider":
+      return (
+        <Wrapper label={field.label}>
+          <ValueSlider
+            value={[value ?? field.default ?? 75]}
+            onValueChange={(val) => onChange(val[0])}
+            min={field.min ?? 0}
+            max={field.max ?? 100}
+            step={field.step ?? 1}
+            className="w-full"
+          />
+        </Wrapper>
+      );
+    case "radio":
+      return (
+        <Wrapper label={field.label}>
+          <RadioGroup
+            value={value ?? field.default ?? field.options?.[0]?.value}
+            onValueChange={onChange}
+            className="grid grid-cols-2 gap-1.5"
+          >
+            {(field.options ?? []).map((option) => {
+              const checked =
+                (value ?? field.default ?? field.options?.[0]?.value) ===
+                option.value;
+
+              return (
+                <Label
+                  key={option.value}
+                  htmlFor={`${field.key}-${option.value}`}
+                  className={cn(
+                    "flex cursor-pointer items-center gap-1.5 rounded-md border px-2 py-1.5",
+                    "text-xs font-medium leading-none transition-colors",
+                    checked
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-input text-muted-foreground hover:border-primary/40 hover:bg-muted/50",
+                  )}
+                >
+                  <RadioGroupItem
+                    id={`${field.key}-${option.value}`}
+                    value={option.value}
+                    className="h-3.5 w-3.5"
+                  />
+                  <span className="truncate">{option.label}</span>
+                </Label>
+              );
+            })}
+          </RadioGroup>
+        </Wrapper>
+      );
 
     default:
       return (
@@ -194,7 +269,12 @@ const ArrayField = ({ field, value, onChange }) => {
               triggerLabel="Pick"
             />
           )}
-          <Button size="sm" variant="outline" className="h-7 px-2" onClick={addItem}>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 px-2"
+            onClick={addItem}
+          >
             <Plus className="h-3 w-3" /> Add
           </Button>
           {items.length > 0 && (
@@ -260,7 +340,7 @@ const ArrayField = ({ field, value, onChange }) => {
 
 const Wrapper = ({ label, children }) => (
   <div className="space-y-1.5">
-    <Label className="text-xs">{label}</Label>
+    <Label className="text-xs">{label} </Label>
     {children}
   </div>
 );

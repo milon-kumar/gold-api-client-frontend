@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { MonitorPlay } from "lucide-react";
 import { getComponentConfig } from "@/store/default/componentRegistry";
-import { getRenderer } from "../renderers";
+import { getRenderer } from "@/components/renderers";
 import { toInlineStyle } from "@/lib/builderHelper";
 import { useApiQuery } from "@/hooks/useAppQuery";
 import Loading from "@/components/shear/Loading";
@@ -73,11 +73,6 @@ const CustomPagePreviewControlPanel = ({
   const navbar = navbarResponse?.data || {};
   const footer = footerResponse?.data || {};
 
-  console.log("Setting Meta - ", {
-    navbar,
-    footer,
-  });
-
   if (!visibleSections.length) {
     return (
       <Card className="h-full">
@@ -94,6 +89,7 @@ const CustomPagePreviewControlPanel = ({
 
   return (
     <div>
+      {Navbar ? <Navbar navbar={navbar} /> : null}
       {visibleSections.map((section) => (
         <div
           key={section.id}
@@ -107,7 +103,6 @@ const CustomPagePreviewControlPanel = ({
               : "ring-1 ring-transparent",
           )}
         >
-          {Navbar ? <Navbar navbar={navbar} /> : null}
           {section.components
             .filter((c) => c.is_visible)
             .map((component) => {
@@ -151,9 +146,9 @@ const CustomPagePreviewControlPanel = ({
               {section.name} — empty section
             </div>
           )}
-          {Footer && <Footer footer={footer} />}
         </div>
       ))}
+      {Footer && <Footer footer={footer} />}
     </div>
   );
 };

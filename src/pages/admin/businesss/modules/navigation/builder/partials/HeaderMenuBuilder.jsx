@@ -162,7 +162,6 @@ function SortableMenuItem({
               <Label className="text-xs">URL</Label>
               <Input
                 value={item.url}
-                disabled={item.type === "default" || item.type === "custom"}
                 onChange={(e) => onUpdate(item.id, { url: e.target.value })}
                 className="h-8 text-sm bg-white"
               />

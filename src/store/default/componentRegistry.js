@@ -60,6 +60,19 @@ const autoplayFields = [
   },
 ];
 
+const carouselStyles = [
+  {
+    key: "imageHeight",
+    label: "Set Image Height",
+    type: "slider",
+    group: "style",
+    default: "700",
+    min: 600,
+    max: 700,
+    step: 5,
+  },
+];
+
 const navPagFields = [
   {
     key: "navigation",
@@ -254,11 +267,7 @@ export const COMPONENT_REGISTRY = {
                 label: "Slides",
                 type: "array",
                 default: [],
-                sourceKeys: [
-                  "slider",
-                  "photo",
-                  "video",
-                ],
+                sourceKeys: ["slider", "photo", "video"],
                 itemFields: [
                   {
                     key: "title",
@@ -276,6 +285,7 @@ export const COMPONENT_REGISTRY = {
                 ],
               },
               ...autoplayFields,
+              ...carouselStyles,
             ],
           },
           simpleCarousel: {
@@ -323,7 +333,7 @@ export const COMPONENT_REGISTRY = {
                 label: "Images",
                 type: "array",
                 default: [],
-                sourceKeys: ["images",'sliders'],
+                sourceKeys: ["images", "sliders"],
                 itemFields: [
                   { key: "image", label: "Image", type: "image", default: "" },
                 ],
@@ -407,7 +417,7 @@ export const COMPONENT_REGISTRY = {
         templates: {
           simple: {
             label: "Simple",
-            sourceKeys: ["introduction"],
+            sourceKeys: ["information"],
             fields: [
               {
                 key: "title",
@@ -446,8 +456,25 @@ export const COMPONENT_REGISTRY = {
                 key: "accentColor",
                 label: "Accent Color",
                 type: "color",
-                group: "settings",
+                group: "style",
                 default: "#2563eb",
+              },
+              {
+                key: "sectionHeaderBadge",
+                label: "Section header badge varients",
+                type: "radio",
+                group: "settings",
+                default: "glow",
+                options: [
+                  { label: "Soft", value: "soft" },
+                  { label: "Outline", value: "outline" },
+                  { label: "Dot", value: "dot" },
+                  { label: "Gradient", value: "gradient" },
+                  { label: "Glow", value: "glow" },
+                  { label: "Glass", value: "glass" },
+                  { label: "Gold", value: "gold" },
+                  { label: "Line", value: "line" },
+                ],
               },
             ],
           },
@@ -594,12 +621,37 @@ export const COMPONENT_REGISTRY = {
                     default: "Item",
                   },
                   {
+                    key: "sub_title",
+                    label: "Sub Title",
+                    type: "text",
+                    default: "Item",
+                  },
+                  {
+                    key: "sub_description",
+                    label: "Sub Description",
+                    type: "text",
+                    default: "Item",
+                  },
+                  {
                     key: "description",
                     label: "Description",
                     type: "textarea",
                     default: "",
                   },
                   { key: "image", label: "Image", type: "image", default: "" },
+                ],
+              },
+              {
+                key: "sectionHeader",
+                label: "Section header Varients",
+                type: "radio",
+                group: "settings",
+                default: "classic",
+                options: [
+                  { label: "Classic", value: "classic" },
+                  { label: "Gradient", value: "gradient" },
+                  { label: "split", value: "split" },
+                  { label: "elegant", value: "elegant" },
                 ],
               },
               {
@@ -612,6 +664,38 @@ export const COMPONENT_REGISTRY = {
                   { label: "2 Columns", value: "2" },
                   { label: "3 Columns", value: "3" },
                   { label: "4 Columns", value: "4" },
+                  { label: "5 Columns", value: "5" },
+                ],
+              },
+              {
+                key: "cardSubTitleWordLimit",
+                label: "Show Sub title words in card",
+                type: "slider",
+                group: "settings",
+                default: 50,
+                min: 20,
+                max: 150,
+                step: 1,
+              },
+              {
+                key: "cardImageHeight",
+                label: "Card image height (px)",
+                type: "slider",
+                group: "style",
+                default: 50,
+                min: 180,
+                max: 400,
+                step: 1,
+              },
+              {
+                key: "imageFit",
+                label: "Image Fit",
+                type: "radio",
+                group: "style",
+                default: "contain",
+                options: [
+                  { label: "Cover", value: "cover" },
+                  { label: "Contain", value: "contain" },
                 ],
               },
             ],
@@ -823,66 +907,31 @@ export const getComponentOptions = () =>
 
 export const GLOBAL_STYLE_FIELDS = [
   {
-    key: "backgroundColor",
-    label: "Background Color",
+    key: "sectionBG",
+    label: "Section Background Color",
     type: "color",
     group: "style",
     default: "",
   },
   {
-    key: "textColor",
-    label: "Text Color",
-    type: "color",
+    key: "sectionPaddingY",
+    label: "Section Padding Y (rem)",
+    type: "slider",
     group: "style",
-    default: "",
-  },
-  {
-    key: "paddingY",
-    label: "Padding Y (px)",
-    type: "number",
-    group: "style",
-    default: 0,
-    min: 0,
-    max: 200,
+    default: 12,
+    min: 5,
+    max: 100,
+    step: 1,
   },
   {
     key: "paddingX",
-    label: "Padding X (px)",
-    type: "number",
+    label: "Padding X (rem)",
+    type: "slider",
     group: "style",
-    default: 0,
-    min: 0,
-    max: 200,
-  },
-  {
-    key: "marginBottom",
-    label: "Margin Bottom (px)",
-    type: "number",
-    group: "style",
-    default: 0,
-    min: 0,
-    max: 200,
-  },
-  {
-    key: "borderRadius",
-    label: "Border Radius (px)",
-    type: "number",
-    group: "style",
-    default: 0,
-    min: 0,
-    max: 64,
-  },
-  {
-    key: "maxWidth",
-    label: "Width",
-    type: "select",
-    group: "style",
-    default: "full",
-    options: [
-      { label: "Full Width", value: "full" },
-      { label: "Boxed (1200px)", value: "boxed" },
-      { label: "Narrow (800px)", value: "narrow" },
-    ],
+    default: 12,
+    min: 5,
+    max: 100,
+    step: 1,
   },
 ];
 

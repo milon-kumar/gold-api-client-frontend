@@ -96,8 +96,10 @@ export const DATA_SOURCES = {
     },
     mapItem: (item) => ({
       title: item.title || "",
-      image: item.image_full_path || item.image || "",
+      sub_title: item?.sub_title || "",
+      sub_description: item?.sub_description,
       description: item.description || "",
+      image: item.image_full_path || item.image || "",
     }),
   },
 
@@ -113,9 +115,10 @@ export const DATA_SOURCES = {
     },
     mapItem: (item) => ({
       title: item.title || "",
-      caption: item.title || "",
-      image: item.image_full_path || item.url || "",
+      sub_title: item?.sub_title || "",
+      sub_description: item?.sub_description,
       description: item.description || "",
+      image: item.image_full_path || item.image || "",
     }),
   },
 
@@ -130,9 +133,10 @@ export const DATA_SOURCES = {
     },
     mapItem: (item) => ({
       title: item.title || "",
-      caption: item.title || "",
-      image: item.image_full_path || item.url || "",
+      sub_title: item?.sub_title || "",
+      sub_description: item?.sub_description,
       description: item.description || "",
+      image: item.image_full_path || item.image || "",
     }),
   },
   /* ---------------- List ANNUAL_PLANS ---------------- */
@@ -147,9 +151,10 @@ export const DATA_SOURCES = {
     },
     mapItem: (item) => ({
       title: item.title || "",
-      caption: item.title || "",
-      image: item.image_full_path || item.url || "",
+      sub_title: item?.sub_title || "",
+      sub_description: item?.sub_description,
       description: item.description || "",
+      image: item.image_full_path || item.image || "",
     }),
   },
   /* ---------------- List REGULAR_ACTIVITIES ---------------- */
@@ -164,9 +169,10 @@ export const DATA_SOURCES = {
     },
     mapItem: (item) => ({
       title: item.title || "",
-      caption: item.title || "",
-      image: item.image_full_path || item.url || "",
+      sub_title: item?.sub_title || "",
+      sub_description: item?.sub_description,
       description: item.description || "",
+      image: item.image_full_path || item.image || "",
     }),
   },
   /* ---------------- List REGULAR_ACTIVITIES ---------------- */
@@ -181,9 +187,10 @@ export const DATA_SOURCES = {
     },
     mapItem: (item) => ({
       title: item.title || "",
-      caption: item.title || "",
-      image: item.image_full_path || item.url || "",
+      sub_title: item?.sub_title || "",
+      sub_description: item?.sub_description,
       description: item.description || "",
+      image: item.image_full_path || item.image || "",
     }),
   },
   video: {
@@ -197,19 +204,12 @@ export const DATA_SOURCES = {
     },
     mapItem: (item) => ({
       title: item.title || "",
-      image: item.image_full_path || "",
+      sub_title: item?.sub_title || "",
+      sub_description: item?.sub_description,
       description: item.description || "",
-      link: item.url || item.video_url || "#",
+      image: item.image_full_path || item.image || "",
     }),
   },
-
-  // staff
-  // organization
-  // photo
-  // anual_plan
-  // regular_activities
-  // archives
-  // video
 
   activity: {
     label: "Activity",

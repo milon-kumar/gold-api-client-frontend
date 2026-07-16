@@ -1,6 +1,8 @@
 
 import FrontendLayout from "@/layouts/frontend/FrontendLayout";
+import AboutUs from "@/pages/frontend/about-us/AboutUs";
 import Home from "@/pages/frontend/home/Home";
+
 import JoinUs from "@/pages/frontend/join-us/JoinUs";
 import Pages from "@/pages/frontend/pages/Pages";
 
@@ -13,7 +15,11 @@ export const frontendRoutes = {
             element: <Home />
         },
         {
-            path: '/page/:slug',
+            path:'about-us',
+            element: <AboutUs/>
+        },
+        {
+            path: 'page/:slug',
             element: <Pages />,
         },
         {
