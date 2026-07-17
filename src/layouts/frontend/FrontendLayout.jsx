@@ -68,7 +68,7 @@ const BusinessLayout = ({ settings }) => {
     isLoading: navbarLoading,
     refetch: navbarSettings,
   } = useApiQuery({
-    url: `/admin/navbars/show/${settingMeta?.navbar_id}`,
+    url: `/navbars/show/${settingMeta?.navbar_id}`,
     enabled: !!settingMeta?.navbar_id,
   });
 
@@ -77,7 +77,7 @@ const BusinessLayout = ({ settings }) => {
     isLoading: footerLoading,
     refetch: footerSettings,
   } = useApiQuery({
-    url: `/admin/footers/show/${settingMeta?.footer_id}`,
+    url: `/footers/show/${settingMeta?.footer_id}`,
     enabled: !!settingMeta?.footer_id,
   });
 

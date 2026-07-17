@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Menu, X ,Blocks} from "lucide-react";
+import { ChevronDown, Menu, X, Blocks } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 import { cn } from "@/lib/utils";
-import { T } from "@/lib/styleHelper";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router";
 /**
  * Navbar (Preview)
  * Renders a navbar from the navbar builder API data:
@@ -87,30 +90,66 @@ const NavLogo = ({ leftConfig = {} }) => {
 };
 
 /* ---------------- Right action buttons ---------------- */
-const RightActions = ({ rightConfig = [], className }) => (
-  <div className={cn("items-center gap-2", className)}>
-    {sortByOrder(rightConfig).map((action, idx) => (
-      <Button
-        key={`${action.label}-${idx}`}
-        asChild
-        variant={action.variant === "outline" ? "outline" : "default"}
-        className={cn(
-          "rounded-full px-5 text-sm",
-          action.variant !== "outline" &&
-            "bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90",
-        )}
-      >
-        <a
-          href={resolveUrl(action.url)}
-          target={action.newTab ? "_blank" : "_self"}
-          rel={action.newTab ? "noopener noreferrer" : undefined}
-        >
-          {action.label}
-        </a>
-      </Button>
-    ))}
-  </div>
-);
+const RightActions = ({ rightConfig = [], className }) => {
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  const handleClick = () =>{
+    navigate('/admin/dashboard')
+  }
+  return (
+    <div className={cn("items-center gap-2", className)}>
+      {isAuthenticated ? (
+        <>
+          <Button
+            variant="ghost"
+            className="h-11 bg-background px-2 pr-3 hover:bg-muted"
+            onClick={handleClick}
+          >
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={user?.avatar_full_path} />
+              <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
+                {user?.name?.charAt(0)?.toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+
+            <div className="ml-3 hidden text-left md:block">
+              <p className="max-w-35 truncate text-sm font-semibold leading-none">
+                {user?.name}
+              </p>
+              <p className="max-w-35 truncate text-xs text-muted-foreground">
+                {user?.email}
+              </p>
+            </div>
+          </Button>
+        </>
+      ) : (
+        <>
+          {sortByOrder(rightConfig).map((action, idx) => (
+            <Button
+              key={`${action.label}-${idx}`}
+              asChild
+              variant={action.variant === "outline" ? "outline" : "default"}
+              className={cn(
+                "rounded-full px-5 text-sm",
+                action.variant !== "outline" &&
+                  "bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90",
+              )}
+            >
+              <a
+                href={resolveUrl(action.url)}
+                target={action.newTab ? "_blank" : "_self"}
+                rel={action.newTab ? "noopener noreferrer" : undefined}
+              >
+                {action.label}
+              </a>
+            </Button>
+          ))}
+        </>
+      )}
+    </div>
+  );
+};
 
 /* ---------------- Main Navbar ---------------- */
 const Navbar = ({ navbar = {} }) => {
@@ -427,7 +466,10 @@ export const RootNavbar = ({ activeId, onNavigate }) => {
           {NAV_ITEMS.map((n) => (
             <button
               key={n.id}
-              onClick={() => { setOpen(false); onNavigate(n.id); }}
+              onClick={() => {
+                setOpen(false);
+                onNavigate(n.id);
+              }}
               className={`text-left px-4 py-3 rounded-xl text-base font-medium transition-colors ${
                 activeId === n.id
                   ? "bg-emerald-50 text-emerald-700"
@@ -438,7 +480,10 @@ export const RootNavbar = ({ activeId, onNavigate }) => {
             </button>
           ))}
           <Button
-            onClick={() => { setOpen(false); onNavigate("register"); }}
+            onClick={() => {
+              setOpen(false);
+              onNavigate("register");
+            }}
             className="mt-2 bg-slate-900 hover:bg-slate-800 rounded-xl"
           >
             Register Business

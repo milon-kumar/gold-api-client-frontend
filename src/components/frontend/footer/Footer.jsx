@@ -11,19 +11,23 @@ import { FiFacebook, FiYoutube, FiLinkedin, FiInstagram } from "react-icons/fi";
  *     "about"   -> logo + about text        (config: logo, show_logo, about_text)
  *     "links"   -> list of page links       (links[])
  *     "contact" -> email / phone / location (config with show_* flags)
+ *     "social"  -> social platform buttons  (config with enabled/url per platform)
  * - copyright_text -> bottom bar
+ *
+ * Design: GradientHero-এর color concept —
+ * emerald-950 → slate-950 gradient, grid pattern, emerald/amber accents
  */
-
+ 
 // "home" | "page/about" | "https://..." -> proper href
 const resolveUrl = (url) => {
   if (!url) return "#";
   if (/^https?:\/\//i.test(url)) return url;
   return url.startsWith("/") ? url : `/${url}`;
 };
-
+ 
 const sortByOrder = (arr = []) =>
   [...arr].sort((a, b) => (a?.sort_order ?? 0) - (b?.sort_order ?? 0));
-
+ 
 // logo path may be relative ("uploads/...") or full path may come separately
 const resolveLogo = (column) => {
   if (column?.logo_full_path) return column.logo_full_path;
@@ -32,63 +36,80 @@ const resolveLogo = (column) => {
   if (/^https?:\/\//i.test(logo)) return logo;
   return `/${logo.replace(/^\/+/, "")}`;
 };
-
+ 
+/* ---------------- Shared: column heading ---------------- */
+// GradientHero-র eyebrow style: ছোট emerald line + title
+const ColumnHeading = ({ children }) => (
+  <div className="mb-5 flex items-center gap-2.5">
+    <span className="h-px w-6 bg-gradient-to-r from-emerald-400 to-amber-300" />
+    <h4 className="font-bengali text-sm font-semibold uppercase tracking-wider text-white">
+      {children}
+    </h4>
+  </div>
+);
+ 
 /* ---------------- Column: About ---------------- */
 const AboutColumn = ({ column }) => {
   const config = column?.config || {};
   const logoSrc = resolveLogo(column);
-
+ 
   return (
     <div>
       {config.show_logo && logoSrc && (
         <img
           src={logoSrc}
           alt={column?.title || "logo"}
-          className="mb-4 h-12 w-auto object-contain"
+          className="mb-5 h-12 w-auto object-contain"
         />
       )}
       {config.about_text && (
-        <p className="text-sm leading-relaxed text-slate-400">
+        <p className="font-bengali text-sm leading-relaxed text-slate-400">
           {config.about_text}
         </p>
       )}
+      {/* ছোট decorative diamond line — GradientHero-র ticker separator-এর মতো */}
+      <div className="mt-5 flex items-center gap-2">
+        <span className="h-px w-8 bg-white/10" />
+        <span className="h-1.5 w-1.5 rotate-45 bg-gradient-to-br from-emerald-400 to-amber-300" />
+        <span className="h-px w-8 bg-white/10" />
+      </div>
     </div>
   );
 };
-
+ 
 /* ---------------- Column: Links ---------------- */
 const LinksColumn = ({ column }) => (
   <div>
-    <h4 className="mb-4 text-sm font-semibold uppercase tracking-wider text-white">
-      {column?.title}
-    </h4>
+    <ColumnHeading>{column?.title}</ColumnHeading>
     <ul className="space-y-2.5">
       {sortByOrder(column?.links).map((link) => (
         <li key={link.id}>
           <a
             href={resolveUrl(link.url)}
             target={link.target || "_self"}
-            className="group inline-flex items-center gap-2 text-sm text-slate-400 transition-colors hover:text-white"
+            className="font-bengali group inline-flex items-center gap-2.5 text-sm text-slate-400 transition-colors hover:text-emerald-300"
           >
-            <span className="h-1 w-1 flex-shrink-0 rounded-full bg-primary/60 transition-transform group-hover:scale-150" />
-            {link.label}
+            <span className="h-1 w-1 flex-shrink-0 rotate-45 bg-gradient-to-br from-emerald-400 to-amber-300 transition-transform group-hover:scale-150" />
+            <span className="transition-transform group-hover:translate-x-0.5">
+              {link.label}
+            </span>
           </a>
         </li>
       ))}
     </ul>
   </div>
 );
-
+ 
 /* ---------------- Column: Contact ---------------- */
 const ContactColumn = ({ column }) => {
   const config = column?.config || {};
-
+ 
   const rows = [
     config.show_location &&
       config.location && {
         icon: MapPin,
         content: (
-          <span className="text-sm leading-relaxed text-slate-400">
+          <span className="font-bengali text-sm leading-relaxed text-slate-400">
             {config.location}
           </span>
         ),
@@ -100,7 +121,7 @@ const ContactColumn = ({ column }) => {
         content: (
           <a
             href={`tel:${config.phone}`}
-            className="text-sm text-slate-400 transition-colors hover:text-white"
+            className="font-bengali text-sm text-slate-400 transition-colors hover:text-emerald-300"
           >
             {config.phone}
           </a>
@@ -113,7 +134,7 @@ const ContactColumn = ({ column }) => {
         content: (
           <a
             href={`mailto:${config.email}`}
-            className="text-sm text-slate-400 transition-colors hover:text-white"
+            className="text-sm text-slate-400 transition-colors hover:text-emerald-300"
           >
             {config.email}
           </a>
@@ -121,17 +142,15 @@ const ContactColumn = ({ column }) => {
         key: "email",
       },
   ].filter(Boolean);
-
+ 
   return (
     <div>
-      <h4 className="mb-4 text-sm font-semibold uppercase tracking-wider text-white">
-        {column?.title}
-      </h4>
+      <ColumnHeading>{column?.title}</ColumnHeading>
       <ul className="space-y-3">
         {rows.map(({ icon: Icon, content, key }) => (
-          <li key={key} className="flex items-start gap-3">
-            <span className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-white/5">
-              <Icon className="h-3.5 w-3.5 text-primary" />
+          <li key={key} className="group flex items-start gap-3">
+            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-white/5 bg-emerald-500/10 transition-colors group-hover:border-emerald-400/30 group-hover:bg-emerald-500/20">
+              <Icon className="h-3.5 w-3.5 text-emerald-400" />
             </span>
             {content}
           </li>
@@ -140,50 +159,48 @@ const ContactColumn = ({ column }) => {
     </div>
   );
 };
-
+ 
 /* ---------------- Column: Social ---------------- */
 const SOCIAL_PLATFORMS = [
   {
     key: "facebook_link",
     icon: FiFacebook,
     label: "Facebook",
-    hover: "hover:bg-[#1877F2]",
+    hover: "hover:bg-[#1877F2] hover:border-[#1877F2]",
   },
   {
     key: "youtube_link",
     icon: FiYoutube,
     label: "YouTube",
-    hover: "hover:bg-[#FF0000]",
+    hover: "hover:bg-[#FF0000] hover:border-[#FF0000]",
   },
   {
     key: "instagram_link",
     icon: FiInstagram,
     label: "Instagram",
-    hover: "hover:bg-[#E4405F]",
+    hover: "hover:bg-[#E4405F] hover:border-[#E4405F]",
   },
   {
     key: "linkedin_link",
     icon: FiLinkedin,
     label: "LinkedIn",
-    hover: "hover:bg-[#0A66C2]",
+    hover: "hover:bg-[#0A66C2] hover:border-[#0A66C2]",
   },
 ];
-
+ 
 const SocialColumn = ({ column }) => {
   const config = column?.config || {};
-
+ 
   // Only enabled platforms that actually have a URL
   const activePlatforms = SOCIAL_PLATFORMS.filter(
     (p) => config?.[p.key]?.enabled && config?.[p.key]?.url,
   );
-
+ 
   if (!activePlatforms.length) return null;
-
+ 
   return (
     <div>
-      <h4 className="mb-4 text-sm font-semibold uppercase tracking-wider text-white">
-        {column?.title}
-      </h4>
+      <ColumnHeading>{column?.title}</ColumnHeading>
       <div className="flex flex-wrap items-center gap-2.5">
         {activePlatforms.map(({ key, icon: Icon, label, hover }) => (
           <a
@@ -194,7 +211,7 @@ const SocialColumn = ({ column }) => {
             aria-label={label}
             title={label}
             className={cn(
-              "flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 text-slate-400 transition-all hover:scale-110 hover:text-white",
+              "flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-400 backdrop-blur-sm transition-all hover:scale-110 hover:text-white",
               hover,
             )}
           >
@@ -202,10 +219,13 @@ const SocialColumn = ({ column }) => {
           </a>
         ))}
       </div>
+      <p className="font-bengali mt-4 text-xs leading-relaxed text-slate-500">
+        সোশ্যাল মিডিয়ায় আমাদের সাথে যুক্ত থাকুন
+      </p>
     </div>
   );
 };
-
+ 
 /* ---------------- Column type registry ---------------- */
 const COLUMN_RENDERERS = {
   about: AboutColumn,
@@ -213,12 +233,12 @@ const COLUMN_RENDERERS = {
   contact: ContactColumn,
   social: SocialColumn,
 };
-
+ 
 /* ---------------- Main Footer ---------------- */
 const Footer = ({ footer = {} }) => {
   const columns = sortByOrder(footer?.columns || []);
   const copyrightText = footer?.copyright_text;
-
+ 
   // Nothing configured yet -> placeholder for the preview
   if (!columns.length && !copyrightText) {
     return (
@@ -227,15 +247,37 @@ const Footer = ({ footer = {} }) => {
       </div>
     );
   }
-
-  // 1 col on mobile, 2 on sm, up to 4 on lg (capped by column count)
+ 
+  // 1 col on mobile, 2 on sm, up to 5 on lg (capped by column count)
   const lgCols = Math.min(columns.length || 1, 5);
-
+ 
   return (
-    <footer className="w-full bg-violet-900">
-      {/* Columns */}
+    <footer className="relative w-full overflow-hidden bg-slate-950">
+      {/* ---------- GradientHero background layers ---------- */}
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-950 via-slate-950 to-slate-900" />
+      {/* grid pattern (নিচের দিকে fade হয়) */}
+      <div
+        className="absolute inset-0 opacity-[0.06]"
+        style={{
+          backgroundImage:
+            "linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)",
+          backgroundSize: "44px 44px",
+          maskImage:
+            "radial-gradient(ellipse 90% 90% at 50% 0%, black, transparent)",
+          WebkitMaskImage:
+            "radial-gradient(ellipse 90% 90% at 50% 0%, black, transparent)",
+        }}
+      />
+      {/* glow accents */}
+      <div className="absolute -left-32 -top-32 h-80 w-80 rounded-full bg-emerald-500/15 blur-3xl" />
+      <div className="absolute -bottom-32 -right-24 h-72 w-72 rounded-full bg-amber-400/10 blur-3xl" />
+ 
+      {/* top hairline — hero-র bottom hairline-এর সাথে মিলিয়ে */}
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent" />
+ 
+      {/* ---------- Columns ---------- */}
       {columns.length > 0 && (
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 md:py-16">
+        <div className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 md:py-16">
           <div
             className={cn(
               "grid gap-10 md:gap-8",
@@ -249,7 +291,7 @@ const Footer = ({ footer = {} }) => {
           >
             {columns.map((column) => {
               const Renderer = COLUMN_RENDERERS[column?.type];
-
+ 
               return (
                 <div key={column.id}>
                   {Renderer ? (
@@ -265,21 +307,31 @@ const Footer = ({ footer = {} }) => {
           </div>
         </div>
       )}
-
-      {/* Copyright bar */}
+ 
+      {/* ---------- Copyright bar ---------- */}
       {copyrightText && (
-        <div className="border-t border-white/10">
+        <div className="relative border-t border-white/10 bg-slate-950/50 backdrop-blur-sm">
           <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-5 sm:flex-row sm:px-6">
-            <p className="text-center text-xs text-slate-500 sm:text-left">
-              © {new Date().getFullYear()} {copyrightText}। সর্বস্বত্ব সংরক্ষিত।
+            <p className="font-bengali text-center text-xs text-slate-500 sm:text-left">
+              © {new Date().getFullYear()}{" "}
+              <span className="bg-gradient-to-r from-emerald-400 to-amber-300 bg-clip-text font-medium text-transparent">
+                {copyrightText}
+              </span>
+              । সর্বস্বত্ব সংরক্ষিত।
             </p>
+            {/* ছোট diamond accent — hero-র সাথে মিল রেখে */}
+            <div className="flex items-center gap-2">
+              <span className="h-px w-6 bg-white/10" />
+              <span className="h-1.5 w-1.5 rotate-45 bg-gradient-to-br from-emerald-400 to-amber-300" />
+              <span className="h-px w-6 bg-white/10" />
+            </div>
           </div>
         </div>
       )}
     </footer>
   );
 };
-
+ 
 export default Footer;
 
 export const RootFooter = ({onNavigate}) => {

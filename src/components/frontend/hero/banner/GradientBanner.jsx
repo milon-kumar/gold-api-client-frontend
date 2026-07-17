@@ -54,7 +54,7 @@ export default function GradientHero() {
   return (
     <section className="relative flex min-h-[90vh] items-center overflow-hidden bg-slate-950">
       {/* ---------- background layers ---------- */}
-      <div className="absolute inset-0 bg-gradient-to-br from-emerald-950 via-slate-950 to-slate-900" />
+      <div className="absolute inset-0 bg-linear-to-br from-emerald-950 via-slate-950 to-slate-900" />
       {/* grid pattern */}
       <div
         className="absolute inset-0 opacity-[0.07]"
@@ -74,7 +74,7 @@ export default function GradientHero() {
 
       {/* faint 8-point star motif (Islamic geometric) */}
       <svg
-        className="absolute -right-24 top-1/2 h-[34rem] w-[34rem] -translate-y-1/2 text-emerald-400/[0.06]"
+        className="absolute -right-24 top-1/2 h-136 w-136 -translate-y-1/2 text-emerald-400/6 animate-[spin_160s_linear_infinite]"
         viewBox="0 0 200 200"
         fill="none"
         aria-hidden="true"
@@ -84,8 +84,21 @@ export default function GradientHero() {
           stroke="currentColor"
           strokeWidth="1.5"
         />
-        <circle cx="100" cy="100" r="70" stroke="currentColor" strokeWidth="1" />
-        <circle cx="100" cy="100" r="92" stroke="currentColor" strokeWidth="0.75" strokeDasharray="4 6" />
+        <circle
+          cx="100"
+          cy="100"
+          r="70"
+          stroke="currentColor"
+          strokeWidth="1"
+        />
+        <circle
+          cx="100"
+          cy="100"
+          r="92"
+          stroke="currentColor"
+          strokeWidth="0.75"
+          strokeDasharray="4 6"
+        />
       </svg>
 
       <div className="relative mx-auto w-full max-w-7xl px-4 pt-20 pb-28 sm:px-6 lg:px-8">
@@ -270,14 +283,17 @@ export default function GradientHero() {
                 {/* avatar-style dots */}
                 <div className="mt-3 flex items-center">
                   <div className="flex -space-x-2">
-                    {["bg-emerald-400", "bg-amber-300", "bg-cyan-400", "bg-violet-400"].map(
-                      (c, i) => (
-                        <span
-                          key={i}
-                          className={`flex h-7 w-7 items-center justify-center rounded-full border-2 border-slate-900 ${c} text-[10px] font-bold text-slate-900`}
-                        />
-                      )
-                    )}
+                    {[
+                      "bg-emerald-400",
+                      "bg-amber-300",
+                      "bg-cyan-400",
+                      "bg-violet-400",
+                    ].map((c, i) => (
+                      <span
+                        key={i}
+                        className={`flex h-7 w-7 items-center justify-center rounded-full border-2 border-slate-900 ${c} text-[10px] font-bold text-slate-900`}
+                      />
+                    ))}
                   </div>
                   <span className="font-bengali ml-3 text-xs text-slate-400">
                     সারাদেশ থেকে যুক্ত
@@ -301,7 +317,7 @@ export default function GradientHero() {
             to { transform: translateX(-50%); }
           }
         `}</style>
-        <div className="flex w-max [animation:hero-marquee_28s_linear_infinite] hover:[animation-play-state:paused]">
+        <div className="flex w-max animate-[hero-marquee_28s_linear_infinite] hover:paused">
           {[0, 1].map((dup) => (
             <div key={dup} className="flex shrink-0 items-center">
               {tickerItems.map((item, i) => (
