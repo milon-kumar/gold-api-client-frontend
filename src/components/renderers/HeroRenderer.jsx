@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import ClassicBanner from "@/components/frontend/hero/banner/ClassicBanner";
 import StellarBanner from "@/components/frontend/hero/banner/StellarBanner";
+// import { GradientBanner } from "./partials/BannerRenderer";
+import AuroraBanner from "../frontend/hero/banner/AuroraBanner";
+import GradientBanner from "../frontend/hero/banner/GradientBanner";
 /**
  * =====================================================================
  * HERO RENDERER — Template Registry Pattern
@@ -113,7 +116,7 @@ const EmptySlides = () => (
 );
 
 const makeCarousel = (renderSlide, defaultHeight = 400) => {
-  const Carousel = ({ content, settings,styles }) => {
+  const Carousel = ({ content, settings, styles }) => {
     const slides = content.slides || content.images || [];
     const slider = useSlider(slides.length, settings);
     if (!slides.length) {
@@ -190,6 +193,8 @@ const TEMPLATES = {
   "banner.classicBanner": ClassicBanner,
   "banner.stellarBanner": StellarBanner,
   "banner.simpleBanner": SimpleBanner,
+  "banner.gradentBanner": GradientBanner,
+  "banner.auroraBanner": AuroraBanner,
   "carousel.classicCarousel": makeCarousel(TextImageSlide, 700),
   "carousel.simpleCarousel": makeCarousel(TextImageSlide, 360),
   "carousel.modernCarousel": makeCarousel(TextImageSlide, 440),
@@ -213,7 +218,7 @@ const HeroRenderer = ({
       </div>
     );
   }
-  return <Template content={content} settings={settings} styles={styles}/>;
+  return <Template content={content} settings={settings} styles={styles} />;
 };
 
 export default HeroRenderer;

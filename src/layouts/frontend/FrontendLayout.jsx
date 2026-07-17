@@ -1,42 +1,66 @@
-import React from "react";
-// import Navbar from "@/layouts/frontend/Navbar";
-// import Footer from "@/layouts/frontend/Footer";
-import Navbar from "@/components/frontend/navbar/Navbar";
-import Footer from "@/components/frontend/footer/Footer";
+import React, { useState, useEffect } from "react";
+import Navbar, { RootNavbar } from "@/components/frontend/navbar/Navbar";
+import Footer, { RootFooter } from "@/components/frontend/footer/Footer";
 import Loading from "@/components/shear/Loading";
 import { Outlet } from "react-router";
 import { useApiQuery } from "@/hooks/useAppQuery";
 import { asset } from "@/lib/helper";
+import RootHomePage from "@/pages/frontend/home/RootHomePage";
 const FrontendLayout = () => {
-  //   const { pathname } = useLocation();
-
   const { data: settingResponse, isLoading: settingLoading } = useApiQuery({
     url: `/settings`,
   });
 
-  const { data: pagesResponse } = useApiQuery({
-    url: "/pages",
-  });
-
-  const { data: linkPagesResponse } = useApiQuery({
-    url: "/pages",
-    params: {
-      page_type: "link",
-    },
-  });
-
-  const { data: customPagesResponse } = useApiQuery({
-    url: "/pages",
-    params: {
-      page_type: "custom",
-    },
-  });
-
   const settings = settingResponse?.data?.data || {};
-  const webPages = pagesResponse?.data || [];
-  const linkPages = linkPagesResponse?.data || [];
-  const customPages = customPagesResponse?.data || [];
 
+  if (settingLoading) {
+    return <Loading />;
+  }
+
+  if (settings?.business_id === "ROOT") {
+    return <RootLayout settings={settings}/>;
+  }
+
+  return <BusinessLayout settings={settings} />;
+};
+
+export default FrontendLayout;
+
+const RootLayout = ({settings}) => {
+   const [activeId, setActiveId] = useState("home");
+  const sectionIds = ["home", "modules", "builder", "dashboard", "accounts", "register", "contact"];
+
+  const onNavigate = (id) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };                          
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) setActiveId(e.target.id);
+        });
+      },
+      { rootMargin: "-40% 0px -55% 0px" }
+    );
+    sectionIds.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-background hide-scrollbar">
+      <RootNavbar activeId={activeId} onNavigate={onNavigate} />
+      <RootHomePage onNavigate={onNavigate}/>
+      <RootFooter  onNavigate={onNavigate} />
+    </div>
+  );
+};
+
+const BusinessLayout = ({ settings }) => {
   const settingMeta = settings?.meta ? JSON.parse(settings?.meta) : {};
 
   const {
@@ -45,7 +69,6 @@ const FrontendLayout = () => {
     refetch: navbarSettings,
   } = useApiQuery({
     url: `/admin/navbars/show/${settingMeta?.navbar_id}`,
-    // Skip the query if navbar_id doesn't exist
     enabled: !!settingMeta?.navbar_id,
   });
 
@@ -55,13 +78,8 @@ const FrontendLayout = () => {
     refetch: footerSettings,
   } = useApiQuery({
     url: `/admin/footers/show/${settingMeta?.footer_id}`,
-    // Skip the query if footer_id doesn't exist
     enabled: !!settingMeta?.footer_id,
   });
-
-  if (settingLoading) {
-    return <Loading />;
-  }
 
   if (navbarLoading || footerLoading) {
     return <Loading />;
@@ -80,7 +98,7 @@ const FrontendLayout = () => {
     favicon.href = asset(href) || "/favicon.ico";
   }
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background hide-scrollbar">
       {/* <Navbar websiteSettings={settings} webPages={webPages} /> */}
       <Navbar navbar={navbar} />
       <Outlet
@@ -93,5 +111,3 @@ const FrontendLayout = () => {
     </div>
   );
 };
-
-export default FrontendLayout;

@@ -98,7 +98,7 @@ const ElegantHeader = ({ badge, title, subtitle }) => (
     {badge && (
       <div className="flex items-center justify-center gap-4">
         <span className="h-px w-12 bg-gradient-to-r from-transparent to-amber-400/70" />
-        <span className="text-[11px] font-semibold uppercase tracking-[0.28em] text-amber-600">
+        <span className="text-[16px] font-semibold uppercase tracking-[0.28em] text-amber-600">
           {badge}
         </span>
         <span className="h-px w-12 bg-gradient-to-l from-transparent to-amber-400/70" />

@@ -1,18 +1,11 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, ZoomIn } from 'lucide-react';
-import { useApiQuery } from '@/hooks/useAppQuery';
-import SectionHeader from '@/components/partials/frontend/SectionHeader';
-import { asset } from '@/lib/helper';
-
-const photos = [
-  { id: 1, src: 'https://images.unsplash.com/photo-1585036156171-384164a8c675?w=600&q=80', title: 'মাহফিল ২০২৬', span: 'col-span-2 row-span-2' },
-  { id: 2, src: 'https://images.unsplash.com/photo-1564769625905-50e93615e769?w=400&q=80', title: 'তালীম সেশন', span: '' },
-  { id: 3, src: 'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=80', title: 'সেবা কার্যক্রম', span: '' },
-  { id: 4, src: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&q=80', title: 'যুব সমাবেশ', span: '' },
-  { id: 5, src: 'https://images.unsplash.com/photo-1542816417-0983c9c9ad53?w=400&q=80', title: 'দাওয়াহ কাফেলা', span: '' },
-  { id: 6, src: 'https://images.unsplash.com/photo-1466442929976-97f336a657be?w=600&q=80', title: 'ইজতেমা', span: 'col-span-2' },
-];
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, ZoomIn } from "lucide-react";
+import { useApiQuery } from "@/hooks/useAppQuery";
+import SectionHeader from "@/components/partials/frontend/SectionHeader";
+import { asset } from "@/lib/helper";
+import { MODULES } from "@/store/default/modules";
+import PageHeroRenderer from "@/components/renderers/PageHeroRenderer";
 
 export default function PhotoGallery() {
   const getDynamicSpan = (index) => {
@@ -31,16 +24,33 @@ export default function PhotoGallery() {
 
   const [lightbox, setLightbox] = useState(null);
 
-  const { data, isLoading, error } = useApiQuery({
-    url: '/image-gallery',
-    queryKey: ['image-gallery']
+  const {
+    data: imageItemQuery,
+    isLoading: imageItemLoading,
+    error: imageItemError,
+  } = useApiQuery({
+    url: "/module-items",
+    queryKey: [MODULES.PHOTOS],
+    params: {
+      module_slug: MODULES.PHOTOS,
+      limit: 9,
+    },
   });
 
-  const images = data?.data?.gallery_images
+  const images = imageItemQuery?.data;
 
   return (
-    <section id="gallery" className="py-10 sm:py-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+    <section id="gallery">
+      <PageHeroRenderer
+        variant="aurora"
+        eyebrow="Photo Gallery"
+        title="Explore Our"
+        highlight="Image Gallery"
+        titleAfter=""
+        description="Browse a collection of memorable moments, events, achievements, and activities captured through our photos. Discover the stories that reflect our journey and community."
+        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Photo Gallery" }]}
+      />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 my-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 auto-rows-[180px] sm:auto-rows-[220px]">
           {images?.map((img, i) => (
             <motion.div
@@ -53,7 +63,7 @@ export default function PhotoGallery() {
               onClick={() => setLightbox(img)}
             >
               <img
-                src={asset(img.image_url)}
+                src={img?.image_full_path}
                 alt={img.title}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
               />
@@ -64,7 +74,9 @@ export default function PhotoGallery() {
                 </div>
               </div>
               <div className="absolute bottom-0 left-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                <p className="text-white text-sm font-semibold font-bengali">{img.title}</p>
+                <p className="text-white text-sm font-semibold font-bengali">
+                  {img.title}
+                </p>
               </div>
             </motion.div>
           ))}

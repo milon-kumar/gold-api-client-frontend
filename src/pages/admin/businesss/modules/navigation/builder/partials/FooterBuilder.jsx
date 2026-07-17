@@ -24,6 +24,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
   GripVertical,
   Trash2,
   Plus,
@@ -42,19 +50,15 @@ import { useApiMutation } from "@/hooks/useAppMutation";
 import { toast } from "sonner";
 import { getUUId } from "@/lib/helper";
 
-/* ------------------------------------------------------------------
-   Helpers
------------------------------------------------------------------- */
 let uid = getUUId();
 const newId = (prefix) => `${prefix}-${++uid}-${Date.now()}`;
 
-// কলামের ৫ ধরনের টাইপ
 const COLUMN_TYPES = {
-  links: { label: "লিংক লিস্ট", icon: Link2 },
-  about: { label: "পরিচিতি (Logo + About)", icon: Info },
-  contact: { label: "যোগাযোগ তথ্য", icon: Phone },
-  social: { label: "সোশ্যাল লিংক", icon: Share2 },
-  custom_text: { label: "কাস্টম টেক্সট", icon: Type },
+  links: { label: "Link List", icon: Link2 },
+  about: { label: "About (Logo + About)", icon: Info },
+  contact: { label: "Contact Information", icon: Phone },
+  social: { label: "Social Links", icon: Share2 },
+  custom_text: { label: "Custom Text", icon: Type },
 };
 
 const SOCIAL_KEYS = [
@@ -64,12 +68,10 @@ const SOCIAL_KEYS = [
   { key: "linkedin_link", label: "LinkedIn" },
 ];
 
-// টাইপ অনুযায়ী ডিফল্ট config — settings থেকে ডেটা প্রি-ফিল হয়
 const defaultConfig = (type, setting) => {
   const s = setting?.settings || {};
   const b = setting?.business || {};
 
-  console.log("What is s - ",s)
   switch (type) {
     case "about":
       return {
@@ -108,9 +110,6 @@ const emptyFooter = (setting) => ({
   copyright_text: setting?.settings?.copyright_text || "",
 });
 
-/* ==================================================================
-   Sortable Link (links টাইপ কলামের ভেতরে)
-================================================================== */
 const SortableLink = ({ link, index, columnId, onRemove }) => {
   const { ref, handleRef, isDragging } = useSortable({
     id: link.id,
@@ -144,9 +143,6 @@ const SortableLink = ({ link, index, columnId, onRemove }) => {
   );
 };
 
-/* ==================================================================
-   Sortable Column
-================================================================== */
 const SortableColumn = ({
   column,
   index,
@@ -207,9 +203,6 @@ const SortableColumn = ({
   );
 };
 
-/* ==================================================================
-   টাইপ অনুযায়ী কলামের ভেতরের এডিটর
-================================================================== */
 const ColumnConfigEditor = ({ column, onUpdateConfig }) => {
   const cfg = column.config || {};
   const set = (patch) => onUpdateConfig(column.id, { ...cfg, ...patch });
@@ -222,20 +215,20 @@ const ColumnConfigEditor = ({ column, onUpdateConfig }) => {
             checked={cfg.show_logo}
             onCheckedChange={(v) => set({ show_logo: v })}
           />
-          লোগো দেখাবে
+          Show Logo
         </label>
         {cfg.show_logo && (
           <Input
             value={cfg.logo}
             onChange={(e) => set({ logo: e.target.value })}
-            placeholder="লোগোর path"
+            placeholder="Logo path"
             className="h-8 text-xs"
           />
         )}
         <Textarea
           value={cfg.about_text}
           onChange={(e) => set({ about_text: e.target.value })}
-          placeholder="সংক্ষিপ্ত পরিচিতি..."
+          placeholder="Brief description..."
           className="text-xs min-h-20"
         />
       </div>
@@ -246,9 +239,9 @@ const ColumnConfigEditor = ({ column, onUpdateConfig }) => {
     return (
       <div className="space-y-2">
         {[
-          ["email", "show_email", "ইমেইল"],
-          ["phone", "show_phone", "ফোন"],
-          ["location", "show_location", "ঠিকানা"],
+          ["email", "show_email", "Email"],
+          ["phone", "show_phone", "Phone"],
+          ["location", "show_location", "Location"],
         ].map(([field, toggle, label]) => (
           <div key={field} className="space-y-1">
             <label className="flex items-center gap-2 text-xs text-slate-600">
@@ -306,7 +299,7 @@ const ColumnConfigEditor = ({ column, onUpdateConfig }) => {
       <Textarea
         value={cfg.text}
         onChange={(e) => set({ text: e.target.value })}
-        placeholder="যা খুশি লিখুন..."
+        placeholder="Write anything..."
         className="text-xs min-h-28"
       />
     );
@@ -315,23 +308,24 @@ const ColumnConfigEditor = ({ column, onUpdateConfig }) => {
   return null;
 };
 
-/* ==================================================================
-   Main FooterBuilder
-================================================================== */
 export const FooterBuilder = ({ allActivePages = [], setting }) => {
-  const [footers, setFooters] = useState([]); // সব saved footer
+  const [footers, setFooters] = useState([]);
   const [current, setCurrent] = useState(emptyFooter(setting));
-  // কলামের মেটা: [{ id, title, type, config }]
   const [columns, setColumns] = useState([]);
-  // links শুধু 'links' টাইপ কলামের জন্য: Record<columnId, Link[]>
   const [links, setLinks] = useState({});
   const snapshot = useRef(null);
   const [copiedId, setCopiedId] = useState(null);
+  const [linkModal, setLinkModal] = useState({
+    open: false,
+    colId: null,
+    label: "",
+    url: "",
+    target: "_blank",
+  });
 
-  /* ---------------- API ---------------- */
   const { mutate: fetchFooters } = useApiMutation({
     url: "/admin/footers/list",
-    method: "GET", // hook এ GET না থাকলে axios দিয়ে বদলে নিন
+    method: "GET",
   });
   const { mutate: saveFooter, isLoading: saving } = useApiMutation({
     url: "/admin/footers/save",
@@ -342,7 +336,6 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
 
   useEffect(() => {
     loadFooters();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadFooters = async () => {
@@ -350,7 +343,6 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
     if (res?.success) setFooters(res.data);
   };
 
-  /* -------- backend থেকে আসা footer → builder state -------- */
   const selectFooter = (f) => {
     setCurrent({
       id: f.id,
@@ -384,13 +376,12 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
     setLinks({});
   };
 
-  /* ---------------- Column helpers ---------------- */
   const addColumn = () => {
     if (columns.length >= 5) return;
     const id = newId("col");
     setColumns([
       ...columns,
-      { id, title: "নতুন কলাম", type: "links", config: {} },
+      { id, title: "New Column", type: "links", config: {} },
     ]);
     setLinks((l) => ({ ...l, [id]: [] }));
   };
@@ -408,7 +399,6 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
     setColumns((cols) =>
       cols.map((col) => {
         if (col.id !== id) return col;
-        // টাইপ বদলালে সেই টাইপের ডিফল্ট config (settings থেকে) বসবে
         if (patch.reset) {
           return {
             ...col,
@@ -426,7 +416,6 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
       cols.map((col) => (col.id === id ? { ...col, config } : col)),
     );
 
-  /* ---------------- Link helpers ---------------- */
   const addLinkFromPage = (colId, pageId) => {
     const page = allActivePages.find((p) => p.id === Number(pageId));
     if (!page) return;
@@ -445,18 +434,54 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
     }));
   };
 
+  // const addCustomLink = (colId) => {
+  //   const label = prompt("Link label:");
+  //   if (!label) return;
+  //   const url = prompt("URL:");
+  //   if (!url) return;
+  //   setLinks((l) => ({
+  //     ...l,
+  //     [colId]: [
+  //       ...(l[colId] || []),
+  //       { id: newId("l"), page_id: null, label, url, target: "_blank" },
+  //     ],
+  //   }));
+  // };
+
   const addCustomLink = (colId) => {
-    const label = prompt("লিংকের লেবেল:");
-    if (!label) return;
-    const url = prompt("URL:");
-    if (!url) return;
-    setLinks((l) => ({
-      ...l,
-      [colId]: [
-        ...(l[colId] || []),
-        { id: newId("l"), page_id: null, label, url, target: "_blank" },
+    setLinkModal({
+      open: true,
+      colId,
+      label: "",
+      url: "",
+      target: "_blank",
+    });
+  };
+
+  const saveCustomLink = () => {
+    if (!linkModal.label || !linkModal.url) return;
+
+    setLinks((prev) => ({
+      ...prev,
+      [linkModal.colId]: [
+        ...(prev[linkModal.colId] || []),
+        {
+          id: newId("l"),
+          page_id: null,
+          label: linkModal.label,
+          url: linkModal.url,
+          target: linkModal.target,
+        },
       ],
     }));
+
+    setLinkModal({
+      open: false,
+      colId: null,
+      label: "",
+      url: "",
+      target: "_blank",
+    });
   };
 
   const removeLink = (colId, linkId) =>
@@ -465,10 +490,9 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
       [colId]: l[colId].filter((it) => it.id !== linkId),
     }));
 
-  /* ---------------- Save ---------------- */
   const save = async () => {
     if (!current.name.trim()) {
-      toast.error("Footer এর একটা নাম দিন।");
+      toast.error("Please provide a name for the footer.");
       return;
     }
     const payload = {
@@ -496,7 +520,7 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
 
     const res = await saveFooter(payload);
     if (res?.success) {
-      toast.success(res.message || "Footer সেভ হয়েছে।");
+      toast.success(res.message || "Footer saved successfully.");
       loadFooters();
       if (!current.id && res.data?.id) {
         setCurrent((c) => ({ ...c, id: res.data.id }));
@@ -505,10 +529,10 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm("এই footer টি মুছে ফেলতে চান?")) return;
+    if (!confirm("Are you sure you want to delete this footer?")) return;
     const res = await deleteFooter({ id });
     if (res?.success) {
-      toast.success("Footer মুছে ফেলা হয়েছে।");
+      toast.success("Footer deleted successfully.");
       if (current.id === id) startNew();
       loadFooters();
     }
@@ -536,7 +560,7 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
 
       setCopiedId(id);
       if (copiedId) {
-        toast.success("Copied success.");
+        toast.success("Copied successfully.");
       }
       setTimeout(() => {
         setCopiedId(null);
@@ -545,31 +569,26 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
       console.error("Copy failed:", err);
     }
   };
-  /* ================================================================
-     UI
-  ================================================================ */
+
   return (
     <div className="space-y-6">
-      {/* -------- Footer লিস্ট -------- */}
       <Card>
         <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
           <div>
             <CardTitle className="text-sm flex items-center gap-2">
-              <LayoutGrid className="w-4 h-4" /> আপনার Footer গুলো
+              <LayoutGrid className="w-4 h-4" /> Your Footers
             </CardTitle>
             <CardDescription className="text-xs">
-              একটা সিলেক্ট করে এডিট করুন, অথবা নতুন কনফিগ বানান
+              Select one to edit, or create a new configuration
             </CardDescription>
           </div>
           <Button size="sm" variant="outline" onClick={startNew}>
-            <Plus className="w-4 h-4 mr-1" /> নতুন Footer
+            <Plus className="w-4 h-4 mr-1" /> New Footer
           </Button>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
           {footers.length === 0 && (
-            <p className="text-xs text-slate-400">
-              এখনো কোনো footer সেভ করা হয়নি।
-            </p>
+            <p className="text-xs text-slate-400">No footers saved yet.</p>
           )}
           {footers.map((f) => (
             <div
@@ -582,10 +601,6 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
               onClick={() => selectFooter(f)}
             >
               <span className="font-medium">{f.name}</span>
-
-              {/* <Badge variant="secondary" className="text-[10px] px-1.5">
-                #{f.id}
-              </Badge> */}
 
               {!!f.is_active && (
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
@@ -623,17 +638,16 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
         </CardContent>
       </Card>
 
-      {/* -------- সেটিংস + সেভ -------- */}
       <Card>
         <CardContent className="pt-4 flex flex-wrap items-end gap-4">
           <div className="space-y-1 flex-1 min-w-52">
-            <Label className="text-xs">Footer এর নাম</Label>
+            <Label className="text-xs">Footer Name</Label>
             <Input
               value={current.name}
               onChange={(e) =>
                 setCurrent((c) => ({ ...c, name: e.target.value }))
               }
-              placeholder="যেমন: Main Footer"
+              placeholder="e.g., Main Footer"
               className="h-9"
             />
           </div>
@@ -652,16 +666,15 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
             onClick={addColumn}
             disabled={columns.length >= 5}
           >
-            <Plus className="w-4 h-4 mr-1" /> কলাম যোগ করুন ({columns.length}/5)
+            <Plus className="w-4 h-4 mr-1" /> Add Column ({columns.length}/5)
           </Button>
           <Button onClick={save} disabled={saving}>
             <Save className="w-4 h-4 mr-1" />
-            {saving ? "সেভ হচ্ছে..." : "Footer সেভ করুন"}
+            {saving ? "Saving..." : "Save Footer"}
           </Button>
         </CardContent>
       </Card>
 
-      {/* -------- কলাম গ্রিড -------- */}
       <DragDropProvider
         onDragStart={() => {
           snapshot.current = {
@@ -711,7 +724,7 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
                     ))}
                     {(links[col.id] || []).length === 0 && (
                       <p className="text-[11px] text-slate-400 text-center py-2 border border-dashed rounded-md">
-                        এখানে লিংক টেনে আনুন
+                        Drag links here
                       </p>
                     )}
                   </div>
@@ -721,7 +734,7 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
                     onChange={(e) => addLinkFromPage(col.id, e.target.value)}
                   >
                     <option value="" disabled>
-                      + পেজ থেকে লিংক যোগ করুন
+                      + Add link from page
                     </option>
                     {allActivePages.map((p) => (
                       <option key={p.id} value={p.id}>
@@ -735,7 +748,7 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
                     className="w-full h-7 text-xs text-slate-500"
                     onClick={() => addCustomLink(col.id)}
                   >
-                    <Plus className="w-3 h-3 mr-1" /> কাস্টম লিংক
+                    <Plus className="w-3 h-3 mr-1" /> Custom Link
                   </Button>
                 </>
               ) : (
@@ -751,15 +764,14 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
 
       {columns.length === 0 && (
         <div className="text-center text-sm text-slate-400 py-10 border border-dashed rounded-lg">
-          "কলাম যোগ করুন" চেপে ফুটার বানানো শুরু করুন (সর্বোচ্চ ৫টা)
+          Click "Add Column" to start building your footer (maximum 5 columns)
         </div>
       )}
 
-      {/* -------- কপিরাইট -------- */}
       <Card>
         <CardContent className="pt-4">
           <div className="space-y-1 max-w-md">
-            <Label className="text-xs">কপিরাইট টেক্সট</Label>
+            <Label className="text-xs">Copyright Text</Label>
             <Input
               value={current.copyright_text}
               onChange={(e) =>
@@ -771,9 +783,8 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
         </CardContent>
       </Card>
 
-      {/* -------- লাইভ প্রিভিউ -------- */}
       <div>
-        <p className="text-xs text-slate-400 mb-2">প্রিভিউ</p>
+        <p className="text-xs text-slate-400 mb-2">Preview</p>
         <div className="rounded-xl bg-slate-900 text-slate-300 p-6">
           <div
             className="grid gap-6 text-sm"
@@ -846,6 +857,86 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
           </div>
         </div>
       </div>
+
+      {linkModal.open && (
+        <Dialog
+          open={linkModal.open}
+          onOpenChange={(open) => setLinkModal((prev) => ({ ...prev, open }))}
+        >
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Add Custom Link</DialogTitle>
+              <DialogDescription>
+                Create a new custom footer link.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div>
+                <Label>Label</Label>
+                <Input
+                  value={linkModal.label}
+                  onChange={(e) =>
+                    setLinkModal((prev) => ({
+                      ...prev,
+                      label: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+
+              <div>
+                <Label>URL</Label>
+                <Input
+                  placeholder="https://example.com"
+                  value={linkModal.url}
+                  onChange={(e) =>
+                    setLinkModal((prev) => ({
+                      ...prev,
+                      url: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+
+              <div>
+                <Label>Target</Label>
+                <Select
+                  value={linkModal.target}
+                  onValueChange={(value) =>
+                    setLinkModal((prev) => ({
+                      ...prev,
+                      target: value,
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="_self">Same Tab</SelectItem>
+                    <SelectItem value="_blank">New Tab</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  setLinkModal((prev) => ({ ...prev, open: false }))
+                }
+              >
+                Cancel
+              </Button>
+
+              <Button onClick={saveCustomLink}>Save Link</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };

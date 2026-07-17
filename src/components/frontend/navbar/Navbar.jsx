@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Menu, X } from "lucide-react";
+import { ChevronDown, Menu, X ,Blocks} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
+import { T } from "@/lib/styleHelper";
 /**
  * Navbar (Preview)
  * Renders a navbar from the navbar builder API data:
@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
  */
 
 // "home" | "page/about" | "https://..." | "/login" -> proper href
+
 const resolveUrl = (url) => {
   if (!url) return "#";
   if (/^https?:\/\//i.test(url)) return url;
@@ -44,7 +45,7 @@ const DesktopDropdown = ({ items = [], isOpen }) => (
               target={child.target || "_self"}
               className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >
-              <span className="h-1 w-1 flex-shrink-0 rounded-full bg-primary/40" />
+              <span className="h-1 w-1 shrink-0 rounded-full bg-primary/40" />
               {child.label}
             </a>
           ))}
@@ -217,7 +218,7 @@ const Navbar = ({ navbar = {} }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm lg:hidden"
+            className="fixed inset-0 z-60 bg-black/40 backdrop-blur-sm lg:hidden"
             onClick={() => setMobileOpen(false)}
           >
             <motion.div
@@ -288,7 +289,7 @@ const Navbar = ({ navbar = {} }) => {
                                       className="flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                                       onClick={() => setMobileOpen(false)}
                                     >
-                                      <span className="h-1 w-1 flex-shrink-0 rounded-full bg-primary/40" />
+                                      <span className="h-1 w-1 shrink-0 rounded-full bg-primary/40" />
                                       {child.label}
                                     </a>
                                   ))}
@@ -342,3 +343,108 @@ const Navbar = ({ navbar = {} }) => {
 };
 
 export default Navbar;
+
+export const RootNavbar = ({ activeId, onNavigate }) => {
+  const NAV_ITEMS = [
+    { label: "Home", id: "home" },
+    { label: "Modules", id: "modules" },
+    { label: "Page Builder", id: "builder" },
+    { label: "Live Dashboard", id: "dashboard" },
+    { label: "Accounts", id: "accounts" },
+  ];
+
+  const [scrolled, setScrolled] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 24);
+    window.addEventListener("scroll", fn, { passive: true });
+    return () => window.removeEventListener("scroll", fn);
+  }, []);
+
+  return (
+    <header
+      className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? "bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm"
+          : "bg-transparent border-b border-transparent"
+      }`}
+    >
+      <nav className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+        {/* Brand */}
+        <button
+          onClick={() => onNavigate("home")}
+          className="flex items-center gap-2.5 group"
+          aria-label="OrgSuite home"
+        >
+          <span className="w-9 h-9 rounded-xl bg-emerald-600 text-white grid place-items-center shadow-md shadow-emerald-600/30 group-hover:scale-105 transition-transform">
+            <Blocks className="w-5 h-5" />
+          </span>
+          <span className="text-lg font-bold tracking-tight text-slate-900">
+            OrgSuite
+          </span>
+        </button>
+
+        {/* Desktop links */}
+        <div className="hidden md:flex items-center gap-1">
+          {NAV_ITEMS.map((n) => (
+            <button
+              key={n.id}
+              onClick={() => onNavigate(n.id)}
+              className={`px-3.5 py-2 rounded-full text-sm font-medium transition-colors ${
+                activeId === n.id
+                  ? "bg-emerald-50 text-emerald-700"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+              }`}
+            >
+              {n.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => onNavigate("register")}
+            className="hidden sm:inline-flex bg-slate-900 hover:bg-slate-800 rounded-full px-5"
+          >
+            Register Business
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="md:hidden rounded-full"
+            onClick={() => setOpen(!open)}
+            aria-label="Toggle menu"
+          >
+            {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </Button>
+        </div>
+      </nav>
+
+      {/* Mobile drawer */}
+      {open && (
+        <div className="md:hidden bg-white border-b border-slate-200 px-4 pb-4 pt-2 flex flex-col gap-1">
+          {NAV_ITEMS.map((n) => (
+            <button
+              key={n.id}
+              onClick={() => { setOpen(false); onNavigate(n.id); }}
+              className={`text-left px-4 py-3 rounded-xl text-base font-medium transition-colors ${
+                activeId === n.id
+                  ? "bg-emerald-50 text-emerald-700"
+                  : "text-slate-700 hover:bg-slate-100"
+              }`}
+            >
+              {n.label}
+            </button>
+          ))}
+          <Button
+            onClick={() => { setOpen(false); onNavigate("register"); }}
+            className="mt-2 bg-slate-900 hover:bg-slate-800 rounded-xl"
+          >
+            Register Business
+          </Button>
+        </div>
+      )}
+    </header>
+  );
+};

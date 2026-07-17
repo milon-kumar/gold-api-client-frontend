@@ -5,7 +5,7 @@ import { useApiQuery } from "@/hooks/useAppQuery";
 
 import VideoGallery from "@/pages/frontend/video-gallery/VideoGallery";
 import ContactUs from "@/pages/frontend/contact-us/ContactUs";
-import ImageGallery from "@/pages/frontend/image-gallery/ImageGallery";
+import ImageGallery from "@/pages/frontend/photo-gallery/PhotoGallery";
 import NewsList from "@/pages/frontend/news/NewsList";
 
 import NoContentFound from "@/components/partials/frontend/NoContentFound";

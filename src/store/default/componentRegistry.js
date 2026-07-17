@@ -251,6 +251,140 @@ export const COMPONENT_REGISTRY = {
               },
             ],
           },
+           gradentBanner: {
+            label: "Gradent Banner",
+            fields: [
+              {
+                key: "slogan",
+                label: "Slogan",
+                type: "text",
+                default: "Welcome",
+              },
+              {
+                key: "title",
+                label: "Title",
+                type: "text",
+                default: "Build Your Future",
+              },
+              {
+                key: "subtitle",
+                label: "Subtitle",
+                type: "text",
+                default: "Simple, modern, and powerful solutions.",
+              },
+              {
+                key: "primayButtonTitle",
+                label: "Primary Button Title",
+                type: "text",
+                default: "Get Started",
+              },
+              {
+                key: "primayButtonLink",
+                label: "Primary Button Link",
+                type: "text",
+                default: "/about",
+              },
+              {
+                key: "seconderyButtonTitle",
+                label: "Secondary Button Title",
+                type: "text",
+                default: "Learn More",
+              },
+              {
+                key: "seconderyButtonLink",
+                label: "Secondary Button Link",
+                type: "text",
+                default: "/contact",
+              },
+              {
+                key: "items",
+                label: "Items",
+                type: "array",
+                default: [],
+                itemFields: [
+                  {
+                    key: "count",
+                    label: "Count",
+                    type: "text",
+                    default: "1",
+                  },
+                  {
+                    key: "title",
+                    label: "Title",
+                    type: "text",
+                    default: "Default",
+                  },
+                ],
+              },
+            ],
+          },
+           auroraBanner: {
+            label: "Aurora Banner",
+            fields: [
+              {
+                key: "slogan",
+                label: "Slogan",
+                type: "text",
+                default: "Welcome",
+              },
+              {
+                key: "title",
+                label: "Title",
+                type: "text",
+                default: "Build Your Future",
+              },
+              {
+                key: "subtitle",
+                label: "Subtitle",
+                type: "text",
+                default: "Simple, modern, and powerful solutions.",
+              },
+              {
+                key: "primayButtonTitle",
+                label: "Primary Button Title",
+                type: "text",
+                default: "Get Started",
+              },
+              {
+                key: "primayButtonLink",
+                label: "Primary Button Link",
+                type: "text",
+                default: "/about",
+              },
+              {
+                key: "seconderyButtonTitle",
+                label: "Secondary Button Title",
+                type: "text",
+                default: "Learn More",
+              },
+              {
+                key: "seconderyButtonLink",
+                label: "Secondary Button Link",
+                type: "text",
+                default: "/contact",
+              },
+              {
+                key: "items",
+                label: "Items",
+                type: "array",
+                default: [],
+                itemFields: [
+                  {
+                    key: "count",
+                    label: "Count",
+                    type: "text",
+                    default: "1",
+                  },
+                  {
+                    key: "title",
+                    label: "Title",
+                    type: "text",
+                    default: "Default",
+                  },
+                ],
+              },
+            ],
+          },
         },
       },
 

@@ -54,7 +54,6 @@ const CardGrid = ({ content, settings, styles }) => {
                 {item.image && (
                   <div
                     style={{ height: styles.cardImageHeight || 200 }}
-                    imageFit
                     className="bject-contain"
                   >
                     <img
