@@ -7,6 +7,7 @@ import Login from "@/pages/auth/Login.jsx";
 import Dashboard from "@/pages/admin/dashboard/Dashboard.jsx";
 import BusinessList from "@/pages/admin/businesss/List.jsx"
 import BusinessDetails from "@/pages/admin/businesss/details/index.jsx"
+import BusinessSave from "@/pages/admin/businesss/save/Save.jsx"
 import ModulesList from "@/pages/admin/modules/List.jsx"
 import ModulesSave from "@/pages/admin/modules/Save"
 
@@ -120,6 +121,14 @@ const router = createBrowserRouter([
                     {
                         path: "businesses/:id",
                         element: <BusinessDetails />
+                    },
+                    {
+                        path: "businesses/:id/edit",
+                        element: <BusinessSave />
+                    },
+                    {
+                        path: "businesses/new",
+                        element: <BusinessSave/>
                     },
                     {
                         path: "modules",

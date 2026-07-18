@@ -251,7 +251,7 @@ export const COMPONENT_REGISTRY = {
               },
             ],
           },
-           gradentBanner: {
+          gradentBanner: {
             label: "Gradent Banner",
             fields: [
               {
@@ -297,8 +297,8 @@ export const COMPONENT_REGISTRY = {
                 default: "/contact",
               },
               {
-                key: "items",
-                label: "Items",
+                key: "rightSecOneStats",
+                label: "Stats Items",
                 type: "array",
                 default: [],
                 itemFields: [
@@ -316,9 +316,135 @@ export const COMPONENT_REGISTRY = {
                   },
                 ],
               },
+              {
+                key: "rightSecOneIcon",
+                label: "Card one icon",
+                type: "text",
+                default: "Check",
+              },
+              {
+                key: "rightSecOneTitle",
+                label: "Card one Title",
+                type: "text",
+                default: "Regular publications",
+              },
+              {
+                key: "rightSecOneSubTitle",
+                label: "Card one Sub Title",
+                type: "text",
+                default: "Monthly magazines and Islamic literature",
+              },
+
+              {
+                key: "rightSecTwoIcon",
+                label: "Card tow icon",
+                type: "text",
+                default: "Calendar",
+              },
+               {
+                key: "rightSecTwoHeaderTitle",
+                label: "Card tow header title",
+                type: "text",
+                default: "Upcoming events",
+              },
+               {
+                key: "rightSecTwoHeaderBadge",
+                label: "Card tow header badge",
+                type: "text",
+                default: "Registration is ongoing.",
+              },
+              {
+                key: "rightSecTowTitle",
+                label: "Card one Title",
+                type: "text",
+                default: "Annual Tablighi Ijtema 2027",
+              },
+              {
+                key: "rightSecTowItems",
+                label: "Section Items",
+                type: "array",
+                default: [],
+                itemFields: [
+                  {
+                    key: "icon",
+                    label: "Icon",
+                    type: "text",
+                    default: "CircleCheck",
+                  },
+                  {
+                    key: "title",
+                    label: "Title",
+                    type: "text",
+                    default: "Default",
+                  },
+                ],
+              },
+              {
+                key: "rightSecTowFooterIcon",
+                label: "Card one icon",
+                type: "text",
+                default: "Check",
+              },
+              {
+                key: "rightSecTowFooterTitle",
+                label: "Card two footer title",
+                type: "text",
+                default: "A gathering of millions of people from home and abroad",
+              },
+              {
+                key: "rightSecThreeIcon",
+                label: "Card one icon",
+                type: "text",
+                default: "Check",
+              },
+              {
+                key: "rightSecThreeTitle",
+                label: "Card the Title",
+                type: "text",
+                default: "Big family",
+              },
+              {
+                key: "rightSecThreeSubTitle",
+                label: "Card three sub title",
+                type: "text",
+                default: "Millions of members and well-wishers",
+              },
+              {
+                key: "rightSecThreeDescription",
+                label: "Card three description",
+                type: "text",
+                default: "Connected from all over the country",
+              },
+              {
+                key: "bottomTickerItems",
+                label: "Ticker Items (input items by coma [,] seperated)",
+                type: "text",
+                default: "",
+              },
+              {
+                key: "showCardOne",
+                label: "Show card one (show/height)",
+                type: "boolean",
+                group: "settings",
+                default: true,
+              },
+              {
+                key: "showCardTow",
+                label: "Show card two (show/height)",
+                type: "boolean",
+                group: "settings",
+                default: true,
+              },
+              {
+                key: "showCardThree",
+                label: "Show card Three (show/height)",
+                type: "boolean",
+                group: "settings",
+                default: true,
+              },
             ],
           },
-           auroraBanner: {
+          auroraBanner: {
             label: "Aurora Banner",
             fields: [
               {

@@ -439,7 +439,7 @@ const LoginPage = () => {
                     : "flex items-center gap-2"
                 }
               >
-                <i className="bi bi-box-arrow-in-right"></i> Sign In
+                {isLoading ? "Signing in..." : "Sign In"}
               </span>
             </Button>
           </CardContent>

@@ -3,7 +3,6 @@ import { cn } from "@/lib/utils";
 import { MonitorPlay } from "lucide-react";
 import { getComponentConfig } from "@/store/default/componentRegistry";
 import { getRenderer } from "@/components/renderers";
-import { toInlineStyle } from "@/lib/builderHelper";
 import { useApiQuery } from "@/hooks/useAppQuery";
 import Loading from "@/components/shear/Loading";
 import Navbar from "@/components/frontend/navbar/Navbar";
