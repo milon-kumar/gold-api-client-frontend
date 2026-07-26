@@ -195,7 +195,7 @@ const Save = () => {
         onBackClick={() => navigate("/admin/categories")}
         primaryAction={{
           onClick: handleSubmit,
-          disabled: saving,
+          disabled: categoryMutationLoading,
           icon: "save",
           title: id && id !== "new" ? "Update Category" : "Create Category",
         }}
