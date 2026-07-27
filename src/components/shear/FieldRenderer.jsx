@@ -39,6 +39,10 @@ import { cn } from "@/lib/utils";
 const FieldRenderer = ({ field, value, onChange }) => {
   switch (field.type) {
     case "text":
+      if (field?.visible === false) {
+        return null;
+      }
+
       return (
         <Wrapper label={field.label}>
           <Input
@@ -46,10 +50,19 @@ const FieldRenderer = ({ field, value, onChange }) => {
             placeholder={field.placeholder || field.label}
             onChange={(e) => onChange(e.target.value)}
           />
+          {
+            field?.helpText && (
+              <small className="leading-none">{field?.helpText}</small>
+            )
+          }
         </Wrapper>
       );
 
     case "textarea":
+      if (field?.visible === false) {
+        return null;
+      }
+
       return (
         <Wrapper label={field.label}>
           <Textarea
@@ -62,6 +75,10 @@ const FieldRenderer = ({ field, value, onChange }) => {
       );
 
     case "number":
+      if (field?.visible === false) {
+        return null;
+      }
+
       return (
         <Wrapper label={field.label}>
           <Input
@@ -78,6 +95,9 @@ const FieldRenderer = ({ field, value, onChange }) => {
       );
 
     case "boolean":
+      if (field?.visible === false) {
+        return null;
+      }
       return (
         <div className="flex items-center justify-between py-1">
           <Label className="text-xs">{field.label}</Label>
@@ -86,6 +106,10 @@ const FieldRenderer = ({ field, value, onChange }) => {
       );
 
     case "color":
+     if (field?.visible === false) {
+        return null;
+      }
+
       return (
         <Wrapper label={field.label}>
           <div className="flex items-center gap-3">
@@ -114,6 +138,10 @@ const FieldRenderer = ({ field, value, onChange }) => {
       );
 
     case "image":
+      if (field?.visible === false) {
+        return null;
+      }
+
       /* আপাতত URL input; আপনার Media Uploader থাকলে এখানে বসান —
          onChange(url) call করলেই বাকি সব কাজ করবে। */
       return (
@@ -134,6 +162,10 @@ const FieldRenderer = ({ field, value, onChange }) => {
       );
 
     case "select":
+      if (field?.visible === false) {
+        return null;
+      }
+
       return (
         <Wrapper label={field.label}>
           <Select value={String(value ?? "")} onValueChange={onChange}>
@@ -153,9 +185,17 @@ const FieldRenderer = ({ field, value, onChange }) => {
       );
 
     case "array":
+      if (field?.visible === false) {
+        return null;
+      }
+
       return <ArrayField field={field} value={value} onChange={onChange} />;
 
     case "slider":
+      if (field?.visible === false) {
+        return null;
+      }
+
       return (
         <Wrapper label={field.label}>
           <ValueSlider
@@ -169,6 +209,10 @@ const FieldRenderer = ({ field, value, onChange }) => {
         </Wrapper>
       );
     case "radio":
+     if (field?.visible === false) {
+        return null;
+      }
+
       return (
         <Wrapper label={field.label}>
           <RadioGroup
@@ -257,7 +301,13 @@ const ArrayField = ({ field, value, onChange }) => {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-1">
-        <Label className="text-xs">{field.label}</Label>
+        <Label className="text-xs">{field.label}
+         {
+          field?.limit && (
+            <span>{field?.limit - items?.length}</span>
+          )
+         } 
+        </Label>
         <div className="flex items-center gap-1">
           {field.sourceKeys?.length > 0 && (
             <ResourcePicker
@@ -274,6 +324,7 @@ const ArrayField = ({ field, value, onChange }) => {
             variant="outline"
             className="h-7 px-2"
             onClick={addItem}
+            disabled={items?.length === field?.limit ? true : false}
           >
             <Plus className="h-3 w-3" /> Add
           </Button>

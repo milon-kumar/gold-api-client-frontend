@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router";
+import IconComponent from "@/components/shear/IconComponent";
 
 /* ============================================================
    Dynamic Gradient Home Hero 
@@ -48,22 +49,22 @@ export default function GradientHero({
   settings = {},
   styles = {},
 }) {
-  console.log("Gradent Hero section - ", {
-    content,
-    settings,
-    styles,
-  });
 
   // Destructure content with fallbacks
+  console.log("🚀 ~ GradientHero ~ content:", {
+    content,
+    settings,
+    styles
+  })
   const {
     slogan = "Welcome",
     title = "Build Your Future",
     subtitle = "Simple, modern, and powerful solutions.",
-    primayButtonTitle = "Get Started",
-    primayButtonLink = "/about",
-    seconderyButtonTitle = "Learn More",
-    seconderyButtonLink = "/contact",
-    rightSecOneStats = [],
+    primaryButtonTitle = "Get Started",
+    primaryButtonLink = "/about",
+    secondaryButtonTitle = "Learn More",
+    secondaryButtonLink = "/contact",
+    stats: bottomStats = [],
     rightSecOneIcon = "Check",
     rightSecOneTitle = "Regular publications",
     rightSecOneSubTitle = "Monthly magazines and Islamic literature",
@@ -93,24 +94,22 @@ export default function GradientHero({
   const CardTwoFooterIcon = iconMap[rightSecTowFooterIcon] || Check;
   const CardThreeIcon = iconMap[rightSecThreeIcon] || Check;
 
+
   // Format stats from content or use default
   const stats =
-    rightSecOneStats.length > 0
-      ? rightSecOneStats.map((stat) => ({
-          value: stat.count || "1",
-          label: stat.title || "Default",
-        }))
-      : [
-          { value: "৭৫+", label: "বছরের পথচলা" },
-          { value: "৬৪", label: "জেলায় কার্যক্রম" },
-          { value: "১০০০+", label: "শাখা ও উপশাখা" },
-        ];
+    bottomStats.length > 0 ? bottomStats.map((stat) => ({
+      value: stat.count || "1",
+      label: stat.title || "Default",
+    }))
+      : [];
 
   const tickerItems =
     content?.bottomTickerItems
       ?.split(",")
       .map((item) => item.trim())
       .filter(Boolean) || [];
+
+
 
   return (
     <section className="relative flex min-h-[90vh] items-center overflow-hidden bg-slate-950">
@@ -202,10 +201,10 @@ export default function GradientHero({
               <Button
                 asChild
                 size="lg"
-                className="font-bengali group rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 px-8 py-6 text-base font-bold text-white shadow-lg shadow-emerald-500/25 transition-all hover:shadow-xl hover:shadow-emerald-500/35 hover:brightness-110"
+                className="font-bengali group rounded-full bg-linear-to-r from-emerald-500 to-emerald-600 px-8 py-6 text-base font-bold text-white shadow-lg shadow-emerald-500/25 transition-all hover:shadow-xl hover:shadow-emerald-500/35 hover:brightness-110"
               >
-                <Link to={primayButtonLink}>
-                  {primayButtonTitle}
+                <Link to={primaryButtonLink}>
+                  {primaryButtonTitle}
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Link>
               </Button>
@@ -215,46 +214,52 @@ export default function GradientHero({
                 variant="outline"
                 className="font-bengali rounded-full border-white/20 bg-white/5 px-8 py-6 text-base font-semibold text-white backdrop-blur-sm hover:border-amber-300/40 hover:bg-amber-300/10 hover:text-amber-200"
               >
-                <Link to={seconderyButtonLink}>{seconderyButtonTitle}</Link>
+                <Link to={secondaryButtonLink}>{secondaryButtonTitle}</Link>
               </Button>
             </motion.div>
 
             {/* stats */}
-            <motion.div
-              {...fadeUp}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="mt-12 flex flex-wrap gap-x-10 gap-y-6 border-t border-white/10 pt-8"
-            >
-              {stats.map((item, i) => (
-                <div key={i}>
-                  <p className="font-bengali bg-gradient-to-r from-emerald-400 to-amber-300 bg-clip-text text-3xl font-bold text-transparent">
-                    {item.value}
-                  </p>
-                  <p className="font-bengali mt-1 text-sm text-slate-400">
-                    {item.label}
-                  </p>
-                </div>
-              ))}
-            </motion.div>
+            {
+              stats?.length > 0 ? (
+                <motion.div
+                  {...fadeUp}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                  className="mt-12 flex flex-wrap gap-x-10 gap-y-6 border-t border-white/10 pt-8"
+                >
+                  {stats.map((item, i) => (
+                    <div key={i}>
+                      <p className="font-bengali bg-linear-to-r from-emerald-400 to-amber-300 bg-clip-text text-3xl font-bold text-transparent">
+                        {item.value}
+                      </p>
+                      <p className="font-bengali mt-1 text-sm text-slate-400">
+                        {item.label}
+                      </p>
+                    </div>
+                  ))}
+                </motion.div>
+              ) : null
+            }
+
           </div>
 
           {/* ================= RIGHT: card composition ================= */}
-          <div className="relative hidden min-h-[480px] lg:block">
+          <div className="relative hidden min-h-120 lg:block">
             {/* Card Two - Main Event Card (Middle) */}
             {showCardTow && (
               <motion.div
                 {...fadeUp}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className="absolute left-1/2 top-1/2 w-[21rem] -translate-x-1/2 -translate-y-1/2"
+                className="absolute left-1/2 top-1/2 w-84 -translate-x-1/2 -translate-y-1/2"
               >
                 <motion.div
                   {...float(0, 6)}
-                  className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.06] shadow-2xl shadow-emerald-950/60 backdrop-blur-xl"
+                  className="overflow-hidden rounded-3xl border border-white/10 bg-white/6 shadow-2xl shadow-emerald-950/60 backdrop-blur-xl"
                 >
                   {/* card header */}
-                  <div className="flex items-center justify-between border-b border-white/10 bg-gradient-to-r from-emerald-500/15 to-amber-400/10 px-6 py-4">
+                  <div className="flex items-center justify-between border-b border-white/10 bg-linear-to-r from-emerald-500/15 to-amber-400/10 px-6 py-4">
                     <div className="flex items-center gap-2">
-                      <CardTwoIcon className="h-4 w-4 text-amber-300" />
+                      <IconComponent icon={rightSecTwoIcon} className="h-4 w-4 text-amber-300" />
+
                       <span className="font-bengali text-sm font-semibold text-white">
                         {rightSecTwoHeaderTitle}
                       </span>
@@ -273,15 +278,16 @@ export default function GradientHero({
                         const ItemIcon = iconMap[item.icon] || CircleCheck;
                         return (
                           <p key={idx} className="flex items-center gap-2">
-                            <ItemIcon className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
+                            <IconComponent icon={item.icon || 'CircleCheck'} className="h-3.5 w-3.5 text-emerald-400" />
                             {item.title}
                           </p>
                         );
                       })}
                     </div>
-                    <div className="mt-5 h-px bg-gradient-to-r from-emerald-500/40 via-white/10 to-transparent" />
+                    <div className="mt-5 h-px bg-linear-to-r from-emerald-500/40 via-white/10 to-transparent" />
                     <p className="font-bengali mt-4 flex items-center gap-2 text-xs text-slate-500">
-                      <CardTwoFooterIcon className="h-3.5 w-3.5 text-amber-300" />
+                      <IconComponent icon={rightSecTowFooterIcon || 'CardTwoFooterIcon'} className="h-3.5 w-3.5 text-amber-300" />
+
                       {rightSecTowFooterTitle}
                     </p>
                   </div>
@@ -298,10 +304,10 @@ export default function GradientHero({
               >
                 <motion.div
                   {...float(0.9, 5)}
-                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] p-4 shadow-xl backdrop-blur-xl"
+                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/6 p-4 shadow-xl backdrop-blur-xl"
                 >
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-400/20">
-                    <CardOneIcon className="h-5 w-5 text-amber-300" />
+                    <IconComponent icon={rightSecOneIcon} className="h-5 w-5 text-amber-300" />
                   </div>
                   <div>
                     <p className="font-bengali text-sm font-bold text-white">
@@ -324,11 +330,13 @@ export default function GradientHero({
               >
                 <motion.div
                   {...float(1.7, 5.5)}
-                  className="rounded-2xl border border-white/10 bg-white/[0.06] p-4 shadow-xl backdrop-blur-xl"
+                  className="rounded-2xl border border-white/10 bg-white/6 p-4 shadow-xl backdrop-blur-xl"
                 >
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-400/20">
-                      <CardThreeIcon className="h-5 w-5 text-emerald-300" />
+                      
+                      <IconComponent icon={rightSecThreeIcon || 'CardThreeIcon'} className="h-5 w-5 text-emerald-300" />
+
                     </div>
                     <div>
                       <p className="font-bengali text-sm font-bold text-white">
@@ -385,7 +393,7 @@ export default function GradientHero({
                     <span className="font-bengali whitespace-nowrap px-6 text-sm font-medium text-slate-400">
                       {item}
                     </span>
-                    <span className="h-1.5 w-1.5 shrink-0 rotate-45 bg-gradient-to-br from-emerald-400 to-amber-300" />
+                    <span className="h-1.5 w-1.5 shrink-0 rotate-45 bg-linear-to-br from-emerald-400 to-amber-300" />
                   </React.Fragment>
                 ))}
               </div>

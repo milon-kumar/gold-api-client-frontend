@@ -570,7 +570,7 @@ const SettingsView = () => {
                     <ImageIcon className="h-4 w-4 text-emerald-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium">Logo</p>
+                    <p className="text-sm font-medium">Logo <small>{settings.logo_full_path}</small></p>
                     {settings.logo && settings.logo_full_path ? (
                       <div className="mt-1">
                         <img
