@@ -55,7 +55,7 @@ const TypeBadge = ({ type }) => (
 );
 
 const emptyNavbar = () => ({
-  id: null, // null মানে নতুন navbar (backend এ create হবে)
+  id: null, // null means new navbar (will be created in backend)
   name: "",
   is_active: true,
   left: {
@@ -114,7 +114,7 @@ function SortableMenuItem({
             variant="ghost"
             size="icon"
             className="h-7 w-7"
-            title="ড্রপডাউন থেকে বের করুন"
+            title="Remove from dropdown"
             onClick={() => onIndent(index, -1)}
           >
             <ChevronLeft className="w-3.5 h-3.5" />
@@ -123,7 +123,7 @@ function SortableMenuItem({
             variant="ghost"
             size="icon"
             className="h-7 w-7"
-            title="ড্রপডাউন আইটেম বানান"
+            title="Make dropdown item"
             onClick={() => onIndent(index, 1)}
           >
             <ChevronRight className="w-3.5 h-3.5" />
@@ -151,7 +151,7 @@ function SortableMenuItem({
         <div className="mt-1.5 ml-6 rounded-lg border bg-slate-50 p-3 space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <Label className="text-xs">লেবেল</Label>
+              <Label className="text-xs">Label</Label>
               <Input
                 value={item.label}
                 onChange={(e) => onUpdate(item.id, { label: e.target.value })}
@@ -173,10 +173,10 @@ function SortableMenuItem({
                 checked={item.newTab}
                 onCheckedChange={(v) => onUpdate(item.id, { newTab: v })}
               />
-              নতুন ট্যাবে খুলবে
+              Open in new tab
             </label>
             <Button size="sm" variant="secondary" onClick={onCloseEdit}>
-              বন্ধ করুন
+              Close
             </Button>
           </div>
         </div>
@@ -186,7 +186,7 @@ function SortableMenuItem({
 }
 
 /* ==================================================================
-   Sortable Item — Right (Buttons: Login / Join ইত্যাদি)
+   Sortable Item — Right (Buttons: Login / Join, etc.)
 ================================================================== */
 function SortableButtonItem({ item, index, onUpdate, onRemove }) {
   const { ref, handleRef, isDragging } = useSortable({ id: item.id, index });
@@ -217,7 +217,7 @@ function SortableButtonItem({ item, index, onUpdate, onRemove }) {
       </div>
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1">
-          <Label className="text-xs">লেবেল</Label>
+          <Label className="text-xs">Label</Label>
           <Input
             value={item.label}
             onChange={(e) => onUpdate(item.id, { label: e.target.value })}
@@ -236,7 +236,7 @@ function SortableButtonItem({ item, index, onUpdate, onRemove }) {
       </div>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Label className="text-xs">স্টাইল</Label>
+          <Label className="text-xs">Style</Label>
           <Select
             value={item.variant}
             onValueChange={(v) => onUpdate(item.id, { variant: v })}
@@ -256,7 +256,7 @@ function SortableButtonItem({ item, index, onUpdate, onRemove }) {
             checked={item.newTab}
             onCheckedChange={(v) => onUpdate(item.id, { newTab: v })}
           />
-          নতুন ট্যাব
+          New tab
         </label>
       </div>
     </div>
@@ -267,8 +267,8 @@ function SortableButtonItem({ item, index, onUpdate, onRemove }) {
    Main Builder
 ================================================================== */
 export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
-  const [navbars, setNavbars] = useState([]); // সব saved navbar এর লিস্ট
-  const [current, setCurrent] = useState(emptyNavbar()); // যেটা এখন এডিট হচ্ছে
+  const [navbars, setNavbars] = useState([]); // All saved navbars list
+  const [current, setCurrent] = useState(emptyNavbar()); // Currently being edited
   const [searchTerm, setSearchTerm] = useState("");
   const [checked, setChecked] = useState([]);
   const [customLabel, setCustomLabel] = useState("");
@@ -300,7 +300,7 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
     if (res?.success) setNavbars(res.data);
   };
 
-  /* -------- backend থেকে আসা navbar → builder state -------- */
+  /* -------- Backend navbar → builder state -------- */
   const selectNavbar = (nb) => {
     setEditingId(null);
     setCurrent({
@@ -308,7 +308,7 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
       name: nb.name,
       is_active: !!nb.is_active,
       left: nb.left_config || emptyNavbar().left,
-      // nested items (parent → children) কে flat + depth এ কনভার্ট
+      // Convert nested items (parent → children) to flat + depth
       middle: (nb.items || []).flatMap((it) => [
         {
           id: `m-${it.id}`,
@@ -426,7 +426,7 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
   const removeRight = (id) =>
     setCurrent((c) => ({ ...c, right: c.right.filter((it) => it.id !== id) }));
 
-  /* ---------------- Drag end (দুই লিস্টেই একই লজিক) ---------------- */
+  /* -------- Drag end (same logic for both lists) -------- */
   const makeDragEnd = (key) => (event) => {
     if (event.canceled) return;
     const { source } = event.operation;
@@ -446,7 +446,7 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
   /* ---------------- Save ---------------- */
   const save = async () => {
     if (!current.name.trim()) {
-      toast.error("Navbar এর একটা নাম দিন।");
+      toast.error("Give the navbar a name.");
       return;
     }
     const payload = {
@@ -454,7 +454,7 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
       name: current.name,
       is_active: current.is_active,
       left: current.left,
-      // depth সহ flat list পাঠাচ্ছি — backend parent_id বানাবে
+      // Send flat list with depth — backend will create parent_id
       middle: current.middle.map((it, i) => ({
         page_id: it.page_id ?? null,
         label: it.label,
@@ -472,7 +472,7 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
 
     const res = await saveNavbar(payload);
     if (res?.success) {
-      toast.success(res.message || "Navbar সেভ হয়েছে।");
+      toast.success(res.message || "Navbar saved.");
       loadNavbars();
       if (!current.id && res.data?.id) {
         setCurrent((c) => ({ ...c, id: res.data.id }));
@@ -481,10 +481,10 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm("এই navbar টি মুছে ফেলতে চান?")) return;
+    if (!confirm("Do you want to delete this navbar?")) return;
     const res = await deleteNavbar({ id });
     if (res?.success) {
-      toast.success("Navbar মুছে ফেলা হয়েছে।");
+      toast.success("Navbar deleted.");
       if (current.id === id) setCurrent(emptyNavbar());
       loadNavbars();
     }
@@ -512,7 +512,7 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
 
       setCopiedId(id);
       if(copiedId){
-        toast.success("Copied success.");
+        toast.success("Copied successfully.");
       }
       setTimeout(() => {
         setCopiedId(null);
@@ -527,7 +527,7 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
   ================================================================ */
   return (
     <div className="space-y-6">
-      {/* -------- Navbar লিস্ট + নতুন তৈরি -------- */}
+      {/* -------- Navbar list + create new -------- */}
       <Card>
         <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
           <div>
@@ -604,7 +604,7 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
         </CardContent>
       </Card>
 
-      {/* -------- Navbar সেটিংস (নাম + active) -------- */}
+      {/* -------- Navbar settings (name + active) -------- */}
       <Card>
         <CardContent className="pt-4 flex flex-wrap items-end gap-4">
           <div className="space-y-1 flex-1 min-w-52">
@@ -634,7 +634,7 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
         </CardContent>
       </Card>
 
-      {/* -------- ৩টা সেকশন -------- */}
+      {/* -------- 3 sections -------- */}
       <Tabs defaultValue="middle">
         <TabsList>
           <TabsTrigger value="left">
@@ -718,7 +718,7 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
 
               {current.left.logo_type !== "image" && (
                 <div className="space-y-1">
-                  <Label className="text-xs">লোগো টেক্সট / সাইটের নাম</Label>
+                  <Label className="text-xs">Logo text / Site name</Label>
                   <Input
                     value={current.left.logo_text}
                     onChange={(e) =>
@@ -733,7 +733,7 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
               )}
 
               <div className="space-y-1">
-                <Label className="text-xs">লোগোতে ক্লিক করলে যাবে</Label>
+                <Label className="text-xs">Where to go when logo is clicked</Label>
                 <Input
                   value={current.left.link}
                   onChange={(e) =>
@@ -770,12 +770,12 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
         {/* ================= MIDDLE : LINKS ================= */}
         <TabsContent value="middle">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* বাম প্যানেল */}
+            {/* Left panel */}
             <div className="space-y-6">
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <FileText className="w-4 h-4" /> পেজ থেকে যোগ করুন
+                    <FileText className="w-4 h-4" /> Add from pages
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
@@ -815,7 +815,7 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
                     onClick={addPages}
                     disabled={!checked.length}
                   >
-                    <Plus className="w-4 h-4 mr-1" /> মেনুতে যোগ করুন{" "}
+                    <Plus className="w-4 h-4 mr-1" /> Add to menu{" "}
                     {checked.length ? `(${checked.length})` : ""}
                   </Button>
                 </CardContent>
@@ -824,16 +824,16 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <Link2 className="w-4 h-4" /> কাস্টম লিংক
+                    <Link2 className="w-4 h-4" /> Custom Link
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="space-y-1">
-                    <Label className="text-xs">লেবেল</Label>
+                    <Label className="text-xs">Label</Label>
                     <Input
                       value={customLabel}
                       onChange={(e) => setCustomLabel(e.target.value)}
-                      placeholder="যেমন: ফেসবুক পেজ"
+                      placeholder="e.g., Facebook page"
                       className="h-8 text-sm"
                     />
                   </div>
@@ -852,18 +852,18 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
                     className="w-full"
                     onClick={addCustom}
                   >
-                    <Plus className="w-4 h-4 mr-1" /> লিংক যোগ করুন
+                    <Plus className="w-4 h-4 mr-1" /> Add link
                   </Button>
                 </CardContent>
               </Card>
             </div>
 
-            {/* ডান প্যানেল: sortable লিস্ট */}
+            {/* Right panel: sortable list */}
             <Card className="lg:col-span-2">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">মেনু স্ট্রাকচার</CardTitle>
+                <CardTitle className="text-sm">Menu Structure</CardTitle>
                 <CardDescription className="text-xs">
-                  ☰ ধরে টেনে সাজান · → দিয়ে ড্রপডাউন আইটেম বানান
+                  ☰ Drag to arrange · → Make dropdown item
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-1.5">
@@ -886,7 +886,7 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
                 </DragDropProvider>
                 {current.middle.length === 0 && (
                   <div className="text-center text-sm text-slate-400 py-10 border border-dashed rounded-lg">
-                    বাম পাশ থেকে পেজ বা কাস্টম লিংক যোগ করুন
+                    Add pages or custom links from the left panel
                   </div>
                 )}
               </CardContent>
@@ -899,13 +899,13 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
           <Card className="max-w-2xl">
             <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
               <div>
-                <CardTitle className="text-sm">ডান পাশের বাটন</CardTitle>
+                <CardTitle className="text-sm">Right section buttons</CardTitle>
                 <CardDescription className="text-xs">
-                  Login, Join, Donate — যা খুশি যোগ করুন
+                  Login, Join, Donate — add anything you want
                 </CardDescription>
               </div>
               <Button size="sm" variant="outline" onClick={addButton}>
-                <Plus className="w-4 h-4 mr-1" /> বাটন যোগ করুন
+                <Plus className="w-4 h-4 mr-1" /> Add button
               </Button>
             </CardHeader>
             <CardContent className="space-y-2">
@@ -922,7 +922,7 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
               </DragDropProvider>
               {current.right.length === 0 && (
                 <div className="text-center text-sm text-slate-400 py-10 border border-dashed rounded-lg">
-                  এখনো কোনো বাটন নেই
+                  No buttons yet
                 </div>
               )}
             </CardContent>

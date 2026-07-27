@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Building2, ArrowRight, Star, AlertCircle } from "lucide-react";
+import { useLocation } from "react-router";
 
 /* ---------------------------------- */
 /*  Hero Right Slot — Stat Card       */
@@ -32,17 +33,15 @@ const OrganizationCard = ({ org, index }) => {
 
   return (
     <article
-      className={`group grid items-center gap-8 lg:grid-cols-2 lg:gap-12 ${
-        isReversed ? "" : ""
-      }`}
+      className={`group grid items-center gap-8 lg:grid-cols-2 lg:gap-12 ${isReversed ? "" : ""
+        }`}
     >
       {/* image */}
       <div className={`relative ${isReversed ? "lg:order-2" : "lg:order-1"}`}>
         {/* offset frame behind image */}
         <div
-          className={`absolute -bottom-3 h-full w-full rounded-2xl border-2 border-emerald-200 ${
-            isReversed ? "-left-3" : "-right-3"
-          }`}
+          className={`absolute -bottom-3 h-full w-full rounded-2xl border-2 border-emerald-200 ${isReversed ? "-left-3" : "-right-3"
+            }`}
         />
         <div className="relative aspect-[16/10] overflow-hidden rounded-2xl shadow-lg">
           <img
@@ -104,9 +103,8 @@ const OrganizationCardSkeleton = ({ index }) => {
   return (
     <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
       <Skeleton
-        className={`aspect-[16/10] w-full rounded-2xl ${
-          isReversed ? "lg:order-2" : "lg:order-1"
-        }`}
+        className={`aspect-[16/10] w-full rounded-2xl ${isReversed ? "lg:order-2" : "lg:order-1"
+          }`}
       />
       <div className={isReversed ? "lg:order-1" : "lg:order-2"}>
         <Skeleton className="h-4 w-40" />
@@ -120,10 +118,23 @@ const OrganizationCardSkeleton = ({ index }) => {
   );
 };
 
+const defaultHeroContent = {
+  variant: "gradient",
+  badge: "Our Network",
+  title: "Our",
+  subTitle: "Organizations",
+  description:
+    "Explore the institutions and organizations that work alongside us to promote education, community development, and humanitarian initiatives.",
+};
+
 /* ---------------------------------- */
 /*  Main Page                         */
 /* ---------------------------------- */
 const Organizations = () => {
+  const { pathname } = useLocation()
+  const slug = pathname.split("/").filter(Boolean).pop();
+
+
   const {
     data: organizationItemQuery,
     isLoading: organizationItemLoading,
@@ -136,23 +147,31 @@ const Organizations = () => {
       limit: 3,
     },
   });
+  const { data: getPageResponse, isLoading, refetch } = useApiQuery({
+    url: `/page-by-slug/${slug}`,
+    enabled: !!slug,
+  });
 
+  const page = getPageResponse?.data
+  const meta = page?.meta ? JSON.parse(page.meta) : {};
   const organizationItems = organizationItemQuery?.data;
 
   return (
     <div className="min-h-screen bg-background">
       <PageHeroRenderer
-        variant="gradient"
-        eyebrow="আমাদের পরিবার"
-        title="আমাদের"
-        highlight="অঙ্গসংগঠনসমূহ"
-        description="শিক্ষা, মানবতা ও সমাজ উন্নয়নের লক্ষ্যে আমাদের সাথে যুক্ত প্রতিষ্ঠান ও সংগঠনগুলোর সাথে পরিচিত হোন — যারা প্রতিনিয়ত কাজ করছে একটি সুন্দর আগামীর জন্য।"
-        breadcrumbs={[{ label: "হোম", href: "/" }, { label: "অঙ্গসংগঠনসমূহ" }]}
-        rightSlot={
-          organizationItems?.length > 0 ? (
-            <OrgStatCard total={organizationItems.length} />
-          ) : null
+        variant={meta?.headerTemplate ?? defaultHeroContent.variant}
+        eyebrow={meta?.heroContent?.badge ?? defaultHeroContent.badge}
+        title={meta?.heroContent?.title ?? defaultHeroContent.title}
+        highlight={meta?.heroContent?.heightlight ?? defaultHeroContent.subTitle}
+        description={
+          meta?.heroContent?.description ?? defaultHeroContent.description
         }
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          {
+            label:slug
+          },
+        ]}
       />
 
       <main className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">

@@ -13,9 +13,9 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FiFacebook, FiYoutube, FiInstagram, FiLinkedin } from "react-icons/fi";
-import { useOutletContext } from "react-router";
+import { useLocation, useOutletContext } from "react-router";
 import PageHeroRenderer from "@/components/renderers/PageHeroRenderer";
-
+import { useApiQuery } from "@/hooks/useAppQuery";
 export default function Contact() {
   const { settings } = useOutletContext();
 
@@ -36,8 +36,9 @@ export default function Contact() {
   const email = settings?.email || settings?.business?.email;
   const phone = settings?.phone || settings?.business?.phone;
   const location = settings?.location || settings?.business?.location;
+ const { pathname } = useLocation()
+  const slug = pathname.split("/").filter(Boolean).pop();
 
-  // 017XXXXXXXX → https://wa.me/88017XXXXXXXX
   const whatsappLink = phone
     ? `https://wa.me/88${phone.replace(/[^0-9]/g, "")}`
     : null;
@@ -117,35 +118,34 @@ export default function Contact() {
     },
   ].filter((s) => s.href); // link না থাকলে button দেখাবে না
 
+
+    const { data: getPageResponse, isLoading, refetch } = useApiQuery({
+      url: `/page-by-slug/${slug}`,
+      enabled: !!slug,
+    });
+  
+    const page = getPageResponse?.data
+    const meta = page?.meta ? JSON.parse(page.meta) : {};
   return (
     <div className="min-h-screen bg-background">
       {/* ---------------- Hero ---------------- */}
       <PageHeroRenderer
-        variant="gradient"
-        eyebrow="যোগাযোগ"
-        title="আমাদের সাথে"
-        highlight="যোগাযোগ করুন"
-        description="আপনার যেকোনো প্রশ্ন, পরামর্শ বা মতামত আমাদের জানান — আমরা যত দ্রুত সম্ভব উত্তর দেওয়ার চেষ্টা করবো, ইনশাআল্লাহ।"
-        breadcrumbs={[{ label: "হোম", href: "/" }, { label: "যোগাযোগ" }]}
-        rightSlot={
-          <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 backdrop-blur-md">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/20">
-              <Headset className="h-6 w-6 text-emerald-400" />
-            </div>
-            <div>
-              <p className="font-bengali text-lg font-bold leading-none text-white">
-                {settings?.business?.name || "আমাদের টিম"}
-              </p>
-              <p className="font-bengali mt-1.5 text-sm text-slate-400">
-                আপনার সেবায় সর্বদা প্রস্তুত
-              </p>
-            </div>
-          </div>
+        variant={meta?.headerTemplate ?? "gradient"}
+        eyebrow={meta?.heroContent?.badge ?? "Contact Us"}
+        title={meta?.heroContent?.title ?? "Get In"}
+        highlight={meta?.heroContent?.heightlight ?? "Touch"}
+        description={
+          meta?.heroContent?.description ??
+          "We're here to help. Reach out to us with your questions, feedback, or inquiries, and our team will get back to you as soon as possible."
         }
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Contact Us" },
+        ]}
       />
 
       {/* ---------------- Contact Info Cards ---------------- */}
-      <section className="relative -mt-0 py-12">
+      <section className="relative mt-0 py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {contactInfo.map((info, i) => {

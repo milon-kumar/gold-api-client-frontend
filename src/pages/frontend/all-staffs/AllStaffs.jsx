@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Mail, Phone, Users, AlertCircle, ChevronRight } from "lucide-react";
 import PageHeroRenderer from "@/components/renderers/PageHeroRenderer";
+import { useLocation } from "react-router";
 
 /* ---------------------------------- */
 /*  Staff Card                        */
@@ -95,6 +96,11 @@ const StaffCardSkeleton = () => (
 /*  Main Page                         */
 /* ---------------------------------- */
 const AllStaffs = () => {
+  const { pathname } = useLocation()
+  const slug = pathname.split("/").filter(Boolean).pop();
+
+
+
   const {
     data: staffItemQuery,
     isLoading: staffItemLoading,
@@ -108,17 +114,28 @@ const AllStaffs = () => {
   });
 
   const staffItems = staffItemQuery?.data;
+  const { data: getPageResponse, isLoading, refetch } = useApiQuery({
+    url: `/page-by-slug/${slug}`,
+    enabled: !!slug,
+  });
 
+  const page = getPageResponse?.data
+  const meta = page?.meta ? JSON.parse(page.meta) : {};
   return (
     <div className="min-h-screen bg-slate-50">
       <PageHeroRenderer
-        variant="aurora"
-        eyebrow="Our Team"
-        title="Meet Our"
-        highlight="Dedicated Staff"
-        titleAfter=""
-        description="Get to know the talented professionals who work together to support our mission and deliver quality services with commitment and excellence."
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Our Staff" }]}
+        variant={meta?.headerTemplate ?? "gradient"}
+        eyebrow={meta?.heroContent?.badge ?? "Our Team"}
+        title={meta?.heroContent?.title ?? "Meet Our"}
+        highlight={meta?.heroContent?.heightlight ?? "Dedicated Staff"}
+        description={
+          meta?.heroContent?.description ??
+          "Get to know the dedicated professionals and team members who work tirelessly to support our mission, serve the community, and drive our organization forward."
+        }
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Our Team" },
+        ]}
       />
 
       <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">

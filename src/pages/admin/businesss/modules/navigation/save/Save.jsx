@@ -68,6 +68,8 @@ import {
 import { useApiMutation } from "@/hooks/useAppMutation";
 import { useApiQuery } from "@/hooks/useAppQuery";
 import SearchableSelect from "@/components/ui/searchable-select";
+import IconRenderer from "@/components/partials/IconRenderer";
+import PageHeroRenderer from "@/components/renderers/PageHeroRenderer";
 
 const pageTypes = [
   {
@@ -95,7 +97,7 @@ const pageTypes = [
 const defaultPages = [
   {
     name: "About Us",
-    slug: "about",
+    slug: "about-us",
     url: "/about-us",
     icon: FileText,
   },
@@ -107,30 +109,61 @@ const defaultPages = [
   },
   {
     name: "Photo Gallery",
-    slug: "gallery",
-    url: "/gallery",
+    slug: "photo-gallery",
+    url: "/photo-gallery",
     icon: Image,
   },
   {
     name: "Video Gallery",
-    slug: "all_videos",
-    url: "/all-videos",
+    slug: "video-gallery",
+    url: "/video-gallery",
     icon: Video,
   },
   {
     name: "All staff",
-    slug: "all_staff",
+    slug: "all-staffs",
     url: "/all-staff",
     icon: Video,
   },
   {
     name: "Contact Us",
-    slug: "contact",
-    url: "/contact",
+    slug: "contact-us",
+    url: "/contact-us",
     icon: Phone,
   },
 ];
-
+const defaultPageHeaders = [
+  {
+    name: "Gradient",
+    icon: "Palette",
+    template: "gradient",
+  },
+  {
+    name: "Editorial",
+    icon: "Newspaper",
+    template: "editorial",
+  },
+  {
+    name: "Wave",
+    icon: "Waves",
+    template: "wave",
+  },
+  {
+    name: "Minimal",
+    icon: "Minus",
+    template: "minimal",
+  },
+  {
+    name: "Split",
+    icon: "Columns2",
+    template: "split",
+  },
+  {
+    name: "Aurora",
+    icon: "SquareDashed",
+    template: "aurora",
+  },
+];
 const languageOptions = [
   {
     label: "Bangladesh",
@@ -152,6 +185,7 @@ const statusOptions = Object.values(STATUS).map((s) => {
 const SavePage = () => {
   const { setting } = useSelector((state) => state);
   const [selectedPage, setSelectedPage] = useState("");
+  const [headerTemplate, setHeaderTemplate] = useState("aurora")
 
   const { id } = useParams();
   const navigate = useNavigate();
@@ -183,6 +217,13 @@ const SavePage = () => {
     seo_content: "",
   });
 
+  const [heroContent, setHeroContent] = useState({
+    badge: "",
+    title: "",
+    heightlight: "",
+    description: ""
+  })
+
   const [selectedParent, setSelectedParent] = useState(null);
 
   // Fetch page data for edit
@@ -194,8 +235,6 @@ const SavePage = () => {
     url: `/admin/pages/${id}`,
     enabled: !!id,
   });
-
-  console.log("pageGetQuery", pageGetQuery);
 
   // Fetch parent pages for dropdown
   const { data: parentPagesQuery, isLoading: parentPagesLoading } = useApiQuery(
@@ -225,7 +264,7 @@ const SavePage = () => {
     console.log("item", item);
     setFormData({
       page_title: item.page_title || "",
-      page_slug: item.page_slug || "",
+      page_slug: selectedPage || null,
       page_type: item.page_type || "standard",
       lang_slug: item.lang_slug || "en",
       parent_id: item.parent_id || null,
@@ -251,6 +290,16 @@ const SavePage = () => {
 
     if (item.page_type) {
       setPageType(item.page_type);
+    }
+    setSelectedPage(item?.page_slug || null)
+
+    const meta = JSON.parse(item?.meta);
+    if (meta?.heroContent) {
+      setHeroContent(meta.heroContent)
+    }
+
+    if (meta?.headerTemplate) {
+      setHeaderTemplate(meta?.headerTemplate)
     }
   }, [pageGetQuery]);
 
@@ -287,6 +336,14 @@ const SavePage = () => {
     }));
   };
 
+  const handelChangeHeroContent = (e) => {
+    const { name, value } = e.target;
+    setHeroContent((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }
+
   // Handle switch changes
   const handleSwitchChange = (checked) => {
     // Add any switch fields if needed
@@ -320,7 +377,7 @@ const SavePage = () => {
     method: "POST",
   });
 
-  const handelPageCustomize = () =>{
+  const handelPageCustomize = () => {
     navigate(`/admin/navigations/custom-page/${pageGetQuery.data.id}`)
   }
 
@@ -332,7 +389,8 @@ const SavePage = () => {
     const payload = {
       id: id || null,
       page_title: formData.page_title,
-      page_type: formData.page_type,
+      page_type: formData.page_type || "",
+      page_slug: selectedPage || null,
       lang_slug: formData.lang_slug,
       parent_id: formData.parent_id || null,
       sort_order: parseInt(formData.sort_order) || 0,
@@ -343,7 +401,13 @@ const SavePage = () => {
       seo_title: seoData.seo_title || "",
       seo_keywords: seoData.seo_keywords || "",
       seo_content: seoData.seo_content || "",
+      meta: JSON.stringify({
+        heroContent: heroContent,
+        headerTemplate: headerTemplate,
+      })
     };
+
+
 
     try {
       const response = await pagePostMutation(payload);
@@ -418,7 +482,7 @@ const SavePage = () => {
           }
           showBackButton={true}
           onBackClick={() => navigate("/admin/navigations")}
-             secondaryAction={
+          secondaryAction={
             pageGetQuery?.data?.page_type === "custom_page" && {
               onClick: handelPageCustomize,
               disabled: pagePostLoading,
@@ -433,7 +497,7 @@ const SavePage = () => {
             icon: "save",
             title: id && id !== "new" ? "Update Page" : "Create Page",
           }}
-       
+
         />
 
         <form onSubmit={handleSubmit}>
@@ -569,69 +633,136 @@ const SavePage = () => {
               </Card>
 
               {pageType === "default" && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Link2 className="h-5 w-5" />
-                      Default Pages
-                    </CardTitle>
-                    <CardDescription>Select default page</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-                      {defaultPages.map((page) => {
-                        const Icon = page.icon;
-                        const selected = selectedPage === page.slug;
+                <div>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Link2 className="h-5 w-5" />
+                        Default Pages
+                      </CardTitle>
+                      <CardDescription>Select default page</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+                        {defaultPages.map((page) => {
+                          const Icon = page.icon;
+                          const selected = selectedPage === page.slug;
 
-                        return (
-                          <button
-                            key={page.slug}
-                            type="button"
-                            onClick={() => setSelectedPage(page.slug)}
-                            className={`relative flex cursor-pointer items-center gap-3 rounded-lg border p-3 text-left transition-all duration-200 ${
-                              selected
+                          return (
+                            <button
+                              key={page.slug}
+                              type="button"
+                              onClick={() => setSelectedPage(page.slug)}
+                              className={`relative flex cursor-pointer items-center gap-3 rounded-lg border p-3 text-left transition-all duration-200 ${selected
                                 ? "border-primary bg-primary/10 ring-2 ring-primary/20 shadow-sm"
                                 : "border-border bg-background hover:border-primary/40 hover:bg-muted/50"
-                            }`}
-                          >
-                            {/* Selected Badge */}
-                            {selected && (
-                              <div className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                                ✓
-                              </div>
-                            )}
+                                }`}
+                            >
+                              {/* Selected Badge */}
+                              {selected && (
+                                <div className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                                  ✓
+                                </div>
+                              )}
 
-                            {/* Icon */}
-                            <div
-                              className={`flex h-9 w-9 items-center justify-center rounded-md transition-colors ${
-                                selected
+                              {/* Icon */}
+                              <div
+                                className={`flex h-9 w-9 items-center justify-center rounded-md transition-colors ${selected
                                   ? "bg-primary text-primary-foreground"
                                   : "bg-primary/10 text-primary"
-                              }`}
-                            >
-                              <Icon className="h-4 w-4" />
-                            </div>
+                                  }`}
+                              >
+                                <Icon className="h-4 w-4" />
+                              </div>
 
-                            {/* Content */}
-                            <div className="min-w-0">
-                              <h3 className="truncate text-sm font-semibold">
-                                {page.name}
-                              </h3>
-                              <p className="truncate text-xs text-muted-foreground">
-                                {page.url}
-                              </p>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
+                              {/* Content */}
+                              <div className="min-w-0">
+                                <h3 className="truncate text-sm font-semibold">
+                                  {page.name}
+                                </h3>
+                                <p className="truncate text-xs text-muted-foreground">
+                                  {page.url}
+                                </p>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className={'mt-6'}>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Link2 className="h-5 w-5" />
+                        Page Header Hero
+                      </CardTitle>
+                      <CardDescription>Select default page</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-6 gap-3">
+                        {
+                          defaultPageHeaders?.map((item) => {
+                            const selected = headerTemplate === item.template
+                            return (
+                              <button
+                                key={item.template}
+                                type="button"
+                                onClick={() => setHeaderTemplate(item.template)}
+                                className={`relative flex cursor-pointer items-center gap-3 rounded-lg border p-3 text-left transition-all duration-200 ${selected
+                                  ? "border-primary bg-primary/10 ring-2 ring-primary/20 shadow-sm"
+                                  : "border-border bg-background hover:border-primary/40 hover:bg-muted/50"
+                                  }`}
+                              >
+                                {selected && (
+                                  <div className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                                    ✓
+                                  </div>
+                                )}
+
+                                {/* Icon */}
+                                <div
+                                  className={`flex h-9 w-9 items-center justify-center rounded-md transition-colors ${selected
+                                    ? "bg-primary text-primary-foreground"
+                                    : "bg-primary/10 text-primary"
+                                    }`}
+                                >
+                                  <IconRenderer icon={item?.icon} className={`h-4 w-4`} color={selected ? 'white' : 'black'} />
+                                </div>
+
+                                {/* Content */}
+                                <div className="min-w-0">
+                                  <h3 className="truncate text-sm font-semibold">
+                                    {item?.name}
+                                  </h3>
+                                  <p className="truncate text-xs text-muted-foreground">
+                                    {item?.template}
+                                  </p>
+                                </div>
+                              </button>
+                            )
+                          })
+                        }
+                      </div>
+                    </CardContent>
+                  </Card>
+                 <div className="mt-6">
+                    <PageHeroRenderer
+                      variant={headerTemplate}
+                      eyebrow={heroContent?.badge}
+                      title={heroContent?.title}
+                      highlight={heroContent?.heightlight}
+                      description={heroContent?.description}
+                      breadcrumbs={[{ label: "Home", href: "/" }, { label: headerTemplate }]}
+                    />
+                 </div>
+                </div>
               )}
 
               {/* Page Content */}
               {pageType === "custom" && (
-                <Card>
+                <div>
+                  <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <MessageSquare className="h-5 w-5" />
@@ -655,6 +786,70 @@ const SavePage = () => {
                     </div>
                   </CardContent>
                 </Card>
+                <Card className={'mt-6'}>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Link2 className="h-5 w-5" />
+                        Page Header Hero
+                      </CardTitle>
+                      <CardDescription>Select default page</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-6 gap-3">
+                        {
+                          defaultPageHeaders?.map((item) => {
+                            const selected = headerTemplate === item.template
+                            return (
+                              <button
+                                key={item.template}
+                                type="button"
+                                onClick={() => setHeaderTemplate(item.template)}
+                                className={`relative flex cursor-pointer items-center gap-3 rounded-lg border p-3 text-left transition-all duration-200 ${selected
+                                  ? "border-primary bg-primary/10 ring-2 ring-primary/20 shadow-sm"
+                                  : "border-border bg-background hover:border-primary/40 hover:bg-muted/50"
+                                  }`}
+                              >
+                                {selected && (
+                                  <div className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                                    ✓
+                                  </div>
+                                )}
+
+                                {/* Icon */}
+                                <div
+                                  className={`flex h-9 w-9 items-center justify-center rounded-md transition-colors ${selected
+                                    ? "bg-primary text-primary-foreground"
+                                    : "bg-primary/10 text-primary"
+                                    }`}
+                                >
+                                  <IconRenderer icon={item?.icon} className={`h-4 w-4`} color={selected ? 'white' : 'black'} />
+                                </div>
+
+                                {/* Content */}
+                                <div className="min-w-0">
+                                  <h3 className="truncate text-sm font-semibold">
+                                    {item?.name}
+                                  </h3>
+                                  <p className="truncate text-xs text-muted-foreground">
+                                    {item?.template}
+                                  </p>
+                                </div>
+                              </button>
+                            )
+                          })
+                        }
+                      </div>
+                    </CardContent>
+                  </Card>
+                   <PageHeroRenderer
+                      variant={headerTemplate}
+                      eyebrow={heroContent?.badge}
+                      title={heroContent?.title}
+                      highlight={heroContent?.heightlight}
+                      description={heroContent?.description}
+                      breadcrumbs={[{ label: "Home", href: "/" }, { label: headerTemplate }]}
+                    />
+                </div>
               )}
 
               {/* Additional Fields */}
@@ -789,6 +984,67 @@ const SavePage = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {(pageType === "default" || pageType === 'custom') && (
+                  <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Globe className="h-5 w-5" />
+                    Hero Section Content
+                  </CardTitle>
+                  <CardDescription>
+                    Given page hero section content
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="badge">Badge</Label>
+                    <Input
+                      id="badge"
+                      name="badge"
+                      value={heroContent.badge}
+                      onChange={handelChangeHeroContent}
+                      placeholder="Hero section badge"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Title</Label>
+                    <Input
+                      id="title"
+                      name="title"
+                      value={heroContent.title}
+                      onChange={handelChangeHeroContent}
+                      placeholder="Hero section title"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="heightlight">Heightlight title</Label>
+                    <Input
+                      id="heightlight"
+                      name="heightlight"
+                      value={heroContent.heightlight}
+                      onChange={handelChangeHeroContent}
+                      placeholder="Hero section heightlight"
+                    />
+                  </div>
+                  
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea id="description"
+                      name="description"
+                      value={heroContent.description}
+                      onChange={handelChangeHeroContent}
+                      placeholder="Hero section description"
+                      rows="3"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+                )
+              }
             </div>
           </div>
         </form>
