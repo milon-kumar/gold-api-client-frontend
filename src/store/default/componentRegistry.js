@@ -118,14 +118,14 @@ export const COMPONENT_REGISTRY = {
         defaultTemplate: "classicCarousel",
         templates: {
           classicCarousel: {
-            label: "Classic Carousel",
+            label: "Details Slider Carousel",
             fields: [
               {
                 key: "slides",
                 label: "Slides",
                 type: "array",
                 default: [],
-                sourceKeys: ["slider", "photo", "video"],
+                sourceKeys: ["slider"],
                 itemFields: [
                   {
                     key: "title",
@@ -147,112 +147,41 @@ export const COMPONENT_REGISTRY = {
             ],
           },
           simpleCarousel: {
-            label: "Simple Carousel",
+            label: "Simple Image Carousel",
             fields: [
               {
                 key: "slides",
                 label: "Slides",
                 type: "array",
                 default: [],
-                sourceKeys: ["slider", "image"],
-                itemFields: [
-                  {
-                    key: "title",
-                    label: "Title",
-                    type: "text",
-                    default: "Slide",
-                  },
-                  { key: "image", label: "Image", type: "image", default: "" },
-                ],
-              },
-              ...autoplayFields,
-            ],
-          },
-          modernCarousel: {
-            label: "Modern Carousel",
-            fields: [
-              {
-                key: "slides",
-                label: "Slides",
-                type: "array",
-                default: [],
-                itemFields: slideFields,
-                sourceKeys: ["slider"],
-              },
-              ...autoplayFields,
-              ...navPagFields,
-            ],
-          },
-          imageCarousel: {
-            label: "Image Carousel",
-            fields: [
-              {
-                key: "images",
-                label: "Images",
-                type: "array",
-                default: [],
-                sourceKeys: ["images", "sliders"],
+                sourceKeys: ["photo"],
                 itemFields: [
                   { key: "image", label: "Image", type: "image", default: "" },
                 ],
               },
-              ...autoplayFields,
-            ],
-          },
-          immersiveSlider: {
-            label: "Immersive Slider",
-            fields: [
               {
-                key: "slides",
-                label: "Slides",
-                type: "array",
-                default: [],
-                itemFields: slideFields,
-                sourceKeys: ["slider"],
-              },
-              ...autoplayFields,
-              {
-                key: "height",
-                label: "Height (px)",
-                type: "number",
+                key: "columns",
+                label: "Add slide columns",
+                type: "slider",
                 group: "settings",
-                default: 520,
-                min: 240,
-                max: 1000,
+                default: 3,
+                min: 1,
+                max: 6
               },
-            ],
-          },
-          simpleImageSlider: {
-            label: "Simple Image Slider",
-            fields: [
               {
-                key: "slides",
-                label: "Slides",
-                type: "array",
-                default: [],
-                sourceKeys: ["slider", "image"],
-                itemFields: [
-                  { key: "image", label: "Image", type: "image", default: "" },
-                ],
-              },
-              ...autoplayFields,
-              ...navPagFields,
-              {
-                key: "loop",
-                label: "Loop",
+                key: "navigation",
+                label: "Hide or show navigation",
                 type: "boolean",
                 group: "settings",
                 default: true,
               },
               {
-                key: "height",
-                label: "Height (px)",
-                type: "number",
+                key: "pagination",
+                label: "Hide or show pagination",
+                type: "boolean",
                 group: "settings",
-                default: 400,
-                min: 160,
-                max: 900,
-              },
+                default: true,
+              }
             ],
           },
         },
@@ -1720,6 +1649,59 @@ export const COMPONENT_REGISTRY = {
       },
     },
   },
+  imageGallery: {
+    label: "Image Gallery",
+    icon: "Images",
+    renderer: "imageGallery",
+    defaultType: "default",
+    types: {
+      default: {
+        label: "Default",
+        defaultTemplate: "imageGallery",
+        templates: {
+          imageGallery: {
+            label: "Image Gallery",
+            fields: [
+              { key: "badge", label: "Badge", type: "text", default: "" },
+              {
+                key: "title",
+                label: "Title",
+                type: "text",
+                default: "Our services",
+              },
+              { key: "subtitle", label: "Subtitle", type: "text", default: "" },
+              {
+                key: "imageGallery",
+                label: "Select Image Category",
+                type: "array",
+                default: [],
+                sourceKeys: [
+                  "categories",
+                ],
+                itemFields: [
+                  { key: "image", label: "Image", type: "image", default: "" },
+                ],
+              },
+              {
+                key: "showHeader",
+                label: "Show or hide the section header",
+                type: "boolean",
+                group: "settings",
+                default: true,
+              },
+              {
+                key: "showBadge",
+                label: "Show or hide the badge",
+                type: "boolean",
+                group: "settings",
+                default: true,
+              },
+            ]
+          }
+        }
+      }
+    }
+  }
 };
 
 /* =====================================================================

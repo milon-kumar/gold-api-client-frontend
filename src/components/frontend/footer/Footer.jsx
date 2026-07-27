@@ -189,14 +189,12 @@ const SOCIAL_PLATFORMS = [
 ];
  
 const SocialColumn = ({ column }) => {
-  console.log("🚀 ~ SocialColumn ~ column:", column)
   const config = column?.config || {};
  
   // Only enabled platforms that actually have a URL
   const activePlatforms = SOCIAL_PLATFORMS.filter(
     (p) => config?.[p.key]?.enabled && config?.[p.key]?.url,
   );
-  console.log("🚀 ~ SocialColumn ~ activePlatforms:", activePlatforms)
  
   if (!activePlatforms.length) return null;
  

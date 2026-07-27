@@ -21,7 +21,7 @@ import {
   reorderArray,
 } from "@/lib/builderHelper";
 import ResourcePicker from "./ResourcePicker";
-import { useEffect,useRef } from "react";
+import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -338,6 +338,8 @@ const ArrayField = ({ field, value, onChange }) => {
     dragIndex.current = null;
   };
 
+  const isHideAddButton = ['imageGallery'].includes(field?.key)
+
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-1">
@@ -359,15 +361,20 @@ const ArrayField = ({ field, value, onChange }) => {
               triggerLabel="Pick"
             />
           )}
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-7 px-2"
-            onClick={addItem}
-            disabled={items?.length === field?.limit ? true : false}
-          >
-            <Plus className="h-3 w-3" /> Add
-          </Button>
+          {
+            !isHideAddButton && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 px-2"
+                onClick={addItem}
+                disabled={items?.length === field?.limit ? true : false}
+              >
+                <Plus className="h-3 w-3" /> Add
+              </Button>
+            )
+          }
+
           {items.length > 0 && (
             <Button
               size="sm"

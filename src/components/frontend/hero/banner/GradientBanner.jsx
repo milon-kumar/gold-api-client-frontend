@@ -49,13 +49,6 @@ export default function GradientHero({
   settings = {},
   styles = {},
 }) {
-
-  // Destructure content with fallbacks
-  console.log("🚀 ~ GradientHero ~ content:", {
-    content,
-    settings,
-    styles
-  })
   const {
     slogan = "Welcome",
     title = "Build Your Future",

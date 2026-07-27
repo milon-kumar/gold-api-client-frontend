@@ -48,6 +48,7 @@ import { useApiMutation } from '@/hooks/useAppMutation';
 import PageHeader from '@/components/shear/PageHeader';
 import DeleteConfirmation from '@/components/shear/DeleteConfirmation';
 import StatusBadge from '@/components/shear/StatusBadge';
+import { MODULES } from '@/store/default/modules';
 
 const CategoriesListing = () => {
   const navigate = useNavigate();
@@ -69,6 +70,7 @@ const CategoriesListing = () => {
     params: {
       search: searchTerm || undefined,
       type: typeFilter !== 'all' ? typeFilter : undefined,
+      module_slug: MODULES.PHOTOS
     }
   });
 

@@ -61,6 +61,7 @@ const ResourcePicker = ({
   const { data: response, isLoading } = useApiQuery({
     url: source?.url,
     enabled: open && !!source?.url,
+    params: source?.params,
   });
 
   const items = useMemo(() => {
@@ -203,7 +204,6 @@ const ResourcePicker = ({
                   })}</>
               ) : null
             }
-
           </div>
         </div>
       </DialogContent>
