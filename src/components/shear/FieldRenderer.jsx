@@ -5,7 +5,8 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { ValueSlider } from "@/components/ui/value-slider";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-
+import useImageUpload from "@/hooks/use-image-upload";
+import { useSelector } from "react-redux";
 import {
   Select,
   SelectContent,
@@ -13,14 +14,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Eraser, GripVertical, Plus, Trash2 } from "lucide-react";
+import { Eraser, GripVertical, Plus, Trash2, Upload } from "lucide-react";
 import {
   buildArrayItem,
   mergeIntoShape,
   reorderArray,
 } from "@/lib/builderHelper";
 import ResourcePicker from "./ResourcePicker";
-import { useRef } from "react";
+import { useEffect,useRef } from "react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -37,6 +38,19 @@ import { cn } from "@/lib/utils";
  * =====================================================================
  */
 const FieldRenderer = ({ field, value, onChange }) => {
+  const fileInputRef = useRef(null);
+
+  const { setting } = useSelector((state) => state);
+  const {
+    image: imageBase64,
+    preview,
+    error: imageError,
+    handleImageChange,
+    resetImage,
+    setImageUrl,
+  } = useImageUpload(setting?.setting?.item?.image_size || 5);
+
+
   switch (field.type) {
     case "text":
       if (field?.visible === false) {
@@ -106,7 +120,7 @@ const FieldRenderer = ({ field, value, onChange }) => {
       );
 
     case "color":
-     if (field?.visible === false) {
+      if (field?.visible === false) {
         return null;
       }
 
@@ -142,10 +156,36 @@ const FieldRenderer = ({ field, value, onChange }) => {
         return null;
       }
 
+      useEffect(() => {
+        if (imageBase64) {
+          onChange(imageBase64); // Base64 save হবে
+          // যদি preview URL রাখতে চাও তাহলে onChange(preview)
+        }
+      }, [imageBase64]);
       /* আপাতত URL input; আপনার Media Uploader থাকলে এখানে বসান —
          onChange(url) call করলেই বাকি সব কাজ করবে। */
       return (
-        <Wrapper label={field.label}>
+        <div className="space-y-1.5">
+          <div className="flex justify-between items-center">
+            <Label className="text-xs">{field.label} </Label>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="w-4 h-4" />
+            </Button>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageChange}
+            />
+          </div>
+
           <Input
             value={value ?? ""}
             placeholder="https://... image url"
@@ -158,7 +198,7 @@ const FieldRenderer = ({ field, value, onChange }) => {
               className="mt-2 h-20 w-full rounded border object-cover"
             />
           ) : null}
-        </Wrapper>
+        </div>
       );
 
     case "select":
@@ -209,7 +249,7 @@ const FieldRenderer = ({ field, value, onChange }) => {
         </Wrapper>
       );
     case "radio":
-     if (field?.visible === false) {
+      if (field?.visible === false) {
         return null;
       }
 
@@ -302,11 +342,11 @@ const ArrayField = ({ field, value, onChange }) => {
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-1">
         <Label className="text-xs">{field.label}
-         {
-          field?.limit && (
-            <span>{field?.limit - items?.length}</span>
-          )
-         } 
+          {
+            field?.limit && (
+              <span>{field?.limit - items?.length}</span>
+            )
+          }
         </Label>
         <div className="flex items-center gap-1">
           {field.sourceKeys?.length > 0 && (

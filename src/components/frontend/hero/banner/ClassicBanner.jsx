@@ -77,9 +77,7 @@ const iconMap = {
   Combine: Combine,
 };
 
-export default function DynamicBanner({ content = {}, settings = {}, styles = {} }) {
-  console.log("🚀 ~ DynamicBanner ~ content:", { content, settings, styles });
-  
+export default function DynamicBanner({ content = {}, settings = {}, styles = {} }) {  
   const {
     slogan = "Welcome",
     title = "Build Your Future",

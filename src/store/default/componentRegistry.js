@@ -106,7 +106,7 @@ export const COMPONENT_REGISTRY = {
   /* ================================================================
    * 1. HERO
    * ============================================================== */
- 
+
   heroCarousel: {
     label: "Hero Carousel",
     icon: "Sparkles",
@@ -839,7 +839,7 @@ export const COMPONENT_REGISTRY = {
                 type: "array",
                 default: [],
                 visible: true,
-                limit:5,
+                limit: 5,
                 itemFields: [
                   {
                     key: "icon",
@@ -1060,7 +1060,7 @@ export const COMPONENT_REGISTRY = {
                 type: "array",
                 default: [],
                 visible: true,
-                limit:5,
+                limit: 5,
                 itemFields: [
                   {
                     key: "icon",
@@ -1173,6 +1173,7 @@ export const COMPONENT_REGISTRY = {
             label: "Simple",
             sourceKeys: ["information"],
             fields: [
+              { key: "badge", label: "Badge", type: "text", default: "Why us", visible: false },
               {
                 key: "title",
                 label: "Title",
@@ -1186,6 +1187,55 @@ export const COMPONENT_REGISTRY = {
                 default: "",
               },
               { key: "image", label: "Image", type: "image", default: "" },
+              {
+                key: "buttonText",
+                label: "Button Text",
+                type: "text",
+                default: "",
+              },
+              {
+                key: "buttonLink",
+                label: "Button Link",
+                type: "text",
+                default: "#",
+              },
+              {
+                key: "headingFontSize",
+                label: "Control heading font size (px)",
+                type: "slider",
+                group: "style",
+                default: 22,
+                min: 8,
+                max: 180
+              }, {
+                key: "paragraphFontSize",
+                label: "Control paragraph font size (px)",
+                type: "slider",
+                group: "style",
+                default: 18,
+                min: 8,
+                max: 180
+              }, {
+                key: "imageRounded",
+                label: "Control Right image border (px)",
+                type: "slider",
+                group: "style",
+                default: 5,
+                min: 5,
+                max: 100
+              }, {
+                key: "applyImageScaleOnHover",
+                label: "Apply image scale effect on hover",
+                type: "boolean",
+                group: "style",
+                default: false,
+              }, {
+                key: "applyImageShadowEffect",
+                label: "Apply image shadow effect",
+                type: "boolean",
+                group: "style",
+                default: false,
+              },
             ],
           },
           modern: {
@@ -1207,8 +1257,20 @@ export const COMPONENT_REGISTRY = {
               },
               { key: "image", label: "Image", type: "image", default: "" },
               {
+                key: "buttonText",
+                label: "Button Text",
+                type: "text",
+                default: "",
+              },
+              {
+                key: "buttonLink",
+                label: "Button Link",
+                type: "text",
+                default: "#",
+              },
+              {
                 key: "accentColor",
-                label: "Accent Color",
+                label: "Manage color for badge",
                 type: "color",
                 group: "style",
                 default: "#2563eb",
@@ -1280,6 +1342,8 @@ export const COMPONENT_REGISTRY = {
             label: "Image Left",
             sourceKeys: ["information"],
             fields: [
+              { key: "badge", label: "Badge", type: "text", default: "Why us", visible: false },
+
               {
                 key: "title",
                 label: "Title",
@@ -1305,12 +1369,50 @@ export const COMPONENT_REGISTRY = {
                 type: "text",
                 default: "#",
               },
+              {
+                key: "headingFontSize",
+                label: "Control heading font size (px)",
+                type: "slider",
+                group: "style",
+                default: 22,
+                min: 8,
+                max: 180
+              }, {
+                key: "paragraphFontSize",
+                label: "Control paragraph font size (px)",
+                type: "slider",
+                group: "style",
+                default: 18,
+                min: 8,
+                max: 180
+              }, {
+                key: "imageRounded",
+                label: "Control Right image border (px)",
+                type: "slider",
+                group: "style",
+                default: 5,
+                min: 5,
+                max: 100
+              }, {
+                key: "applyImageScaleOnHover",
+                label: "Apply image scale effect on hover",
+                type: "boolean",
+                group: "style",
+                default: false,
+              }, {
+                key: "applyImageShadowEffect",
+                label: "Apply image shadow effect",
+                type: "boolean",
+                group: "style",
+                default: false,
+              },
             ],
           },
           imageRight: {
             label: "Image Right",
             sourceKeys: ["information"],
             fields: [
+              { key: "badge", label: "Badge", type: "text", default: "Why us", visible: false },
               {
                 key: "title",
                 label: "Title",
@@ -1716,819 +1818,819 @@ export const getStyleFields = (component, type, template) => {
 };
 
 
- // hero: {
-  //   label: "Hero",
-  //   icon: "Sparkles",
-  //   renderer: "hero", // renderers/index.js এর RENDERERS map-এর key
-  //   defaultType: "banner",
-  //   types: {
-  //     /* -------------------- Banner -------------------- */
-  //     banner: {
-  //       label: "Banner",
-  //       defaultTemplate: "classicBanner",
-  //       templates: {
-  //         classicBanner: {
-  //           label: "Classic Banner",
-  //           fields: [
-  //             {
-  //               key: "slogan",
-  //               label: "Slogan",
-  //               type: "text",
-  //               default: "Welcome",
-  //             },
-  //             {
-  //               key: "title",
-  //               label: "Title",
-  //               type: "text",
-  //               default: "Build Your Future",
-  //             },
-  //             {
-  //               key: "subtitle",
-  //               label: "Subtitle",
-  //               type: "text",
-  //               default: "Simple, modern, and powerful solutions.",
-  //             },
-  //             {
-  //               key: "primaryButtonTitle",
-  //               label: "Primary Button Title",
-  //               type: "text",
-  //               default: "Get Started",
-  //             },
-  //             {
-  //               key: "primaryButtonLink",
-  //               label: "Primary Button Link",
-  //               type: "text",
-  //               default: "/about",
-  //             },
-  //             {
-  //               key: "secondaryButtonTitle",
-  //               label: "Secondary Button Title",
-  //               type: "text",
-  //               default: "Learn More",
-  //             },
-  //             {
-  //               key: "secondaryButtonLink",
-  //               label: "Secondary Button Link",
-  //               type: "text",
-  //               default: "/contact",
-  //             },
-  //             {
-  //               key: "stats",
-  //               label: "Stats Items",
-  //               type: "array",
-  //               default: [],
-  //               itemFields: [
-  //                 {
-  //                   key: "Icon",
-  //                   label: "Icon",
-  //                   helpText: "Here you must use Lucide Icons , and that will be the Kamel case",
-  //                   type: "text",
-  //                   default: "1",
-  //                 },
-  //                 {
-  //                   key: "count",
-  //                   label: "Count",
-  //                   type: "text",
-  //                   default: "1",
-  //                 },
-  //                 {
-  //                   key: "title",
-  //                   label: "Title",
-  //                   type: "text",
-  //                   default: "Default",
-  //                 },
-  //               ],
-  //             },
-  //             {
-  //               key: "rightSecOneIcon",
-  //               label: "Card one icon",
-  //               type: "text",
-  //               default: "Check",
-  //               visible: false,
-  //             },
-  //             {
-  //               key: "rightSecOneTitle",
-  //               label: "Card one Title",
-  //               type: "text",
-  //               default: "Regular publications",
-  //             },
-  //             {
-  //               key: "rightSecOneSubTitle",
-  //               label: "Card one Sub Title",
-  //               type: "text",
-  //               default: "Monthly magazines and Islamic literature",
-  //             },
+// hero: {
+//   label: "Hero",
+//   icon: "Sparkles",
+//   renderer: "hero", // renderers/index.js এর RENDERERS map-এর key
+//   defaultType: "banner",
+//   types: {
+//     /* -------------------- Banner -------------------- */
+//     banner: {
+//       label: "Banner",
+//       defaultTemplate: "classicBanner",
+//       templates: {
+//         classicBanner: {
+//           label: "Classic Banner",
+//           fields: [
+//             {
+//               key: "slogan",
+//               label: "Slogan",
+//               type: "text",
+//               default: "Welcome",
+//             },
+//             {
+//               key: "title",
+//               label: "Title",
+//               type: "text",
+//               default: "Build Your Future",
+//             },
+//             {
+//               key: "subtitle",
+//               label: "Subtitle",
+//               type: "text",
+//               default: "Simple, modern, and powerful solutions.",
+//             },
+//             {
+//               key: "primaryButtonTitle",
+//               label: "Primary Button Title",
+//               type: "text",
+//               default: "Get Started",
+//             },
+//             {
+//               key: "primaryButtonLink",
+//               label: "Primary Button Link",
+//               type: "text",
+//               default: "/about",
+//             },
+//             {
+//               key: "secondaryButtonTitle",
+//               label: "Secondary Button Title",
+//               type: "text",
+//               default: "Learn More",
+//             },
+//             {
+//               key: "secondaryButtonLink",
+//               label: "Secondary Button Link",
+//               type: "text",
+//               default: "/contact",
+//             },
+//             {
+//               key: "stats",
+//               label: "Stats Items",
+//               type: "array",
+//               default: [],
+//               itemFields: [
+//                 {
+//                   key: "Icon",
+//                   label: "Icon",
+//                   helpText: "Here you must use Lucide Icons , and that will be the Kamel case",
+//                   type: "text",
+//                   default: "1",
+//                 },
+//                 {
+//                   key: "count",
+//                   label: "Count",
+//                   type: "text",
+//                   default: "1",
+//                 },
+//                 {
+//                   key: "title",
+//                   label: "Title",
+//                   type: "text",
+//                   default: "Default",
+//                 },
+//               ],
+//             },
+//             {
+//               key: "rightSecOneIcon",
+//               label: "Card one icon",
+//               type: "text",
+//               default: "Check",
+//               visible: false,
+//             },
+//             {
+//               key: "rightSecOneTitle",
+//               label: "Card one Title",
+//               type: "text",
+//               default: "Regular publications",
+//             },
+//             {
+//               key: "rightSecOneSubTitle",
+//               label: "Card one Sub Title",
+//               type: "text",
+//               default: "Monthly magazines and Islamic literature",
+//             },
 
-  //             {
-  //               key: "rightSecTwoIcon",
-  //               label: "Card tow icon",
-  //               type: "text",
-  //               default: "Calendar",
-  //             },
-  //             {
-  //               key: "rightSecTwoHeaderTitle",
-  //               label: "Card tow header title",
-  //               type: "text",
-  //               default: "Upcoming events",
-  //             },
-  //             {
-  //               key: "rightSecTwoHeaderBadge",
-  //               label: "Card tow header badge",
-  //               type: "text",
-  //               default: "Registration is ongoing.",
-  //             },
-  //             {
-  //               key: "rightSecTowTitle",
-  //               label: "Card one Title",
-  //               type: "text",
-  //               default: "Annual Tablighi Ijtema 2027",
-  //             },
-  //             {
-  //               key: "rightSecTowItems",
-  //               label: "Section Items",
-  //               type: "array",
-  //               default: [],
-  //               itemFields: [
-  //                 {
-  //                   key: "icon",
-  //                   label: "Icon",
-  //                   type: "text",
-  //                   default: "CircleCheck",
-  //                 },
-  //                 {
-  //                   key: "title",
-  //                   label: "Title",
-  //                   type: "text",
-  //                   default: "Default",
-  //                 },
-  //               ],
-  //             },
-  //             {
-  //               key: "rightSecTowFooterIcon",
-  //               label: "Card one icon",
-  //               type: "text",
-  //               default: "Check",
-  //             },
-  //             {
-  //               key: "rightSecTowFooterTitle",
-  //               label: "Card two footer title",
-  //               type: "text",
-  //               default: "A gathering of millions of people from home and abroad",
-  //             },
-  //             {
-  //               key: "rightSecThreeIcon",
-  //               label: "Card one icon",
-  //               type: "text",
-  //               default: "Check",
-  //             },
-  //             {
-  //               key: "rightSecThreeTitle",
-  //               label: "Card the Title",
-  //               type: "text",
-  //               default: "Big family",
-  //             },
-  //             {
-  //               key: "rightSecThreeSubTitle",
-  //               label: "Card three sub title",
-  //               type: "text",
-  //               default: "Millions of members and well-wishers",
-  //             },
-  //             {
-  //               key: "rightSecThreeDescription",
-  //               label: "Card three description",
-  //               type: "text",
-  //               default: "Connected from all over the country",
-  //             },
-  //             {
-  //               key: "bottomTickerItems",
-  //               label: "Ticker Items (input items by coma [,] seperated)",
-  //               type: "text",
-  //               default: "",
-  //             },
-  //             {
-  //               key: "showCardOne",
-  //               label: "Show card one (show/height)",
-  //               type: "boolean",
-  //               group: "settings",
-  //               default: true,
-  //             },
-  //             {
-  //               key: "showCardTow",
-  //               label: "Show card two (show/height)",
-  //               type: "boolean",
-  //               group: "settings",
-  //               default: true,
-  //             },
-  //             {
-  //               key: "showCardThree",
-  //               label: "Show card Three (show/height)",
-  //               type: "boolean",
-  //               group: "settings",
-  //               default: true,
-  //             },
-  //           ],
-  //         },
-  //         stellarBanner: {
-  //           label: "Stellar Banner",
-  //           fields: [
-  //             {
-  //               key: "slogan",
-  //               label: "Slogan",
-  //               type: "text",
-  //               default: "Welcome",
-  //             },
-  //             {
-  //               key: "title",
-  //               label: "Title",
-  //               type: "text",
-  //               default: "Build Your Future",
-  //             },
-  //             {
-  //               key: "subtitle",
-  //               label: "Subtitle",
-  //               type: "text",
-  //               default: "Simple, modern, and powerful solutions.",
-  //             },
-  //             {
-  //               key: "primaryButtonTitle",
-  //               label: "Primary Button Title",
-  //               type: "text",
-  //               default: "Get Started",
-  //             },
-  //             {
-  //               key: "primaryButtonLink",
-  //               label: "Primary Button Link",
-  //               type: "text",
-  //               default: "/about",
-  //             },
-  //             {
-  //               key: "secondaryButtonTitle",
-  //               label: "Secondary Button Title",
-  //               type: "text",
-  //               default: "Learn More",
-  //             },
-  //             {
-  //               key: "secondaryButtonLink",
-  //               label: "Secondary Button Link",
-  //               type: "text",
-  //               default: "/contact",
-  //             },
-  //             {
-  //               key: "stats",
-  //               label: "Stats Items",
-  //               type: "array",
-  //               default: [],
-  //               itemFields: [
-  //                 {
-  //                   key: "count",
-  //                   label: "Count",
-  //                   type: "text",
-  //                   default: "1",
-  //                 },
-  //                 {
-  //                   key: "title",
-  //                   label: "Title",
-  //                   type: "text",
-  //                   default: "Default",
-  //                 },
-  //               ],
-  //             },
-  //             {
-  //               key: "rightSecOneIcon",
-  //               label: "Card one icon",
-  //               type: "text",
-  //               default: "Check",
-  //               visible: false,
-  //             },
-  //             {
-  //               key: "rightSecOneTitle",
-  //               label: "Card one Title",
-  //               type: "text",
-  //               default: "Regular publications",
-  //             },
-  //             {
-  //               key: "rightSecOneSubTitle",
-  //               label: "Card one Sub Title",
-  //               type: "text",
-  //               default: "Monthly magazines and Islamic literature",
-  //             },
+//             {
+//               key: "rightSecTwoIcon",
+//               label: "Card tow icon",
+//               type: "text",
+//               default: "Calendar",
+//             },
+//             {
+//               key: "rightSecTwoHeaderTitle",
+//               label: "Card tow header title",
+//               type: "text",
+//               default: "Upcoming events",
+//             },
+//             {
+//               key: "rightSecTwoHeaderBadge",
+//               label: "Card tow header badge",
+//               type: "text",
+//               default: "Registration is ongoing.",
+//             },
+//             {
+//               key: "rightSecTowTitle",
+//               label: "Card one Title",
+//               type: "text",
+//               default: "Annual Tablighi Ijtema 2027",
+//             },
+//             {
+//               key: "rightSecTowItems",
+//               label: "Section Items",
+//               type: "array",
+//               default: [],
+//               itemFields: [
+//                 {
+//                   key: "icon",
+//                   label: "Icon",
+//                   type: "text",
+//                   default: "CircleCheck",
+//                 },
+//                 {
+//                   key: "title",
+//                   label: "Title",
+//                   type: "text",
+//                   default: "Default",
+//                 },
+//               ],
+//             },
+//             {
+//               key: "rightSecTowFooterIcon",
+//               label: "Card one icon",
+//               type: "text",
+//               default: "Check",
+//             },
+//             {
+//               key: "rightSecTowFooterTitle",
+//               label: "Card two footer title",
+//               type: "text",
+//               default: "A gathering of millions of people from home and abroad",
+//             },
+//             {
+//               key: "rightSecThreeIcon",
+//               label: "Card one icon",
+//               type: "text",
+//               default: "Check",
+//             },
+//             {
+//               key: "rightSecThreeTitle",
+//               label: "Card the Title",
+//               type: "text",
+//               default: "Big family",
+//             },
+//             {
+//               key: "rightSecThreeSubTitle",
+//               label: "Card three sub title",
+//               type: "text",
+//               default: "Millions of members and well-wishers",
+//             },
+//             {
+//               key: "rightSecThreeDescription",
+//               label: "Card three description",
+//               type: "text",
+//               default: "Connected from all over the country",
+//             },
+//             {
+//               key: "bottomTickerItems",
+//               label: "Ticker Items (input items by coma [,] seperated)",
+//               type: "text",
+//               default: "",
+//             },
+//             {
+//               key: "showCardOne",
+//               label: "Show card one (show/height)",
+//               type: "boolean",
+//               group: "settings",
+//               default: true,
+//             },
+//             {
+//               key: "showCardTow",
+//               label: "Show card two (show/height)",
+//               type: "boolean",
+//               group: "settings",
+//               default: true,
+//             },
+//             {
+//               key: "showCardThree",
+//               label: "Show card Three (show/height)",
+//               type: "boolean",
+//               group: "settings",
+//               default: true,
+//             },
+//           ],
+//         },
+//         stellarBanner: {
+//           label: "Stellar Banner",
+//           fields: [
+//             {
+//               key: "slogan",
+//               label: "Slogan",
+//               type: "text",
+//               default: "Welcome",
+//             },
+//             {
+//               key: "title",
+//               label: "Title",
+//               type: "text",
+//               default: "Build Your Future",
+//             },
+//             {
+//               key: "subtitle",
+//               label: "Subtitle",
+//               type: "text",
+//               default: "Simple, modern, and powerful solutions.",
+//             },
+//             {
+//               key: "primaryButtonTitle",
+//               label: "Primary Button Title",
+//               type: "text",
+//               default: "Get Started",
+//             },
+//             {
+//               key: "primaryButtonLink",
+//               label: "Primary Button Link",
+//               type: "text",
+//               default: "/about",
+//             },
+//             {
+//               key: "secondaryButtonTitle",
+//               label: "Secondary Button Title",
+//               type: "text",
+//               default: "Learn More",
+//             },
+//             {
+//               key: "secondaryButtonLink",
+//               label: "Secondary Button Link",
+//               type: "text",
+//               default: "/contact",
+//             },
+//             {
+//               key: "stats",
+//               label: "Stats Items",
+//               type: "array",
+//               default: [],
+//               itemFields: [
+//                 {
+//                   key: "count",
+//                   label: "Count",
+//                   type: "text",
+//                   default: "1",
+//                 },
+//                 {
+//                   key: "title",
+//                   label: "Title",
+//                   type: "text",
+//                   default: "Default",
+//                 },
+//               ],
+//             },
+//             {
+//               key: "rightSecOneIcon",
+//               label: "Card one icon",
+//               type: "text",
+//               default: "Check",
+//               visible: false,
+//             },
+//             {
+//               key: "rightSecOneTitle",
+//               label: "Card one Title",
+//               type: "text",
+//               default: "Regular publications",
+//             },
+//             {
+//               key: "rightSecOneSubTitle",
+//               label: "Card one Sub Title",
+//               type: "text",
+//               default: "Monthly magazines and Islamic literature",
+//             },
 
-  //             {
-  //               key: "rightSecTwoIcon",
-  //               label: "Card tow icon",
-  //               type: "text",
-  //               default: "Calendar",
-  //             },
-  //             {
-  //               key: "rightSecTwoHeaderTitle",
-  //               label: "Card tow header title",
-  //               type: "text",
-  //               default: "Upcoming events",
-  //             },
-  //             {
-  //               key: "rightSecTwoHeaderBadge",
-  //               label: "Card tow header badge",
-  //               type: "text",
-  //               default: "Registration is ongoing.",
-  //             },
-  //             {
-  //               key: "rightSecTowTitle",
-  //               label: "Card one Title",
-  //               type: "text",
-  //               default: "Annual Tablighi Ijtema 2027",
-  //             },
-  //             {
-  //               key: "rightSecTowItems",
-  //               label: "Section Items",
-  //               type: "array",
-  //               default: [],
-  //               itemFields: [
-  //                 {
-  //                   key: "icon",
-  //                   label: "Icon",
-  //                   type: "text",
-  //                   default: "CircleCheck",
-  //                 },
-  //                 {
-  //                   key: "title",
-  //                   label: "Title",
-  //                   type: "text",
-  //                   default: "Default",
-  //                 },
-  //               ],
-  //             },
-  //             {
-  //               key: "rightSecTowFooterIcon",
-  //               label: "Card one icon",
-  //               type: "text",
-  //               default: "Check",
-  //             },
-  //             {
-  //               key: "rightSecTowFooterTitle",
-  //               label: "Card two footer title",
-  //               type: "text",
-  //               default: "A gathering of millions of people from home and abroad",
-  //             },
-  //             {
-  //               key: "rightSecThreeIcon",
-  //               label: "Card one icon",
-  //               type: "text",
-  //               default: "Check",
-  //             },
-  //             {
-  //               key: "rightSecThreeTitle",
-  //               label: "Card the Title",
-  //               type: "text",
-  //               default: "Big family",
-  //             },
-  //             {
-  //               key: "rightSecThreeSubTitle",
-  //               label: "Card three sub title",
-  //               type: "text",
-  //               default: "Millions of members and well-wishers",
-  //             },
-  //             {
-  //               key: "rightSecThreeDescription",
-  //               label: "Card three description",
-  //               type: "text",
-  //               default: "Connected from all over the country",
-  //             },
-  //             {
-  //               key: "bottomTickerItems",
-  //               label: "Ticker Items (input items by coma [,] seperated)",
-  //               type: "text",
-  //               default: "",
-  //             },
-  //             {
-  //               key: "showCardOne",
-  //               label: "Show card one (show/height)",
-  //               type: "boolean",
-  //               group: "settings",
-  //               default: true,
-  //             },
-  //             {
-  //               key: "showCardTow",
-  //               label: "Show card two (show/height)",
-  //               type: "boolean",
-  //               group: "settings",
-  //               default: true,
-  //             },
-  //             {
-  //               key: "showCardThree",
-  //               label: "Show card Three (show/height)",
-  //               type: "boolean",
-  //               group: "settings",
-  //               default: true,
-  //             },
-  //           ],
-  //         },
-  //         gradentBanner: {
-  //           label: "Gradent Banner",
-  //           fields: [
-  //             {
-  //               key: "slogan",
-  //               label: "Slogan",
-  //               type: "text",
-  //               default: "Welcome",
-  //             },
-  //             {
-  //               key: "title",
-  //               label: "Title",
-  //               type: "text",
-  //               default: "Build Your Future",
-  //             },
-  //             {
-  //               key: "subtitle",
-  //               label: "Subtitle",
-  //               type: "text",
-  //               default: "Simple, modern, and powerful solutions.",
-  //             },
-  //             {
-  //               key: "primayButtonTitle",
-  //               label: "Primary Button Title",
-  //               type: "text",
-  //               default: "Get Started",
-  //             },
-  //             {
-  //               key: "primayButtonLink",
-  //               label: "Primary Button Link",
-  //               type: "text",
-  //               default: "/about",
-  //             },
-  //             {
-  //               key: "seconderyButtonTitle",
-  //               label: "Secondary Button Title",
-  //               type: "text",
-  //               default: "Learn More",
-  //             },
-  //             {
-  //               key: "seconderyButtonLink",
-  //               label: "Secondary Button Link",
-  //               type: "text",
-  //               default: "/contact",
-  //             },
-  //             {
-  //               key: "rightSecOneStats",
-  //               label: "Stats Items",
-  //               type: "array",
-  //               default: [],
-  //               itemFields: [
-  //                 {
-  //                   key: "count",
-  //                   label: "Count",
-  //                   type: "text",
-  //                   default: "1",
-  //                 },
-  //                 {
-  //                   key: "title",
-  //                   label: "Title",
-  //                   type: "text",
-  //                   default: "Default",
-  //                 },
-  //               ],
-  //             },
-  //             {
-  //               key: "rightSecOneIcon",
-  //               label: "Card one icon",
-  //               type: "text",
-  //               default: "Check",
-  //             },
-  //             {
-  //               key: "rightSecOneTitle",
-  //               label: "Card one Title",
-  //               type: "text",
-  //               default: "Regular publications",
-  //             },
-  //             {
-  //               key: "rightSecOneSubTitle",
-  //               label: "Card one Sub Title",
-  //               type: "text",
-  //               default: "Monthly magazines and Islamic literature",
-  //             },
+//             {
+//               key: "rightSecTwoIcon",
+//               label: "Card tow icon",
+//               type: "text",
+//               default: "Calendar",
+//             },
+//             {
+//               key: "rightSecTwoHeaderTitle",
+//               label: "Card tow header title",
+//               type: "text",
+//               default: "Upcoming events",
+//             },
+//             {
+//               key: "rightSecTwoHeaderBadge",
+//               label: "Card tow header badge",
+//               type: "text",
+//               default: "Registration is ongoing.",
+//             },
+//             {
+//               key: "rightSecTowTitle",
+//               label: "Card one Title",
+//               type: "text",
+//               default: "Annual Tablighi Ijtema 2027",
+//             },
+//             {
+//               key: "rightSecTowItems",
+//               label: "Section Items",
+//               type: "array",
+//               default: [],
+//               itemFields: [
+//                 {
+//                   key: "icon",
+//                   label: "Icon",
+//                   type: "text",
+//                   default: "CircleCheck",
+//                 },
+//                 {
+//                   key: "title",
+//                   label: "Title",
+//                   type: "text",
+//                   default: "Default",
+//                 },
+//               ],
+//             },
+//             {
+//               key: "rightSecTowFooterIcon",
+//               label: "Card one icon",
+//               type: "text",
+//               default: "Check",
+//             },
+//             {
+//               key: "rightSecTowFooterTitle",
+//               label: "Card two footer title",
+//               type: "text",
+//               default: "A gathering of millions of people from home and abroad",
+//             },
+//             {
+//               key: "rightSecThreeIcon",
+//               label: "Card one icon",
+//               type: "text",
+//               default: "Check",
+//             },
+//             {
+//               key: "rightSecThreeTitle",
+//               label: "Card the Title",
+//               type: "text",
+//               default: "Big family",
+//             },
+//             {
+//               key: "rightSecThreeSubTitle",
+//               label: "Card three sub title",
+//               type: "text",
+//               default: "Millions of members and well-wishers",
+//             },
+//             {
+//               key: "rightSecThreeDescription",
+//               label: "Card three description",
+//               type: "text",
+//               default: "Connected from all over the country",
+//             },
+//             {
+//               key: "bottomTickerItems",
+//               label: "Ticker Items (input items by coma [,] seperated)",
+//               type: "text",
+//               default: "",
+//             },
+//             {
+//               key: "showCardOne",
+//               label: "Show card one (show/height)",
+//               type: "boolean",
+//               group: "settings",
+//               default: true,
+//             },
+//             {
+//               key: "showCardTow",
+//               label: "Show card two (show/height)",
+//               type: "boolean",
+//               group: "settings",
+//               default: true,
+//             },
+//             {
+//               key: "showCardThree",
+//               label: "Show card Three (show/height)",
+//               type: "boolean",
+//               group: "settings",
+//               default: true,
+//             },
+//           ],
+//         },
+//         gradentBanner: {
+//           label: "Gradent Banner",
+//           fields: [
+//             {
+//               key: "slogan",
+//               label: "Slogan",
+//               type: "text",
+//               default: "Welcome",
+//             },
+//             {
+//               key: "title",
+//               label: "Title",
+//               type: "text",
+//               default: "Build Your Future",
+//             },
+//             {
+//               key: "subtitle",
+//               label: "Subtitle",
+//               type: "text",
+//               default: "Simple, modern, and powerful solutions.",
+//             },
+//             {
+//               key: "primayButtonTitle",
+//               label: "Primary Button Title",
+//               type: "text",
+//               default: "Get Started",
+//             },
+//             {
+//               key: "primayButtonLink",
+//               label: "Primary Button Link",
+//               type: "text",
+//               default: "/about",
+//             },
+//             {
+//               key: "seconderyButtonTitle",
+//               label: "Secondary Button Title",
+//               type: "text",
+//               default: "Learn More",
+//             },
+//             {
+//               key: "seconderyButtonLink",
+//               label: "Secondary Button Link",
+//               type: "text",
+//               default: "/contact",
+//             },
+//             {
+//               key: "rightSecOneStats",
+//               label: "Stats Items",
+//               type: "array",
+//               default: [],
+//               itemFields: [
+//                 {
+//                   key: "count",
+//                   label: "Count",
+//                   type: "text",
+//                   default: "1",
+//                 },
+//                 {
+//                   key: "title",
+//                   label: "Title",
+//                   type: "text",
+//                   default: "Default",
+//                 },
+//               ],
+//             },
+//             {
+//               key: "rightSecOneIcon",
+//               label: "Card one icon",
+//               type: "text",
+//               default: "Check",
+//             },
+//             {
+//               key: "rightSecOneTitle",
+//               label: "Card one Title",
+//               type: "text",
+//               default: "Regular publications",
+//             },
+//             {
+//               key: "rightSecOneSubTitle",
+//               label: "Card one Sub Title",
+//               type: "text",
+//               default: "Monthly magazines and Islamic literature",
+//             },
 
-  //             {
-  //               key: "rightSecTwoIcon",
-  //               label: "Card tow icon",
-  //               type: "text",
-  //               default: "Calendar",
-  //             },
-  //             {
-  //               key: "rightSecTwoHeaderTitle",
-  //               label: "Card tow header title",
-  //               type: "text",
-  //               default: "Upcoming events",
-  //             },
-  //             {
-  //               key: "rightSecTwoHeaderBadge",
-  //               label: "Card tow header badge",
-  //               type: "text",
-  //               default: "Registration is ongoing.",
-  //             },
-  //             {
-  //               key: "rightSecTowTitle",
-  //               label: "Card one Title",
-  //               type: "text",
-  //               default: "Annual Tablighi Ijtema 2027",
-  //             },
-  //             {
-  //               key: "rightSecTowItems",
-  //               label: "Section Items",
-  //               type: "array",
-  //               default: [],
-  //               itemFields: [
-  //                 {
-  //                   key: "icon",
-  //                   label: "Icon",
-  //                   type: "text",
-  //                   default: "CircleCheck",
-  //                 },
-  //                 {
-  //                   key: "title",
-  //                   label: "Title",
-  //                   type: "text",
-  //                   default: "Default",
-  //                 },
-  //               ],
-  //             },
-  //             {
-  //               key: "rightSecTowFooterIcon",
-  //               label: "Card one icon",
-  //               type: "text",
-  //               default: "Check",
-  //             },
-  //             {
-  //               key: "rightSecTowFooterTitle",
-  //               label: "Card two footer title",
-  //               type: "text",
-  //               default: "A gathering of millions of people from home and abroad",
-  //             },
-  //             {
-  //               key: "rightSecThreeIcon",
-  //               label: "Card one icon",
-  //               type: "text",
-  //               default: "Check",
-  //             },
-  //             {
-  //               key: "rightSecThreeTitle",
-  //               label: "Card the Title",
-  //               type: "text",
-  //               default: "Big family",
-  //             },
-  //             {
-  //               key: "rightSecThreeSubTitle",
-  //               label: "Card three sub title",
-  //               type: "text",
-  //               default: "Millions of members and well-wishers",
-  //             },
-  //             {
-  //               key: "rightSecThreeDescription",
-  //               label: "Card three description",
-  //               type: "text",
-  //               default: "Connected from all over the country",
-  //             },
-  //             {
-  //               key: "bottomTickerItems",
-  //               label: "Ticker Items (input items by coma [,] seperated)",
-  //               type: "text",
-  //               default: "",
-  //             },
-  //             {
-  //               key: "showCardOne",
-  //               label: "Show card one (show/height)",
-  //               type: "boolean",
-  //               group: "settings",
-  //               default: true,
-  //             },
-  //             {
-  //               key: "showCardTow",
-  //               label: "Show card two (show/height)",
-  //               type: "boolean",
-  //               group: "settings",
-  //               default: true,
-  //             },
-  //             {
-  //               key: "showCardThree",
-  //               label: "Show card Three (show/height)",
-  //               type: "boolean",
-  //               group: "settings",
-  //               default: true,
-  //             },
-  //           ],
-  //         },
-  //         auroraBanner: {
-  //           label: "Aurora Banner",
-  //           fields: [
-  //             {
-  //               key: "slogan",
-  //               label: "Slogan",
-  //               type: "text",
-  //               default: "Welcome",
-  //             },
-  //             {
-  //               key: "title",
-  //               label: "Title",
-  //               type: "text",
-  //               default: "Build Your Future",
-  //             },
-  //             {
-  //               key: "subtitle",
-  //               label: "Subtitle",
-  //               type: "text",
-  //               default: "Simple, modern, and powerful solutions.",
-  //             },
-  //             {
-  //               key: "primayButtonTitle",
-  //               label: "Primary Button Title",
-  //               type: "text",
-  //               default: "Get Started",
-  //             },
-  //             {
-  //               key: "primayButtonLink",
-  //               label: "Primary Button Link",
-  //               type: "text",
-  //               default: "/about",
-  //             },
-  //             {
-  //               key: "seconderyButtonTitle",
-  //               label: "Secondary Button Title",
-  //               type: "text",
-  //               default: "Learn More",
-  //             },
-  //             {
-  //               key: "seconderyButtonLink",
-  //               label: "Secondary Button Link",
-  //               type: "text",
-  //               default: "/contact",
-  //             },
-  //             {
-  //               key: "items",
-  //               label: "Items",
-  //               type: "array",
-  //               default: [],
-  //               itemFields: [
-  //                 {
-  //                   key: "count",
-  //                   label: "Count",
-  //                   type: "text",
-  //                   default: "1",
-  //                 },
-  //                 {
-  //                   key: "title",
-  //                   label: "Title",
-  //                   type: "text",
-  //                   default: "Default",
-  //                 },
-  //               ],
-  //             },
-  //           ],
-  //         },
-  //       },
-  //     },
+//             {
+//               key: "rightSecTwoIcon",
+//               label: "Card tow icon",
+//               type: "text",
+//               default: "Calendar",
+//             },
+//             {
+//               key: "rightSecTwoHeaderTitle",
+//               label: "Card tow header title",
+//               type: "text",
+//               default: "Upcoming events",
+//             },
+//             {
+//               key: "rightSecTwoHeaderBadge",
+//               label: "Card tow header badge",
+//               type: "text",
+//               default: "Registration is ongoing.",
+//             },
+//             {
+//               key: "rightSecTowTitle",
+//               label: "Card one Title",
+//               type: "text",
+//               default: "Annual Tablighi Ijtema 2027",
+//             },
+//             {
+//               key: "rightSecTowItems",
+//               label: "Section Items",
+//               type: "array",
+//               default: [],
+//               itemFields: [
+//                 {
+//                   key: "icon",
+//                   label: "Icon",
+//                   type: "text",
+//                   default: "CircleCheck",
+//                 },
+//                 {
+//                   key: "title",
+//                   label: "Title",
+//                   type: "text",
+//                   default: "Default",
+//                 },
+//               ],
+//             },
+//             {
+//               key: "rightSecTowFooterIcon",
+//               label: "Card one icon",
+//               type: "text",
+//               default: "Check",
+//             },
+//             {
+//               key: "rightSecTowFooterTitle",
+//               label: "Card two footer title",
+//               type: "text",
+//               default: "A gathering of millions of people from home and abroad",
+//             },
+//             {
+//               key: "rightSecThreeIcon",
+//               label: "Card one icon",
+//               type: "text",
+//               default: "Check",
+//             },
+//             {
+//               key: "rightSecThreeTitle",
+//               label: "Card the Title",
+//               type: "text",
+//               default: "Big family",
+//             },
+//             {
+//               key: "rightSecThreeSubTitle",
+//               label: "Card three sub title",
+//               type: "text",
+//               default: "Millions of members and well-wishers",
+//             },
+//             {
+//               key: "rightSecThreeDescription",
+//               label: "Card three description",
+//               type: "text",
+//               default: "Connected from all over the country",
+//             },
+//             {
+//               key: "bottomTickerItems",
+//               label: "Ticker Items (input items by coma [,] seperated)",
+//               type: "text",
+//               default: "",
+//             },
+//             {
+//               key: "showCardOne",
+//               label: "Show card one (show/height)",
+//               type: "boolean",
+//               group: "settings",
+//               default: true,
+//             },
+//             {
+//               key: "showCardTow",
+//               label: "Show card two (show/height)",
+//               type: "boolean",
+//               group: "settings",
+//               default: true,
+//             },
+//             {
+//               key: "showCardThree",
+//               label: "Show card Three (show/height)",
+//               type: "boolean",
+//               group: "settings",
+//               default: true,
+//             },
+//           ],
+//         },
+//         auroraBanner: {
+//           label: "Aurora Banner",
+//           fields: [
+//             {
+//               key: "slogan",
+//               label: "Slogan",
+//               type: "text",
+//               default: "Welcome",
+//             },
+//             {
+//               key: "title",
+//               label: "Title",
+//               type: "text",
+//               default: "Build Your Future",
+//             },
+//             {
+//               key: "subtitle",
+//               label: "Subtitle",
+//               type: "text",
+//               default: "Simple, modern, and powerful solutions.",
+//             },
+//             {
+//               key: "primayButtonTitle",
+//               label: "Primary Button Title",
+//               type: "text",
+//               default: "Get Started",
+//             },
+//             {
+//               key: "primayButtonLink",
+//               label: "Primary Button Link",
+//               type: "text",
+//               default: "/about",
+//             },
+//             {
+//               key: "seconderyButtonTitle",
+//               label: "Secondary Button Title",
+//               type: "text",
+//               default: "Learn More",
+//             },
+//             {
+//               key: "seconderyButtonLink",
+//               label: "Secondary Button Link",
+//               type: "text",
+//               default: "/contact",
+//             },
+//             {
+//               key: "items",
+//               label: "Items",
+//               type: "array",
+//               default: [],
+//               itemFields: [
+//                 {
+//                   key: "count",
+//                   label: "Count",
+//                   type: "text",
+//                   default: "1",
+//                 },
+//                 {
+//                   key: "title",
+//                   label: "Title",
+//                   type: "text",
+//                   default: "Default",
+//                 },
+//               ],
+//             },
+//           ],
+//         },
+//       },
+//     },
 
-  //     /* -------------------- Carousel -------------------- */
-  //     carousel: {
-  //       label: "Carousel",
-  //       defaultTemplate: "classicCarousel",
-  //       templates: {
-  //         classicCarousel: {
-  //           label: "Classic Carousel",
-  //           fields: [
-  //             {
-  //               key: "slides",
-  //               label: "Slides",
-  //               type: "array",
-  //               default: [],
-  //               sourceKeys: ["slider", "photo", "video"],
-  //               itemFields: [
-  //                 {
-  //                   key: "title",
-  //                   label: "Title",
-  //                   type: "text",
-  //                   default: "Item",
-  //                 },
-  //                 {
-  //                   key: "description",
-  //                   label: "Description",
-  //                   type: "textarea",
-  //                   default: "",
-  //                 },
-  //                 { key: "image", label: "Image", type: "image", default: "" },
-  //               ],
-  //             },
-  //             ...autoplayFields,
-  //             ...carouselStyles,
-  //           ],
-  //         },
-  //         simpleCarousel: {
-  //           label: "Simple Carousel",
-  //           fields: [
-  //             {
-  //               key: "slides",
-  //               label: "Slides",
-  //               type: "array",
-  //               default: [],
-  //               sourceKeys: ["slider", "image"],
-  //               itemFields: [
-  //                 {
-  //                   key: "title",
-  //                   label: "Title",
-  //                   type: "text",
-  //                   default: "Slide",
-  //                 },
-  //                 { key: "image", label: "Image", type: "image", default: "" },
-  //               ],
-  //             },
-  //             ...autoplayFields,
-  //           ],
-  //         },
-  //         modernCarousel: {
-  //           label: "Modern Carousel",
-  //           fields: [
-  //             {
-  //               key: "slides",
-  //               label: "Slides",
-  //               type: "array",
-  //               default: [],
-  //               itemFields: slideFields,
-  //               sourceKeys: ["slider"],
-  //             },
-  //             ...autoplayFields,
-  //             ...navPagFields,
-  //           ],
-  //         },
-  //         imageCarousel: {
-  //           label: "Image Carousel",
-  //           fields: [
-  //             {
-  //               key: "images",
-  //               label: "Images",
-  //               type: "array",
-  //               default: [],
-  //               sourceKeys: ["images", "sliders"],
-  //               itemFields: [
-  //                 { key: "image", label: "Image", type: "image", default: "" },
-  //               ],
-  //             },
-  //             ...autoplayFields,
-  //           ],
-  //         },
-  //         immersiveSlider: {
-  //           label: "Immersive Slider",
-  //           fields: [
-  //             {
-  //               key: "slides",
-  //               label: "Slides",
-  //               type: "array",
-  //               default: [],
-  //               itemFields: slideFields,
-  //               sourceKeys: ["slider"],
-  //             },
-  //             ...autoplayFields,
-  //             {
-  //               key: "height",
-  //               label: "Height (px)",
-  //               type: "number",
-  //               group: "settings",
-  //               default: 520,
-  //               min: 240,
-  //               max: 1000,
-  //             },
-  //           ],
-  //         },
-  //         simpleImageSlider: {
-  //           label: "Simple Image Slider",
-  //           fields: [
-  //             {
-  //               key: "slides",
-  //               label: "Slides",
-  //               type: "array",
-  //               default: [],
-  //               sourceKeys: ["slider", "image"],
-  //               itemFields: [
-  //                 { key: "image", label: "Image", type: "image", default: "" },
-  //               ],
-  //             },
-  //             ...autoplayFields,
-  //             ...navPagFields,
-  //             {
-  //               key: "loop",
-  //               label: "Loop",
-  //               type: "boolean",
-  //               group: "settings",
-  //               default: true,
-  //             },
-  //             {
-  //               key: "height",
-  //               label: "Height (px)",
-  //               type: "number",
-  //               group: "settings",
-  //               default: 400,
-  //               min: 160,
-  //               max: 900,
-  //             },
-  //           ],
-  //         },
-  //       },
-  //     },
-  //   },
-  // },
+//     /* -------------------- Carousel -------------------- */
+//     carousel: {
+//       label: "Carousel",
+//       defaultTemplate: "classicCarousel",
+//       templates: {
+//         classicCarousel: {
+//           label: "Classic Carousel",
+//           fields: [
+//             {
+//               key: "slides",
+//               label: "Slides",
+//               type: "array",
+//               default: [],
+//               sourceKeys: ["slider", "photo", "video"],
+//               itemFields: [
+//                 {
+//                   key: "title",
+//                   label: "Title",
+//                   type: "text",
+//                   default: "Item",
+//                 },
+//                 {
+//                   key: "description",
+//                   label: "Description",
+//                   type: "textarea",
+//                   default: "",
+//                 },
+//                 { key: "image", label: "Image", type: "image", default: "" },
+//               ],
+//             },
+//             ...autoplayFields,
+//             ...carouselStyles,
+//           ],
+//         },
+//         simpleCarousel: {
+//           label: "Simple Carousel",
+//           fields: [
+//             {
+//               key: "slides",
+//               label: "Slides",
+//               type: "array",
+//               default: [],
+//               sourceKeys: ["slider", "image"],
+//               itemFields: [
+//                 {
+//                   key: "title",
+//                   label: "Title",
+//                   type: "text",
+//                   default: "Slide",
+//                 },
+//                 { key: "image", label: "Image", type: "image", default: "" },
+//               ],
+//             },
+//             ...autoplayFields,
+//           ],
+//         },
+//         modernCarousel: {
+//           label: "Modern Carousel",
+//           fields: [
+//             {
+//               key: "slides",
+//               label: "Slides",
+//               type: "array",
+//               default: [],
+//               itemFields: slideFields,
+//               sourceKeys: ["slider"],
+//             },
+//             ...autoplayFields,
+//             ...navPagFields,
+//           ],
+//         },
+//         imageCarousel: {
+//           label: "Image Carousel",
+//           fields: [
+//             {
+//               key: "images",
+//               label: "Images",
+//               type: "array",
+//               default: [],
+//               sourceKeys: ["images", "sliders"],
+//               itemFields: [
+//                 { key: "image", label: "Image", type: "image", default: "" },
+//               ],
+//             },
+//             ...autoplayFields,
+//           ],
+//         },
+//         immersiveSlider: {
+//           label: "Immersive Slider",
+//           fields: [
+//             {
+//               key: "slides",
+//               label: "Slides",
+//               type: "array",
+//               default: [],
+//               itemFields: slideFields,
+//               sourceKeys: ["slider"],
+//             },
+//             ...autoplayFields,
+//             {
+//               key: "height",
+//               label: "Height (px)",
+//               type: "number",
+//               group: "settings",
+//               default: 520,
+//               min: 240,
+//               max: 1000,
+//             },
+//           ],
+//         },
+//         simpleImageSlider: {
+//           label: "Simple Image Slider",
+//           fields: [
+//             {
+//               key: "slides",
+//               label: "Slides",
+//               type: "array",
+//               default: [],
+//               sourceKeys: ["slider", "image"],
+//               itemFields: [
+//                 { key: "image", label: "Image", type: "image", default: "" },
+//               ],
+//             },
+//             ...autoplayFields,
+//             ...navPagFields,
+//             {
+//               key: "loop",
+//               label: "Loop",
+//               type: "boolean",
+//               group: "settings",
+//               default: true,
+//             },
+//             {
+//               key: "height",
+//               label: "Height (px)",
+//               type: "number",
+//               group: "settings",
+//               default: 400,
+//               min: 160,
+//               max: 900,
+//             },
+//           ],
+//         },
+//       },
+//     },
+//   },
+// },

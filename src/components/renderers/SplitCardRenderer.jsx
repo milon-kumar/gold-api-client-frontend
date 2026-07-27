@@ -29,18 +29,58 @@ const Img = ({ src, className, style = {} }) =>
     />
   );
 
-const SimpleInfo = ({ content }) => (
-  <div className="rounded-lg border bg-white p-8 text-center">
-    <h2 className="text-2xl font-semibold text-slate-900">{content.title}</h2>
-    {content.description && (
-      <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-600">
-        {content.description}
-      </p>
-    )}
-    <Img
-      src={content.image}
-      className="mx-auto mt-6 h-48 w-full max-w-xl rounded-md object-cover"
-    />
+const SimpleInfo = ({ content,settings,styles }) => (
+  <div className="text-center">
+      <div>
+        {
+          settings?.showBadge ? (
+            <>{content.badge && (
+              <Badge variant={settings?.sectionHeaderBadge || "soft"}>
+                {" "}
+                {content.badge}
+              </Badge>
+            )}
+            </>
+          ) : null
+        }
+        </div>
+     <h2
+          className="mt-3 font-bold text-slate-900"
+          style={{
+            fontSize: `${styles?.headingFontSize}px`,
+          }}
+        >
+          {content.title}
+        </h2>
+        {content.description && (
+          <p
+            className="mt-2 text-slate-600"
+            style={{
+              fontSize: `${styles?.paragraphFontSize}px`,
+            }}
+          >
+            {content.description}
+          </p>
+        )}
+      <Img
+        src={content.image}
+        className={`
+        h-64
+        w-full
+        object-contain
+
+        ${styles?.applyImageScaleOnHover
+                ? "transition-transform duration-300 hover:scale-105"
+                : ""}
+
+        ${styles?.applyImageShadowEffect
+                ? "shadow-sm hover:shadow-md"
+                : ""}
+      `}
+        style={{
+          borderRadius: `${styles?.imageRounded ?? 8}px`,
+        }}
+      />
   </div>
 );
 
@@ -51,7 +91,7 @@ const ModernInfo = ({ content, settings, styles }) => {
         {
           settings?.showBadge ? (
             <>{content.badge && (
-              <Badge variant={settings?.sectionHeaderBadge || "soft"}>
+              <Badge variant={settings?.sectionHeaderBadge || "soft"} styles={styles}>
                 {" "}
                 {content.badge}
               </Badge>
@@ -83,7 +123,7 @@ const ModernInfo = ({ content, settings, styles }) => {
       <Img
         src={content.image}
         className={`
-        h-64
+        h-full
         w-full
         object-contain
 

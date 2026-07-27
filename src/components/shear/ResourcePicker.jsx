@@ -66,7 +66,7 @@ const ResourcePicker = ({
   const items = useMemo(() => {
     if (!source || !response) return [];
     const list = source.getItems(response) || [];
-   
+
     if (!search.trim()) return list;
     const q = search.toLowerCase();
     return list.filter((item) =>
@@ -152,54 +152,58 @@ const ResourcePicker = ({
                 No records found in {source?.label}.
               </p>
             )}
+            {
+              items?.length > 0 ? (
+                <>
+                  {items?.map((item, index) => {
+                    const title =
+                      item[source.display?.titleKey] || `Item ${index + 1}`;
+                    const image = source.display?.imageKey
+                      ? item[source.display.imageKey]
+                      : null;
+                    const subtitle = source.display?.subtitleKey
+                      ? item[source.display.subtitleKey]
+                      : null;
+                    const isPicked = pickedIds.includes(item.id);
 
-            {items.map((item, index) => {
-              const title =
-                item[source.display?.titleKey] || `Item ${index + 1}`;
-              const image = source.display?.imageKey
-                ? item[source.display.imageKey]
-                : null;
-              const subtitle = source.display?.subtitleKey
-                ? item[source.display.subtitleKey]
-                : null;
-              const isPicked = pickedIds.includes(item.id);
+                    return (
+                      <button
+                        key={item.id ?? index}
+                        type="button"
+                        onClick={() => handlePick(item)}
+                        className={`flex w-full items-center gap-3 rounded-md border p-2 text-left transition-colors ${isPicked
+                            ? "border-primary bg-primary/10 hover:bg-primary/5"
+                            : "hover:border-primary hover:bg-primary/5"
+                          }`}
+                      >
+                        {image ? (
+                          <img
+                            src={image}
+                            alt=""
+                            className="h-10 w-14 shrink-0 rounded object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-10 w-14 shrink-0 items-center justify-center rounded bg-muted">
+                            <ImageOff className="h-4 w-4 text-muted-foreground/50" />
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-xs font-medium">{title}</p>
+                          {subtitle && (
+                            <p className="truncate text-[11px] text-muted-foreground">
+                              {subtitle}
+                            </p>
+                          )}
+                        </div>
+                        {isPicked && (
+                          <Check className="h-4 w-4 shrink-0 text-primary" />
+                        )}
+                      </button>
+                    );
+                  })}</>
+              ) : null
+            }
 
-              return (
-                <button
-                  key={item.id ?? index}
-                  type="button"
-                  onClick={() => handlePick(item)}
-                  className={`flex w-full items-center gap-3 rounded-md border p-2 text-left transition-colors ${
-                    isPicked
-                      ? "border-primary bg-primary/10 hover:bg-primary/5"
-                      : "hover:border-primary hover:bg-primary/5"
-                  }`}
-                >
-                  {image ? (
-                    <img
-                      src={image}
-                      alt=""
-                      className="h-10 w-14 shrink-0 rounded object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-10 w-14 shrink-0 items-center justify-center rounded bg-muted">
-                      <ImageOff className="h-4 w-4 text-muted-foreground/50" />
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-medium">{title}</p>
-                    {subtitle && (
-                      <p className="truncate text-[11px] text-muted-foreground">
-                        {subtitle}
-                      </p>
-                    )}
-                  </div>
-                  {isPicked && (
-                    <Check className="h-4 w-4 shrink-0 text-primary" />
-                  )}
-                </button>
-              );
-            })}
           </div>
         </div>
       </DialogContent>

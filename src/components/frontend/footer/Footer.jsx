@@ -189,12 +189,14 @@ const SOCIAL_PLATFORMS = [
 ];
  
 const SocialColumn = ({ column }) => {
+  console.log("🚀 ~ SocialColumn ~ column:", column)
   const config = column?.config || {};
  
   // Only enabled platforms that actually have a URL
   const activePlatforms = SOCIAL_PLATFORMS.filter(
     (p) => config?.[p.key]?.enabled && config?.[p.key]?.url,
   );
+  console.log("🚀 ~ SocialColumn ~ activePlatforms:", activePlatforms)
  
   if (!activePlatforms.length) return null;
  
@@ -225,6 +227,15 @@ const SocialColumn = ({ column }) => {
     </div>
   );
 };
+
+const CustomText = ({column}) =>{
+  return (
+    <div>
+      <ColumnHeading>{column?.title}</ColumnHeading>
+    <p className="font-bengali text-sm leading-relaxed text-slate-400">{column?.config?.text}</p>
+    </div>
+  )
+}
  
 /* ---------------- Column type registry ---------------- */
 const COLUMN_RENDERERS = {
@@ -232,6 +243,7 @@ const COLUMN_RENDERERS = {
   links: LinksColumn,
   contact: ContactColumn,
   social: SocialColumn,
+  custom_text: CustomText,
 };
  
 /* ---------------- Main Footer ---------------- */

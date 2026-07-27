@@ -37,33 +37,57 @@ const VARIANTS = {
   line: "bg-transparent p-0 text-[18px] font-semibold uppercase tracking-[0.26em] text-primary",
 };
 
-const Badge = ({ variant = "soft", className, children, ...props }) => {
-  // "dot" variant: pulsing dot before text
+const Badge = ({ variant = "soft", styles = {}, className, children, ...props }) => {
+  const accentColor = styles?.accentColor || "#2563eb";
+
   if (variant === "dot") {
     return (
       <span
-        className={cn("inline-flex items-center gap-2", VARIANTS.dot, className)}
+        className={cn("inline-flex items-center gap-2 border", VARIANTS.dot, className)}
+        style={{
+          color: accentColor,
+          borderColor: accentColor,
+        }}
         {...props}
       >
         <i className="relative flex h-2 w-2">
-          <i className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
-          <i className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+          <i
+            className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-60"
+            style={{ backgroundColor: accentColor }}
+          />
+          <i
+            className="relative inline-flex h-2 w-2 rounded-full"
+            style={{ backgroundColor: accentColor }}
+          />
         </i>
+
         {children}
       </span>
     );
   }
 
-  // "line" variant: hairlines on both sides
   if (variant === "line") {
     return (
       <span
         className={cn("inline-flex items-center gap-3", VARIANTS.line, className)}
+        style={{ color: accentColor }}
         {...props}
       >
-        <i className="h-px w-10 bg-gradient-to-r from-transparent to-primary/60" />
+        <i
+          className="h-px w-10"
+          style={{
+            background: `linear-gradient(to right, transparent, ${accentColor})`,
+          }}
+        />
+
         {children}
-        <i className="h-px w-10 bg-gradient-to-l from-transparent to-primary/60" />
+
+        <i
+          className="h-px w-10"
+          style={{
+            background: `linear-gradient(to left, transparent, ${accentColor})`,
+          }}
+        />
       </span>
     );
   }
