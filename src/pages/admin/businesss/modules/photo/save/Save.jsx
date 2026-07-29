@@ -103,8 +103,6 @@ const Save = () => {
     },
   );
 
-  console.log("Category response - ", categoryGetQuery);
-
   const categories =
     categoryGetQuery?.data?.map((i) => {
       return {
@@ -115,7 +113,7 @@ const Save = () => {
 
   // Fetch item data for edit mode
   const { data: itemGetQuery, isLoading: itemGetLoading } = useApiQuery({
-    url: `/admin/module-items/${id}`,
+    url: `/admin/business-module-items/${id}`,
     enabled: !!id && id !== "new",
   });
 
@@ -235,7 +233,6 @@ const Save = () => {
     );
   }
 
-  console.log("categories - ", categories);
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -84,7 +84,7 @@ const PhotosListing = () => {
     mutate: itemDeleteMutation,
     isLoading: itemDeleteLoading
   } = useApiMutation({
-    url: `/admin/module-items/${selectedItem?.id}`,
+    url: `/admin/business-module-items/${selectedItem?.id}`,
     method: 'DELETE'
   });
 

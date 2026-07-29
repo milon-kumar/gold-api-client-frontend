@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { LayoutTemplate, Wand2 } from "lucide-react";
+import { LayoutTemplate, Loader2, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { useParams } from "react-router";
 import { useApiQuery } from "@/hooks/useAppQuery";
@@ -26,7 +26,7 @@ const CustomPageBuilder = () => {
     enabled: !!id,
   });
 
-  const { mutate: pageMetaMutation } = useApiMutation({
+  const { mutate: pageMetaMutation,isLoading:pageMetaMutationLoading } = useApiMutation({
     url: "/admin/pages",
     method: "POST",
   });
@@ -192,8 +192,11 @@ const CustomPageBuilder = () => {
                 placeholder="Theme name"
                 className="h-9 w-48"
               />
-              <Button onClick={savePage}>
-                <Wand2 className="mr-2 h-4 w-4" /> Save Theme
+              <Button onClick={savePage} disabled={pageMetaMutationLoading}>
+                {
+                  pageMetaMutationLoading ? <Loader2 className="mr-1 h-4 w-4 animate-spin"/> : <Wand2 className="mr-1 h-4 w-4" />
+                }
+                 {pageMetaMutationLoading ? 'Saving...' : 'Save Theme'}
               </Button>
             </div>
           </div>

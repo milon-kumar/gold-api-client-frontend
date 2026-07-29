@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import ClassicBanner from "@/components/frontend/hero/banner/ClassicBanner";
 import StellarBanner from "@/components/frontend/hero/banner/StellarBanner";
-// import { GradientBanner } from "./partials/BannerRenderer";
 import AuroraBanner from "../frontend/hero/banner/AuroraBanner";
 import GradientBanner from "../frontend/hero/banner/GradientBanner";
+import { motion } from "framer-motion";
 /**
  * =====================================================================
  * HERO RENDERER — Template Registry Pattern
@@ -109,6 +109,143 @@ const SliderShell = ({ children, settings, slider, count, height }) => (
   </div>
 );
 
+
+const ColumnSlider = ({ 
+  content,
+  settings,
+  autoplay = true,
+  speed = 3000,
+  height = 400,
+  gap = 4,
+  containerWidth = "max-w-7xl"
+}) => {
+
+  console.log("Content - ",{
+    content,settings
+  })
+
+  const slides = content?.slides || []
+  const showNavigations = settings?.navigation 
+  const showPagination = settings?.pagination
+
+  const [currentPage, setCurrentPage] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+
+  // Calculate items per view and total pages
+  const itemsPerView = Math.min(settings?.columns, slides.length);
+  const totalPages = Math.ceil(slides.length / itemsPerView);
+
+  // Autoplay
+  useEffect(() => {
+    if (!autoplay || isHovered || totalPages <= 1) return;
+
+    const timer = setInterval(() => {
+      setCurrentPage((prev) => (prev + 1) % totalPages);
+    }, speed);
+
+    return () => clearInterval(timer);
+  }, [autoplay, speed, totalPages, isHovered]);
+
+  // Go to next/prev
+  const goToNext = () => {
+    setCurrentPage((prev) => (prev + 1) % totalPages);
+  };
+
+  const goToPrev = () => {
+    setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages);
+  };
+
+  const goToPage = (page) => {
+    setCurrentPage(page);
+  };
+
+  // Get current visible slides
+  const startIndex = currentPage * itemsPerView;
+  const visibleSlides = slides.slice(startIndex, startIndex + itemsPerView);
+
+  return (
+    <div className={`${containerWidth} mx-auto px-4 sm:px-6`}>
+      <div 
+        className="relative overflow-hidden"
+        style={{ height: `${height}px` }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {/* Slide Container */}
+        <div className="flex h-full gap-4 p-4">
+          {visibleSlides.map((slide, index) => (
+            <motion.div
+              key={slide._id || index}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className="flex-1 h-full overflow-hidden rounded-lg relative group"
+            >
+              <img
+                src={slide.image || slide.image_full_path || slide.url}
+                alt={slide.title || "Slide image"}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              />
+              
+              {/* Overlay with content */}
+              <div className="absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  {slide.title && (
+                    <h3 className="text-white text-lg font-semibold">
+                      {slide.title}
+                    </h3>
+                  )}
+                  {slide.sub_description && (
+                    <p className="text-white/80 text-sm mt-1">
+                      {slide.sub_description}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Navigation Buttons */}
+        {showNavigations && totalPages > 1 && (
+          <>
+            <button
+              onClick={goToPrev}
+              className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 hover:bg-black/70 p-2 text-white transition-all hover:scale-110"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              onClick={goToNext}
+              className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 hover:bg-black/70 p-2 text-white transition-all hover:scale-110"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </>
+        )}
+
+        {/* Pagination Dots */}
+        {showPagination && totalPages > 1 && (
+          <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 gap-2">
+            {Array.from({ length: totalPages }).map((_, i) => (
+              <button
+                key={i}
+                onClick={() => goToPage(i)}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  i === currentPage 
+                    ? "w-8 bg-white" 
+                    : "w-2 bg-white/40 hover:bg-white/60"
+                }`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const EmptySlides = () => (
   <div className="flex h-full items-center justify-center rounded-lg border border-dashed text-xs text-muted-foreground">
     Add slides from the property panel →
@@ -119,6 +256,10 @@ const makeCarousel = (renderSlide, defaultHeight = 400) => {
   const Carousel = ({ content, settings, styles }) => {
     const slides = content.slides || content.images || [];
     const slider = useSlider(slides.length, settings);
+
+    console.log("simple carousel - ",{
+      content,settings,styles
+    })
     if (!slides.length) {
       return (
         <div style={{ height: defaultHeight }}>
@@ -133,7 +274,8 @@ const makeCarousel = (renderSlide, defaultHeight = 400) => {
         count={slides.length}
         height={styles?.imageHeight || defaultHeight}
       >
-        {slides.map((slide, i) => (
+        <div className="grid grid-col-3">
+           {slides.map((slide, i) => (
           <div
             key={slide._id || i}
             className={`absolute inset-0 transition-opacity duration-500 ${i === slider.index ? "opacity-100" : "pointer-events-none opacity-0"}`}
@@ -141,6 +283,8 @@ const makeCarousel = (renderSlide, defaultHeight = 400) => {
             {renderSlide(slide, settings)}
           </div>
         ))}
+        </div>
+       
       </SliderShell>
     );
   };
@@ -189,6 +333,7 @@ const ImageOnlySlide = (slide) =>
 
 /* --------------------------- Template map --------------------------- */
 
+
 const TEMPLATES = {
   "banner.classicBanner": ClassicBanner,
   "banner.stellarBanner": StellarBanner,
@@ -196,7 +341,7 @@ const TEMPLATES = {
   "banner.gradentBanner": GradientBanner,
   "banner.auroraBanner": AuroraBanner,
   "carousel.classicCarousel": makeCarousel(TextImageSlide, 700),
-  "carousel.simpleCarousel": makeCarousel(TextImageSlide, 360),
+  "carousel.simpleCarousel": ColumnSlider,
   "carousel.modernCarousel": makeCarousel(TextImageSlide, 440),
   "carousel.imageCarousel": makeCarousel(ImageOnlySlide, 380),
   "carousel.immersiveSlider": makeCarousel(TextImageSlide, 520),

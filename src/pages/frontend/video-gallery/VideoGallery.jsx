@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogOverlay } from "@/components/ui/dialog";
 import { useApiQuery } from "@/hooks/useAppQuery";
 import { MODULES } from "@/store/default/modules";
 import PageHeroRenderer from "@/components/renderers/PageHeroRenderer";
+import { useLocation } from "react-router";
 
 /* ---------------------------------- */
 /*  Video Card                        */
@@ -92,6 +93,8 @@ const VideoCardSkeleton = () => (
 export default function VideoGallery() {
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [openModal, setOpenModal] = useState(false);
+  const { pathname } = useLocation()
+  const slug = pathname.split("/").filter(Boolean).pop();
 
   const {
     data: videoItemQuery,
@@ -112,17 +115,29 @@ export default function VideoGallery() {
     setSelectedVideo(video);
     setOpenModal(true);
   };
-  // gradient | editorial | wave | minimal | split | aurora
+
+  const { data: getPageResponse, isLoading, refetch } = useApiQuery({
+    url: `/page-by-slug/${slug}`,
+    enabled: !!slug,
+  });
+
+  const page = getPageResponse?.data
+  const meta = page?.meta ? JSON.parse(page.meta) : {};
   return (
     <div className="min-h-screen bg-background">
       <PageHeroRenderer
-        variant="aurora"
-        eyebrow="Video Gallery"
-        title="Explore Our"
-        highlight="Video Collection"
-        titleAfter=""
-        description="Watch our latest events, activities, achievements, and memorable moments through our curated collection of videos."
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Video Gallery" }]}
+        variant={meta?.headerTemplate ?? "gradient"}
+        eyebrow={meta?.heroContent?.badge ?? "Videos"}
+        title={meta?.heroContent?.title ?? "All videos content"}
+        highlight={meta?.heroContent?.heightlight ?? "Learn More About Our Videos"}
+        description={
+          meta?.heroContent?.description ??
+          "Discover our mission, vision, values, and the journey that drives us to serve our community with excellence."
+        }
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: slug ?? "About Us" },
+        ]}
       />
 
       <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">

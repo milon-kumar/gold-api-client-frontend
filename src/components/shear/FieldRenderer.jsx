@@ -5,7 +5,8 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { ValueSlider } from "@/components/ui/value-slider";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-
+import useImageUpload from "@/hooks/use-image-upload";
+import { useSelector } from "react-redux";
 import {
   Select,
   SelectContent,
@@ -13,14 +14,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Eraser, GripVertical, Plus, Trash2 } from "lucide-react";
+import { Eraser, GripVertical, Plus, Trash2, Upload } from "lucide-react";
 import {
   buildArrayItem,
   mergeIntoShape,
   reorderArray,
 } from "@/lib/builderHelper";
 import ResourcePicker from "./ResourcePicker";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -37,8 +38,25 @@ import { cn } from "@/lib/utils";
  * =====================================================================
  */
 const FieldRenderer = ({ field, value, onChange }) => {
+  const fileInputRef = useRef(null);
+
+  const { setting } = useSelector((state) => state);
+  const {
+    image: imageBase64,
+    preview,
+    error: imageError,
+    handleImageChange,
+    resetImage,
+    setImageUrl,
+  } = useImageUpload(setting?.setting?.item?.image_size || 5);
+
+
   switch (field.type) {
     case "text":
+      if (field?.visible === false) {
+        return null;
+      }
+
       return (
         <Wrapper label={field.label}>
           <Input
@@ -46,10 +64,19 @@ const FieldRenderer = ({ field, value, onChange }) => {
             placeholder={field.placeholder || field.label}
             onChange={(e) => onChange(e.target.value)}
           />
+          {
+            field?.helpText && (
+              <small className="leading-none">{field?.helpText}</small>
+            )
+          }
         </Wrapper>
       );
 
     case "textarea":
+      if (field?.visible === false) {
+        return null;
+      }
+
       return (
         <Wrapper label={field.label}>
           <Textarea
@@ -62,6 +89,10 @@ const FieldRenderer = ({ field, value, onChange }) => {
       );
 
     case "number":
+      if (field?.visible === false) {
+        return null;
+      }
+
       return (
         <Wrapper label={field.label}>
           <Input
@@ -78,6 +109,9 @@ const FieldRenderer = ({ field, value, onChange }) => {
       );
 
     case "boolean":
+      if (field?.visible === false) {
+        return null;
+      }
       return (
         <div className="flex items-center justify-between py-1">
           <Label className="text-xs">{field.label}</Label>
@@ -86,6 +120,10 @@ const FieldRenderer = ({ field, value, onChange }) => {
       );
 
     case "color":
+      if (field?.visible === false) {
+        return null;
+      }
+
       return (
         <Wrapper label={field.label}>
           <div className="flex items-center gap-3">
@@ -114,10 +152,40 @@ const FieldRenderer = ({ field, value, onChange }) => {
       );
 
     case "image":
+      if (field?.visible === false) {
+        return null;
+      }
+
+      useEffect(() => {
+        if (imageBase64) {
+          onChange(imageBase64); // Base64 save হবে
+          // যদি preview URL রাখতে চাও তাহলে onChange(preview)
+        }
+      }, [imageBase64]);
       /* আপাতত URL input; আপনার Media Uploader থাকলে এখানে বসান —
          onChange(url) call করলেই বাকি সব কাজ করবে। */
       return (
-        <Wrapper label={field.label}>
+        <div className="space-y-1.5">
+          <div className="flex justify-between items-center">
+            <Label className="text-xs">{field.label} </Label>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="w-4 h-4" />
+            </Button>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageChange}
+            />
+          </div>
+
           <Input
             value={value ?? ""}
             placeholder="https://... image url"
@@ -130,10 +198,14 @@ const FieldRenderer = ({ field, value, onChange }) => {
               className="mt-2 h-20 w-full rounded border object-cover"
             />
           ) : null}
-        </Wrapper>
+        </div>
       );
 
     case "select":
+      if (field?.visible === false) {
+        return null;
+      }
+
       return (
         <Wrapper label={field.label}>
           <Select value={String(value ?? "")} onValueChange={onChange}>
@@ -153,9 +225,17 @@ const FieldRenderer = ({ field, value, onChange }) => {
       );
 
     case "array":
+      if (field?.visible === false) {
+        return null;
+      }
+
       return <ArrayField field={field} value={value} onChange={onChange} />;
 
     case "slider":
+      if (field?.visible === false) {
+        return null;
+      }
+
       return (
         <Wrapper label={field.label}>
           <ValueSlider
@@ -169,6 +249,10 @@ const FieldRenderer = ({ field, value, onChange }) => {
         </Wrapper>
       );
     case "radio":
+      if (field?.visible === false) {
+        return null;
+      }
+
       return (
         <Wrapper label={field.label}>
           <RadioGroup
@@ -254,10 +338,18 @@ const ArrayField = ({ field, value, onChange }) => {
     dragIndex.current = null;
   };
 
+  const isHideAddButton = ['imageGallery'].includes(field?.key)
+
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-1">
-        <Label className="text-xs">{field.label}</Label>
+        <Label className="text-xs">{field.label}
+          {
+            field?.limit && (
+              <span>{field?.limit - items?.length}</span>
+            )
+          }
+        </Label>
         <div className="flex items-center gap-1">
           {field.sourceKeys?.length > 0 && (
             <ResourcePicker
@@ -269,14 +361,20 @@ const ArrayField = ({ field, value, onChange }) => {
               triggerLabel="Pick"
             />
           )}
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-7 px-2"
-            onClick={addItem}
-          >
-            <Plus className="h-3 w-3" /> Add
-          </Button>
+          {
+            !isHideAddButton && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 px-2"
+                onClick={addItem}
+                disabled={items?.length === field?.limit ? true : false}
+              >
+                <Plus className="h-3 w-3" /> Add
+              </Button>
+            )
+          }
+
           {items.length > 0 && (
             <Button
               size="sm"

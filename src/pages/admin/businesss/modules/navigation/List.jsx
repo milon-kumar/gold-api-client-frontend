@@ -174,6 +174,9 @@ const PageListing = () => {
 
   // Navigation
   const onEdit = (page) => {
+    if(page?.page_type === 'custom_page'){
+      navigate(`/admin/navigations/custom-page/${page?.id}`);
+    }
     navigate(`/admin/navigations/save/${page?.id}`);
   };
 
