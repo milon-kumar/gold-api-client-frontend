@@ -11,11 +11,15 @@ export default defineConfig({
     },
   },
   server: {
-    host: '127.0.0.1',
+    host: true,
     port: 5050,
-    allowedHosts: [
-      'orgsaas.test',
-      '.orgsaas.test',
-    ],
-  }
+     allowedHosts: [
+    'org-saas-frontend.test',
+    'ahlehadeethbd.org-saas-frontend.test',
+  ],
+    hmr: {
+      host: 'org-saas-frontend.test',
+      protocol: 'ws',
+    },
+  },
 })
