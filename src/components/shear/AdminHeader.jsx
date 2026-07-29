@@ -7,6 +7,7 @@ import {
     CreditCardIcon,
     LogOutIcon,
     ExternalLink,
+    Settings,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -71,6 +72,7 @@ const DropdownMenuAvatar = () => {
 
 
 const AdminHeader = () => {
+    const navigate = useNavigate()
     return (
         <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-white px-4 dark:bg-gray-950 dark:border-gray-800 sm:px-6">
             <Button variant="ghost" size="icon" className="lg:hidden">
@@ -95,6 +97,9 @@ const AdminHeader = () => {
                 <ThemeToggle />
                 <Button variant="ghost" size="icon">
                     <Bell className="h-5 w-5" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => navigate('/admin/settings')}>
+                    <Settings className="h-5 w-5" />
                 </Button>
                 {/*<Avatar>*/}
                 {/*    <AvatarImage src="https://github.com/shadcn.png" />*/}

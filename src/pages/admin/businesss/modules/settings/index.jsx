@@ -57,7 +57,33 @@ import { useApiMutation } from "@/hooks/useAppMutation";
 import PageHeader from "@/components/shear/PageHeader";
 import useImageUpload from "@/hooks/use-image-upload";
 
+const settingContent = [
+  {
+    key: 'businessSetting',
+    buttonTitle: 'Business Setting',
+    title: '',
+    subTitle: '',
+  }, {
+    key: 'manageModule',
+    buttonTitle: 'Manage Module',
+    title: '',
+    subTitle: '',
+  }, {
+    key: 'sidebarBuilder',
+    buttonTitle: 'Sidebar Builder',
+    title: '',
+    subTitle: '',
+  },
+  {
+    key: 'accountSetting',
+    buttonTitle: 'Account setting', // features - reset password like that . 
+    title: '',
+    subTitle: '',
+  }
+];
+
 const SettingsView = () => {
+  const [tab, setTab] = useState('businessSetting')
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editField, setEditField] = useState(null);
   const [editValue, setEditValue] = useState("");
@@ -319,14 +345,36 @@ const SettingsView = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <PageHeader
+      {/* <PageHeader
         title="Business Settings"
         subtitle="Manage your business information and settings"
         showBackButton={false}
-      />
+      /> */}
+      <div className={`sticky top-14 bg-background/95 backdrop-blur p-1 sm:p-4 sm:mb-6 z-40 border rounded-md border-border`}>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="">
+            <div>
+              <h2>Business Settings</h2>
+              <p className="text-sm">Manage your business information and settings</p>
+            </div>
+          </div>
+          <div className="shadow-smp-4">
+            <div className="flex items-center gap-3">
+              {
+                settingContent?.map()
+              }
+              <Button className={''} size="sm" variant="outline">Business Overview</Button>
+              <Button className={''} size="sm" variant="outline">Module Manager</Button>
+              <Button className={''} size="sm" variant="outline">Sidebar Builder</Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
 
       <div className="space-y-6">
-        <Card className="shadow-sm mb-0">
+        <Card className="shadow-sm mb-0 pt-0 mt-0">
           <CardHeader className="border-b bg-linear-to-r from-blue-50 to-indigo-50 p-0 m-0">
             <div className="flex items-center justify-between p-6">
               <div>
@@ -344,6 +392,8 @@ const SettingsView = () => {
               </Badge>
             </div>
           </CardHeader>
+
+
 
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
