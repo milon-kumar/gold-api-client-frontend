@@ -48,6 +48,7 @@ import {
   Building2,
   FileText,
 } from 'lucide-react';
+import { RICH_TEXT_VARIANTS, RichTextEditor } from '@/components/ui/rich-text-editor';
 
 const Save = () => {
   const { module, setting } = useSelector((state) => state);
@@ -272,7 +273,20 @@ const Save = () => {
 
                 <div>
                   <Label htmlFor="description" className="text-sm font-semibold">Full Description</Label>
-                  <Textarea
+                  <RichTextEditor
+                    variant={RICH_TEXT_VARIANTS.SIMPLE}
+                    name="description"
+                    value={formData.description}
+                    onChange={(content) => {
+                      handleInputChange({
+                        target:{
+                          name:'description',
+                          value: content
+                        }
+                      })
+                    }}
+                  />
+                  {/* <Textarea
                     id="description"
                     name="description"
                     value={formData.description}
@@ -280,7 +294,7 @@ const Save = () => {
                     placeholder="Enter detailed description"
                     rows="5"
                     className="mt-1.5"
-                  />
+                  /> */}
                 </div>
               </CardContent>
             </Card>
