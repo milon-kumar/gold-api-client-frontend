@@ -103,10 +103,31 @@ export const DATA_SOURCES = {
     }),
   },
 
+  categories:  {
+    label: "Image Category",
+    url: `/admin/business-module-item-categories?module_slug=${MODULES.PHOTOS}`,
+    params:{
+      is_featured: true,
+      status: "active"
+    },
+    getItems: (response) => response?.data?.data || [],
+    display: {
+      titleKey: "name",
+      imageKey: "image_full_path",
+      subtitleKey: "type",
+    },
+    mapItem: (item) => ({
+      title: item.title || "",
+      sub_title: item?.sub_title || "",
+      sub_description: item?.sub_description,
+      description: item.description || "",
+      image: item.image_full_path || item.image || "",
+    }),
+  },
   /* ---------------- List CRUDs ---------------- */
   photo: {
     label: "Image",
-    url: `/admin/business-module-items?module_slug=${MODULES.PHOTOS}`, // ⚠️
+    url: `/admin/business-module-items?module_slug=${MODULES.PHOTOS}`,
     getItems: (response) => response?.data?.data || [],
     display: {
       titleKey: "title",

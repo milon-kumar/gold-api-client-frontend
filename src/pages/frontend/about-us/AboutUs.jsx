@@ -3,6 +3,8 @@ import { useApiQuery } from "@/hooks/useAppQuery";
 import { MODULES } from "@/store/default/modules";
 import { Mail, Phone, BookOpen, Quote } from "lucide-react";
 import { cn } from "@/lib/utils";
+import PageHeroRenderer from "@/components/renderers/PageHeroRenderer";
+import { useLocation } from "react-router";
 
 /* =====================================================================
    Helpers
@@ -220,6 +222,9 @@ const StaffCard = ({ staff }) => (
    Main
 ===================================================================== */
 const AboutUs = () => {
+  const { pathname } = useLocation()
+  const slug = pathname.split("/").filter(Boolean).pop();
+
   const {
     data: foundingPresidentQuery,
     isLoading: foundingPresidentModuleLoading,
@@ -237,34 +242,34 @@ const AboutUs = () => {
     params: { limit: 6 },
   });
 
+  const { data: getPageResponse, isLoading, refetch } = useApiQuery({
+    url: `/page-by-slug/${slug}`,
+    enabled: !!slug,
+  });
+
+  const page = getPageResponse?.data
+  const meta = page?.meta ? JSON.parse(page.meta) : {};
+
   const staffItems = staffItemQuery?.data;
 
   if (foundingPresidentModuleLoading) return <AboutSkeleton />;
 
   return (
     <div className="bg-white">
-      {/* ============ PAGE HERO ============ */}
-      <section className="relative overflow-hidden border-b border-slate-100 bg-gradient-to-b from-slate-50 to-white py-16 md:py-20">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.4]"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 1px 1px, rgb(148 163 184 / 0.25) 1px, transparent 0)",
-            backgroundSize: "28px 28px",
-          }}
-        />
-        <div className="relative mx-auto max-w-7xl px-4 text-center">
-          <SectionBadge>আমাদের সম্পর্কে</SectionBadge>
-          <h1 className="mx-auto mt-4 max-w-2xl text-3xl font-extrabold tracking-tight text-slate-900 md:text-5xl">
-            {foundingPresidentContent?.title || "আমীরে জামা'আতের পরিচয়"}
-          </h1>
-          <p className="mx-auto mt-4 max-w-xl text-sm text-slate-500 md:text-base">
-            বাংলাদেশের খ্যাতনামা ইসলামী চিন্তাবিদ, শিক্ষাবিদ ও গবেষক — সংগঠনের
-            প্রতিষ্ঠাতা ও আমীরের জীবন পরিক্রমা
-          </p>
-        </div>
-      </section>
-
+      <PageHeroRenderer
+        variant={meta?.headerTemplate ?? "gradient"}
+        eyebrow={meta?.heroContent?.badge ?? "About Us"}
+        title={meta?.heroContent?.title ?? "About Us"}
+        highlight={meta?.heroContent?.heightlight ?? "Learn More About Our Organization"}
+        description={
+          meta?.heroContent?.description ??
+          "Discover our mission, vision, values, and the journey that drives us to serve our community with excellence."
+        }
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: slug ?? "About Us" },
+        ]}
+      />
       {/* ============ PRESIDENT PROFILE ============ */}
       <section className="py-16 md:py-20">
         <div className="mx-auto max-w-7xl px-4">

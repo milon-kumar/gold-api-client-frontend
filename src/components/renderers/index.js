@@ -1,7 +1,7 @@
 import HeroRenderer from "./HeroRenderer";
 import SplitCardRenderer from "./SplitCardRenderer";
 import ListSectionRenderer from "./ListSectionRenderer";
-
+import ImageGallery from "./ImageGallery"
 /**
  * RENDERER REGISTRY
  * componentRegistry.js-এর `renderer` key → React Component
@@ -15,6 +15,7 @@ export const RENDERERS = {
   hero: HeroRenderer,
   information: SplitCardRenderer,
   list: ListSectionRenderer,
+  imageGallery: ImageGallery,
 };
 
 export const getRenderer = (rendererKey) => RENDERERS[rendererKey] || null;

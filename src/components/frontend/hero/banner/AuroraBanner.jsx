@@ -13,9 +13,10 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router";
+import * as LucideIcons from "lucide-react";
 
 /* ============================================================
-   Aurora Home Hero — Static Content Version
+   Aurora Home Hero — Dynamic Content Version
    দুই কলাম layout: বামে content, ডানে floating glass cards
    ============================================================ */
 
@@ -35,20 +36,73 @@ const float = (delay = 0, duration = 5) => ({
   },
 });
 
-const stats = [
-  { value: "৭৫+", label: "বছরের পথচলা" },
-  { value: "৬৪", label: "জেলায় কার্যক্রম" },
-  { value: "১০০০+", label: "শাখা ও উপশাখা" },
-];
+// Icon Renderer - dynamically gets icon from LucideIcons
+const IconRenderer = ({ iconName, size, color, className }) => {
+  if (!iconName) return null;
+  
+  // Get icon from LucideIcons by name
+  const IconComponent = LucideIcons[iconName];
+  
+  if (!IconComponent) {
+    // Fallback to Star icon if icon not found
+    const FallbackIcon = LucideIcons.Star;
+    return <FallbackIcon size={size} color={color} className={className} />;
+  }
+  
+  return <IconComponent size={size} color={color} className={className} />;
+};
 
-const activities = [
-  { icon: BookOpen, label: "দাওয়াত ও তাবলীগ" },
-  { icon: GraduationCap, label: "শিক্ষা ও প্রশিক্ষণ" },
-  { icon: HeartHandshake, label: "মানবিক সেবা" },
-  { icon: Users, label: "যুব ও সমাজ উন্নয়ন" },
-];
+export default function AuroraHero({ content = {}, settings = {}, styles = {} }) {
+  console.log("🚀 ~ AuroraHero ~ content:", { content, settings, styles });
 
-export default function AuroraHero() {
+  // Destructure content with fallbacks
+  const {
+    slogan = "Welcome",
+    title = "Build Your Future",
+    subtitle = "Simple, modern, and powerful solutions.",
+    primaryButtonTitle = "Get Started",
+    primaryButtonLink = "/about",
+    secondaryButtonTitle = "Learn More",
+    secondaryButtonLink = "/contact",
+    stats: bottomStats = [],
+    rightSecOneIcon = "MapPin",
+    rightSecOneTitle = "Regular publications",
+    rightSecOneSubTitle = "Monthly magazines and Islamic literature",
+    rightSecTwoIcon = "Calendar",
+    rightSecTwoHeaderTitle = "Upcoming events",
+    rightSecTwoHeaderBadge = "Registration is ongoing.",
+    rightSecTowTitle = "Annual Tablighi Ijtema 2027",
+    rightSecTowItems = [],
+    rightSecTowFooterIcon = "Check",
+    rightSecTowFooterTitle = "A gathering of millions of people from home and abroad",
+    rightSecThreeIcon = "Check",
+    rightSecThreeTitle = "Big family",
+    rightSecThreeSubTitle = "Millions of members and well-wishers",
+    rightSecThreeDescription = "Connected from all over the country",
+  } = content;
+
+  // Destructure settings
+  const {
+    showCardOne = true,
+    showCardTow = true,
+    showCardThree = true,
+  } = settings;
+
+  // Format stats from content or use default
+  const stats =
+    bottomStats?.length > 0 
+      ? bottomStats.map((stat) => ({
+          value: stat.count || "1",
+          label: stat.title || "Default",
+        }))
+      : [];
+
+  const tickerItems =
+    content?.bottomTickerItems
+      ?.split(",")
+      .map((item) => item.trim())
+      .filter(Boolean) || [];
+
   return (
     <section className="relative flex min-h-[90vh] items-center overflow-hidden bg-[#060b18]">
       {/* ---------- background layers ---------- */}
@@ -64,7 +118,7 @@ export default function AuroraHero() {
       />
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-400/50 to-transparent" />
 
-      <div className="relative mx-auto w-full max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+      <div className="relative mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="grid items-center gap-14 lg:grid-cols-[1.15fr_1fr] lg:gap-10">
           {/* ================= LEFT: content ================= */}
           <div>
@@ -79,7 +133,7 @@ export default function AuroraHero() {
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
               </span>
               <span className="font-bengali text-sm font-medium text-emerald-300">
-                কুরআন ও ছহীহ হাদীছের পথে
+                {slogan}
               </span>
             </motion.div>
 
@@ -89,10 +143,7 @@ export default function AuroraHero() {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="font-bengali text-4xl font-bold leading-[1.2] tracking-tight text-white sm:text-5xl xl:text-6xl"
             >
-              তাওহীদের আলোয় গড়ি{" "}
-              <span className="bg-gradient-to-r from-emerald-300 via-cyan-300 to-violet-300 bg-clip-text text-transparent">
-                আদর্শ সমাজ
-              </span>
+              {title}
             </motion.h1>
 
             {/* subtitle */}
@@ -101,9 +152,7 @@ export default function AuroraHero() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="font-bengali mt-6 max-w-xl text-base leading-relaxed text-slate-400 sm:text-lg"
             >
-              আহলেহাদীছ আন্দোলন বাংলাদেশ — পবিত্র কুরআন ও ছহীহ হাদীছের আলোকে
-              ব্যক্তি, পরিবার ও সমাজ গঠনের লক্ষ্যে দাওয়াত, শিক্ষা ও মানবিক
-              সেবায় নিবেদিত একটি সংস্কারধর্মী আন্দোলন।
+              {subtitle}
             </motion.p>
 
             {/* buttons */}
@@ -117,8 +166,8 @@ export default function AuroraHero() {
                 size="lg"
                 className="font-bengali group rounded-full bg-white px-8 py-6 text-base font-bold text-slate-900 shadow-lg shadow-emerald-500/20 transition-all hover:bg-emerald-50 hover:shadow-xl hover:shadow-emerald-400/25"
               >
-                <Link to="/about">
-                  আমাদের সম্পর্কে জানুন
+                <Link to={primaryButtonLink}>
+                  {primaryButtonTitle}
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Link>
               </Button>
@@ -128,27 +177,29 @@ export default function AuroraHero() {
                 variant="outline"
                 className="font-bengali rounded-full border-white/20 bg-transparent px-8 py-6 text-base font-semibold text-white backdrop-blur-sm hover:border-emerald-400/40 hover:bg-emerald-400/10 hover:text-emerald-300"
               >
-                <Link to="/contact">যোগাযোগ করুন</Link>
+                <Link to={secondaryButtonLink}>{secondaryButtonTitle}</Link>
               </Button>
             </motion.div>
 
             {/* stats */}
-            <motion.div
-              {...fadeUp}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="mt-12 flex flex-wrap gap-x-10 gap-y-6 border-t border-white/10 pt-8"
-            >
-              {stats.map((item, i) => (
-                <div key={i}>
-                  <p className="font-bengali bg-gradient-to-r from-emerald-300 to-cyan-300 bg-clip-text text-3xl font-bold text-transparent">
-                    {item.value}
-                  </p>
-                  <p className="font-bengali mt-1 text-sm text-slate-400">
-                    {item.label}
-                  </p>
-                </div>
-              ))}
-            </motion.div>
+            {stats?.length > 0 && (
+              <motion.div
+                {...fadeUp}
+                transition={{ duration: 0.5, delay: 0.4 }}
+                className="mt-12 flex flex-wrap gap-x-10 gap-y-6 border-t border-white/10 pt-8"
+              >
+                {stats.map((item, i) => (
+                  <div key={i}>
+                    <p className="font-bengali bg-gradient-to-r from-emerald-300 to-cyan-300 bg-clip-text text-3xl font-bold text-transparent">
+                      {item.value}
+                    </p>
+                    <p className="font-bengali mt-1 text-sm text-slate-400">
+                      {item.label}
+                    </p>
+                  </div>
+                ))}
+              </motion.div>
+            )}
           </div>
 
           {/* ================= RIGHT: floating cards ================= */}
@@ -157,111 +208,164 @@ export default function AuroraHero() {
             <div className="absolute left-1/2 top-1/2 h-[26rem] w-[26rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-emerald-400/20 [animation:spin_40s_linear_infinite]" />
             <div className="absolute left-1/2 top-1/2 h-[19rem] w-[19rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/5" />
 
-            {/* main quote card */}
-            <motion.div
-              {...fadeUp}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="absolute left-1/2 top-1/2 w-80 -translate-x-1/2 -translate-y-1/2"
-            >
+            {/* Card Two - Main Event Card (Middle) */}
+            {showCardTow && (
               <motion.div
-                {...float(0, 6)}
-                className="rounded-3xl border border-white/10 bg-white/[0.06] p-7 shadow-2xl shadow-emerald-950/60 backdrop-blur-xl"
+                {...fadeUp}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="absolute left-1/2 top-1/2 w-80 -translate-x-1/2 -translate-y-1/2"
               >
-                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400/30 to-cyan-400/20">
-                  <BookOpen className="h-5 w-5 text-emerald-300" />
-                </div>
-                <p className="font-bengali text-lg font-semibold leading-relaxed text-white">
-                  &ldquo;তোমরা আল্লাহর রজ্জুকে দৃঢ়ভাবে ধারণ কর এবং বিভক্ত হয়ো
-                  না।&rdquo;
-                </p>
-                <p className="font-bengali mt-3 text-sm text-emerald-300/80">
-                  — সূরা আলে ইমরান : ১০৩
-                </p>
+                <motion.div
+                  {...float(0, 6)}
+                  className="rounded-3xl border border-white/10 bg-white/[0.06] p-7 shadow-2xl shadow-emerald-950/60 backdrop-blur-xl"
+                >
+                  <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400/30 to-cyan-400/20">
+                    <IconRenderer 
+                      iconName={rightSecTwoIcon} 
+                      size={20} 
+                      color="#6EE7B7" 
+                    />
+                  </div>
+                  <p className="font-bengali text-lg font-semibold leading-relaxed text-white">
+                    {rightSecTowTitle}
+                  </p>
+                  
+                  {/* Items list */}
+                  {rightSecTowItems?.length > 0 && (
+                    <div className="font-bengali mt-3 space-y-2 text-sm text-slate-400">
+                      {rightSecTowItems.map((item, idx) => (
+                        <p key={idx} className="flex items-center gap-2">
+                          <IconRenderer 
+                            iconName={item.icon || "CircleCheck"} 
+                            size={14} 
+                            color="#6EE7B7" 
+                          />
+                          {item.title}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <div className="mt-5 h-px bg-linear-to-r from-emerald-500/40 via-white/10 to-transparent" />
+                  <p className="font-bengali mt-4 flex items-center gap-2 text-xs text-slate-500">
+                    <IconRenderer 
+                      iconName={rightSecTowFooterIcon} 
+                      size={14} 
+                      color="#FCD34D" 
+                    />
+                    {rightSecTowFooterTitle}
+                  </p>
+                </motion.div>
               </motion.div>
-            </motion.div>
+            )}
 
-            {/* top-right mini card */}
-            <motion.div
-              {...fadeUp}
-              transition={{ duration: 0.6, delay: 0.5 }}
-              className="absolute -right-2 top-6 w-52"
-            >
+            {/* Card One - Top Right Mini Card */}
+            {showCardOne && (
               <motion.div
-                {...float(0.8, 5)}
-                className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] p-4 shadow-xl backdrop-blur-xl"
+                {...fadeUp}
+                transition={{ duration: 0.6, delay: 0.5 }}
+                className="absolute -right-2 top-6 w-52"
               >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-400/20">
-                  <MapPin className="h-5 w-5 text-cyan-300" />
-                </div>
-                <div>
-                  <p className="font-bengali text-sm font-bold text-white">
-                    সারাদেশে বিস্তৃত
-                  </p>
-                  <p className="font-bengali text-xs text-slate-400">
-                    ৬৪ জেলায় সাংগঠনিক কার্যক্রম
-                  </p>
-                </div>
+                <motion.div
+                  {...float(0.8, 5)}
+                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] p-4 shadow-xl backdrop-blur-xl"
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-400/20">
+                    <IconRenderer 
+                      iconName={rightSecOneIcon} 
+                      size={20} 
+                      color="#67E8F9" 
+                    />
+                  </div>
+                  <div>
+                    <p className="font-bengali text-sm font-bold text-white">
+                      {rightSecOneTitle}
+                    </p>
+                    <p className="font-bengali text-xs text-slate-400">
+                      {rightSecOneSubTitle}
+                    </p>
+                  </div>
+                </motion.div>
               </motion.div>
-            </motion.div>
+            )}
 
-            {/* bottom-left mini card */}
-            <motion.div
-              {...fadeUp}
-              transition={{ duration: 0.6, delay: 0.65 }}
-              className="absolute -left-4 bottom-10 w-56"
-            >
+            {/* Card Three - Bottom Left Mini Card */}
+            {showCardThree && (
               <motion.div
-                {...float(1.6, 5.5)}
-                className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] p-4 shadow-xl backdrop-blur-xl"
+                {...fadeUp}
+                transition={{ duration: 0.6, delay: 0.65 }}
+                className="absolute -left-4 bottom-10 w-56"
               >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-400/20">
-                  <Sparkles className="h-5 w-5 text-violet-300" />
-                </div>
-                <div>
-                  <p className="font-bengali text-sm font-bold text-white">
-                    দাওয়াহ · তারবিয়াহ · খিদমাহ
-                  </p>
-                  <p className="font-bengali text-xs text-slate-400">
-                    তিন মূলনীতিতে পরিচালিত
-                  </p>
-                </div>
+                <motion.div
+                  {...float(1.6, 5.5)}
+                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] p-4 shadow-xl backdrop-blur-xl"
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-400/20">
+                    <IconRenderer 
+                      iconName={rightSecThreeIcon} 
+                      size={20} 
+                      color="#C4B5FD" 
+                    />
+                  </div>
+                  <div>
+                    <p className="font-bengali text-sm font-bold text-white">
+                      {rightSecThreeTitle}
+                    </p>
+                    <p className="font-bengali text-xs text-slate-400">
+                      {rightSecThreeSubTitle}
+                    </p>
+                    <p className="font-bengali text-xs text-slate-500 mt-1">
+                      {rightSecThreeDescription}
+                    </p>
+                  </div>
+                </motion.div>
               </motion.div>
-            </motion.div>
+            )}
 
             {/* small glowing orb accents */}
             <div className="absolute right-16 bottom-2 h-3 w-3 rounded-full bg-emerald-400/80 blur-[1px]" />
             <div className="absolute left-10 top-14 h-2 w-2 rounded-full bg-cyan-300/80 blur-[1px]" />
           </div>
         </div>
-
-        {/* ---------- bottom activity strip ---------- */}
-        <motion.div
-          {...fadeUp}
-          transition={{ duration: 0.5, delay: 0.6 }}
-          className="mt-16 grid grid-cols-2 gap-3 border-t border-white/10 pt-8 sm:grid-cols-4 lg:mt-20"
-        >
-          {activities.map((act, i) => (
-            <div
-              key={i}
-              className="group flex items-center gap-3 rounded-2xl border border-white/5 bg-white/[0.03] px-4 py-3.5 transition-all hover:border-emerald-400/30 hover:bg-emerald-400/5"
-            >
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/5 transition-colors group-hover:bg-emerald-400/15">
-                <act.icon className="h-4.5 w-4.5 text-emerald-300" />
-              </div>
-              <span className="font-bengali text-sm font-medium text-slate-300 transition-colors group-hover:text-white">
-                {act.label}
-              </span>
-            </div>
-          ))}
-        </motion.div>
       </div>
+
+      {/* bottom marquee ticker */}
+      {tickerItems?.length > 0 && (
+        <div className="absolute inset-x-0 bottom-0 border-t border-white/10 bg-slate-950/60 py-3.5 backdrop-blur-sm">
+          <style>
+            {`
+              @keyframes hero-marquee {
+                from { transform: translateX(0); }
+                to { transform: translateX(-50%); }
+              }
+              .hover\\:paused:hover {
+                animation-play-state: paused !important;
+              }
+            `}
+          </style>
+          <div className="flex w-max animate-[hero-marquee_28s_linear_infinite] hover:paused">
+            {[0, 1].map((dup) => (
+              <div key={dup} className="flex shrink-0 items-center">
+                {tickerItems.map((item, i) => (
+                  <React.Fragment key={`${dup}-${i}`}>
+                    <span className="font-bengali whitespace-nowrap px-6 text-sm font-medium text-slate-400">
+                      {item}
+                    </span>
+                    <span className="h-1.5 w-1.5 shrink-0 rotate-45 bg-linear-to-br from-emerald-400 to-amber-300" />
+                  </React.Fragment>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* scroll hint */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.2 }}
-        className="absolute bottom-5 left-1/2 -translate-x-1/2"
+        className="absolute bottom-16 left-1/2 -translate-x-1/2"
       >
         <ChevronDown className="h-5 w-5 animate-bounce text-slate-500" />
       </motion.div>

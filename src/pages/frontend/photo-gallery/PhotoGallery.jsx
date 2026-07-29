@@ -6,8 +6,13 @@ import SectionHeader from "@/components/partials/frontend/SectionHeader";
 import { asset } from "@/lib/helper";
 import { MODULES } from "@/store/default/modules";
 import PageHeroRenderer from "@/components/renderers/PageHeroRenderer";
+import { useLocation } from "react-router";
 
 export default function PhotoGallery() {
+  const { pathname } = useLocation()
+  const slug = pathname.split("/").filter(Boolean).pop();
+
+
   const getDynamicSpan = (index) => {
     if (index === 0) {
       return "col-span-2 row-span-2";
@@ -37,18 +42,29 @@ export default function PhotoGallery() {
     },
   });
 
-  const images = imageItemQuery?.data;
+  const { data: getPageResponse, isLoading, refetch } = useApiQuery({
+    url: `/page-by-slug/${slug}`,
+    enabled: !!slug,
+  });
 
+  const images = imageItemQuery?.data;
+  const page = getPageResponse?.data
+  const meta = page?.meta ? JSON.parse(page.meta) : {};
   return (
     <section id="gallery">
       <PageHeroRenderer
-        variant="aurora"
-        eyebrow="Photo Gallery"
-        title="Explore Our"
-        highlight="Image Gallery"
-        titleAfter=""
-        description="Browse a collection of memorable moments, events, achievements, and activities captured through our photos. Discover the stories that reflect our journey and community."
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Photo Gallery" }]}
+        variant={meta?.headerTemplate ?? "gradient"}
+        eyebrow={meta?.heroContent?.badge ?? "Photo Gallery"}
+        title={meta?.heroContent?.title ?? "Explore Our"}
+        highlight={meta?.heroContent?.heightlight ?? "Photo Collection"}
+        description={
+          meta?.heroContent?.description ??
+          "Browse our collection of photos capturing memorable moments, community events, educational activities, and the work we do to make a positive impact."
+        }
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Photo Gallery" },
+        ]}
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 my-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 auto-rows-[180px] sm:auto-rows-[220px]">

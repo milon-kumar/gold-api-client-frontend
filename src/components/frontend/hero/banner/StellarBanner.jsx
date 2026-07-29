@@ -1,63 +1,25 @@
 import React from "react";
 import { motion } from "framer-motion";
-import {
-  ArrowRight,
-  Play,
-  Star,
-  Sparkles,
-  Shield,
-  Zap,
-  Rocket,
-  Globe,
-  Users,
-  Award,
-  TrendingUp,
-  Clock,
-  Coffee,
-  Briefcase,
-  Code,
-  Heart,
-  BookOpen,
-  Mic,
-} from "lucide-react";
+import * as LucideIcons from "lucide-react";
 
-// Icon mapping for dynamic icons
-const iconMap = {
-  Users: Users,
-  Award: Award,
-  Globe: Globe,
-  TrendingUp: TrendingUp,
-  Star: Star,
-  Rocket: Rocket,
-  Clock: Clock,
-  Coffee: Coffee,
-  Briefcase: Briefcase,
-  Code: Code,
-  Sparkles: Sparkles,
-  Shield: Shield,
-  Zap: Zap,
-  Heart: Heart,
-  BookOpen: BookOpen,
-  Mic: Mic,
-};
+// All other imports removed - we'll use LucideIcons directly
 
-// Floating Star Particles
-const StarParticle = ({ delay, duration, x, y, size, color, rotation }) => (
+const FloatingParticle = ({ delay, duration, x, y, size, color }) => (
   <motion.div
-    className="absolute"
+    className="absolute rounded-full"
     style={{
-      left: x,
-      top: y,
       width: size,
       height: size,
-      color: color,
+      backgroundColor: color,
+      left: x,
+      top: y,
+      filter: "blur(8px)",
     }}
-    initial={{ opacity: 0, rotate: 0 }}
+    initial={{ opacity: 0, scale: 0 }}
     animate={{
-      opacity: [0, 1, 0],
-      scale: [0, 1.5, 0],
-      rotate: [0, rotation || 360],
-      y: [0, -80, -160],
+      opacity: [0, 0.6, 0],
+      scale: [0, 1, 0],
+      y: [0, -100, -200],
     }}
     transition={{
       duration: duration,
@@ -65,10 +27,67 @@ const StarParticle = ({ delay, duration, x, y, size, color, rotation }) => (
       repeat: Infinity,
       ease: "easeOut",
     }}
+  />
+);
+
+const Shape = ({ children, className, delay = 0 }) => (
+  <motion.div
+    className={`absolute ${className}`}
+    initial={{ opacity: 0, scale: 0.8 }}
+    animate={{ opacity: 1, scale: 1 }}
+    transition={{ delay, duration: 0.8 }}
   >
-    <Star size={size} fill="currentColor" stroke="none" />
+    {children}
   </motion.div>
 );
+
+// Icon Renderer - dynamically gets icon from LucideIcons
+const IconRenderer = ({ iconName, size, color, className }) => {
+  if (!iconName) return null;
+  
+  // Get icon from LucideIcons by name
+  const IconComponent = LucideIcons[iconName];
+  
+  if (!IconComponent) {
+    // Fallback to Star icon if icon not found
+    const FallbackIcon = LucideIcons.Star;
+    return <FallbackIcon size={size} color={color} className={className} />;
+  }
+  
+  return <IconComponent size={size} color={color} className={className} />;
+};
+
+// Star Particle Component
+const StarParticle = ({ delay, duration, x, y, size, color, rotation }) => {
+  const StarIcon = LucideIcons.Star;
+  return (
+    <motion.div
+      className="absolute"
+      style={{
+        left: x,
+        top: y,
+        width: size,
+        height: size,
+        color: color,
+      }}
+      initial={{ opacity: 0, rotate: 0 }}
+      animate={{
+        opacity: [0, 1, 0],
+        scale: [0, 1.5, 0],
+        rotate: [0, rotation || 360],
+        y: [0, -80, -160],
+      }}
+      transition={{
+        duration: duration,
+        delay: delay,
+        repeat: Infinity,
+        ease: "easeOut",
+      }}
+    >
+      <StarIcon size={size} fill="currentColor" stroke="none" />
+    </motion.div>
+  );
+};
 
 // Floating Orb
 const Orb = ({ color, size, x, y, delay, duration }) => (
@@ -97,59 +116,61 @@ const Orb = ({ color, size, x, y, delay, duration }) => (
 );
 
 // Constellation lines
-const Constellation = () => (
-  <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-10">
-    <motion.line
-      x1="10%"
-      y1="20%"
-      x2="30%"
-      y2="40%"
-      stroke="white"
-      strokeWidth="1"
-      initial={{ pathLength: 0 }}
-      animate={{ pathLength: 1 }}
-      transition={{ duration: 2, delay: 0.5 }}
-    />
-    <motion.line
-      x1="30%"
-      y1="40%"
-      x2="50%"
-      y2="25%"
-      stroke="white"
-      strokeWidth="1"
-      initial={{ pathLength: 0 }}
-      animate={{ pathLength: 1 }}
-      transition={{ duration: 2, delay: 1 }}
-    />
-    <motion.line
-      x1="50%"
-      y1="25%"
-      x2="70%"
-      y2="45%"
-      stroke="white"
-      strokeWidth="1"
-      initial={{ pathLength: 0 }}
-      animate={{ pathLength: 1 }}
-      transition={{ duration: 2, delay: 1.5 }}
-    />
-    <motion.line
-      x1="70%"
-      y1="45%"
-      x2="90%"
-      y2="30%"
-      stroke="white"
-      strokeWidth="1"
-      initial={{ pathLength: 0 }}
-      animate={{ pathLength: 1 }}
-      transition={{ duration: 2, delay: 2 }}
-    />
-    <motion.circle cx="10%" cy="20%" r="3" fill="white" />
-    <motion.circle cx="30%" cy="40%" r="3" fill="white" />
-    <motion.circle cx="50%" cy="25%" r="3" fill="white" />
-    <motion.circle cx="70%" cy="45%" r="3" fill="white" />
-    <motion.circle cx="90%" cy="30%" r="3" fill="white" />
-  </svg>
-);
+const Constellation = () => {
+  return (
+    <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-10">
+      <motion.line
+        x1="10%"
+        y1="20%"
+        x2="30%"
+        y2="40%"
+        stroke="white"
+        strokeWidth="1"
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 2, delay: 0.5 }}
+      />
+      <motion.line
+        x1="30%"
+        y1="40%"
+        x2="50%"
+        y2="25%"
+        stroke="white"
+        strokeWidth="1"
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 2, delay: 1 }}
+      />
+      <motion.line
+        x1="50%"
+        y1="25%"
+        x2="70%"
+        y2="45%"
+        stroke="white"
+        strokeWidth="1"
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 2, delay: 1.5 }}
+      />
+      <motion.line
+        x1="70%"
+        y1="45%"
+        x2="90%"
+        y2="30%"
+        stroke="white"
+        strokeWidth="1"
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 2, delay: 2 }}
+      />
+      <motion.circle cx="10%" cy="20%" r="3" fill="white" />
+      <motion.circle cx="30%" cy="40%" r="3" fill="white" />
+      <motion.circle cx="50%" cy="25%" r="3" fill="white" />
+      <motion.circle cx="70%" cy="45%" r="3" fill="white" />
+      <motion.circle cx="90%" cy="30%" r="3" fill="white" />
+    </svg>
+  );
+};
 
 // Glowing ring
 const GlowingRing = ({ delay = 0 }) => (
@@ -176,17 +197,12 @@ const GlowingRing = ({ delay = 0 }) => (
   />
 );
 
-const IconRenderer = ({ icon: Icon, size, color, className }) => {
-  if (!Icon) return null;
-  const IconComponent = typeof Icon === 'string' ? iconMap[Icon] || Star : Icon;
-  return <IconComponent size={size} color={color} className={className} />;
-};
-
 export default function StellarBanner({ 
   content = {},
-  className = "",
+  settings = {},
+  styles = {}
 }) {
-    console.log("content - ",content)
+  console.log("content - ", content);
 
   const {
     slogan = "Welcome",
@@ -196,7 +212,7 @@ export default function StellarBanner({
     primaryButtonLink = "/about",
     secondaryButtonTitle = "Learn More",
     secondaryButtonLink = "/contact",
-    items = [],
+    stats = [],
     theme = "cosmic",
   } = content;
 
@@ -236,19 +252,12 @@ export default function StellarBanner({
 
   const currentTheme = themes[theme] || themes.cosmic;
 
-  // Stats data from items or default
-  const defaultItems = [
-    { _id: 1, count: 50000, title: "Users", icon: "Users" },
-    { _id: 2, count: 1200, title: "Programs", icon: "BookOpen" },
-    { _id: 3, count: 300, title: "Projects", icon: "Heart" },
-    { _id: 4, count: 800, title: "Speeches", icon: "Mic" },
-  ];
-
-  const statsData = (items?.length > 0 ? items : defaultItems).map((item, index) => ({
+  // Stats data with icon names
+  const statsData = (stats?.length > 0 ? stats : []).map((item, index) => ({
     id: item._id || index,
-    total: item.count || 0,
+    total: parseInt(item.count) || 0,
     title: item.title || "Stat",
-    icon: iconMap[item.icon] || Star,
+    iconName: item.icon || item.Icon || "Star", // Just the icon name as string
     color: [
       "from-blue-500 to-cyan-500",
       "from-purple-500 to-pink-500",
@@ -263,8 +272,14 @@ export default function StellarBanner({
     ][index % 4],
   }));
 
+  // Get Lucide icon components for buttons
+  const SparklesIcon = LucideIcons.Sparkles;
+  const ArrowRightIcon = LucideIcons.ArrowRight;
+  const PlayIcon = LucideIcons.Play;
+  const ShieldIcon = LucideIcons.Shield;
+
   return (
-    <section className={`relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br ${currentTheme.bg} ${className}`}>
+    <section className={`relative min-h-screen flex items-center overflow-hidden bg-linear-to-br ${currentTheme.bg}`}>
       {/* Background Effects */}
       <div className="absolute inset-0">
         {/* Primary Orbs */}
@@ -342,7 +357,7 @@ export default function StellarBanner({
                 transition={{ delay: 0.2 }}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 mb-6"
               >
-                <Sparkles className="w-4 h-4 text-cyan-400" />
+                <SparklesIcon className="w-4 h-4 text-cyan-400" />
                 <span className="text-cyan-400 text-sm font-medium tracking-wider">
                   {slogan}
                 </span>
@@ -365,7 +380,7 @@ export default function StellarBanner({
                 {firstWord}
               </span>
               <br />
-              <span className={`bg-gradient-to-r ${currentTheme.accent} bg-clip-text text-transparent`}>
+              <span className={`bg-linear-to-r ${currentTheme.accent} bg-clip-text text-transparent`}>
                 {secondPart}
               </span>
               <br />
@@ -399,15 +414,15 @@ export default function StellarBanner({
                 {primaryButtonTitle && primaryButtonLink && (
                   <motion.a
                     href={primaryButtonLink}
-                    className="group relative inline-flex items-center px-8 py-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white font-medium shadow-xl shadow-purple-500/30 transition-all duration-300 overflow-hidden"
+                    className="group relative inline-flex items-center px-8 py-3 rounded-full bg-linear-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white font-medium shadow-xl shadow-purple-500/30 transition-all duration-300 overflow-hidden"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
                     <span className="relative z-10 flex items-center">
                       {primaryButtonTitle}
-                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      <ArrowRightIcon className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                     </span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                    <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                   </motion.a>
                 )}
                 {secondaryButtonTitle && secondaryButtonLink && (
@@ -417,7 +432,7 @@ export default function StellarBanner({
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <Play className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                    <PlayIcon className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
                     {secondaryButtonTitle}
                   </motion.a>
                 )}
@@ -443,7 +458,7 @@ export default function StellarBanner({
                 >
                   {/* Glow Effect */}
                   <div
-                    className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
+                    className={`absolute inset-0 bg-linear-to-br ${stat.gradient} rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
                   />
                   
                   {/* Card */}
@@ -454,11 +469,15 @@ export default function StellarBanner({
                     whileHover={{ scale: 1.03 }}
                     transition={{ type: "spring", stiffness: 300 }}
                   >
-                    {/* Icon */}
+                    {/* Icon - Pass only the name */}
                     <div
-                      className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-purple-500/20`}
+                      className={`w-14 h-14 rounded-2xl bg-linear-to-br ${stat.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-purple-500/20`}
                     >
-                      <IconRenderer icon={stat.icon} size={24} color="white" />
+                      <IconRenderer 
+                        iconName={stat.iconName} 
+                        size={24} 
+                        color="white" 
+                      />
                     </div>
                     
                     {/* Count */}
@@ -477,7 +496,7 @@ export default function StellarBanner({
                     </p>
                     
                     {/* Hover Line */}
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-purple-500/50 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-linear-to-r from-transparent via-purple-500/50 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
                   </motion.div>
                 </motion.div>
               ))}
@@ -497,7 +516,7 @@ export default function StellarBanner({
               }}
             >
               <div className="flex items-center gap-3">
-                <Shield className="w-5 h-5 text-cyan-400" />
+                <ShieldIcon className="w-5 h-5 text-cyan-400" />
                 <span className="text-sm font-medium text-white/80">Secure & Trusted</span>
                 <motion.div
                   className="w-2 h-2 rounded-full bg-emerald-400"
@@ -524,7 +543,7 @@ export default function StellarBanner({
       >
         <div className="w-6 h-10 rounded-full border border-white/20 flex justify-center">
           <motion.div
-            className="w-1 h-2 bg-gradient-to-t from-cyan-400 to-purple-400 rounded-full mt-2"
+            className="w-1 h-2 bg-linear-to-t from-cyan-400 to-purple-400 rounded-full mt-2"
             animate={{
               y: [0, 4, 0],
             }}

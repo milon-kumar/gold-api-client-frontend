@@ -11,7 +11,11 @@ import {
   Shield,
   Zap,
   HandIcon,
-  Combine
+  Combine,
+  Target,
+  Award,
+  Globe,
+  TrendingUp
 } from "lucide-react";
 
 const FloatingParticle = ({ delay, duration, x, y, size, color }) => (
@@ -58,28 +62,31 @@ const IconRenderer = ({ icon: Icon, size, color }) => {
 
 // Map string icon names to actual components
 const iconMap = {
-  Users: HandIcon,
-  Award: BookOpen, // Using BookOpen as fallback for Award
-  Globe: Heart, // Using Heart as fallback for Globe
-  TrendingUp: Mic, // Using Mic as fallback for TrendingUp
+  Users: Users,
+  Award: Award,
+  Globe: Globe,
+  TrendingUp: TrendingUp,
   BookOpen: BookOpen,
   Heart: Heart,
   Mic: Mic,
   Shield: Shield,
   Zap: Zap,
   Sparkles: Sparkles,
+  Target: Target,
+  HandIcon: HandIcon,
+  Combine: Combine,
 };
 
-export default function DynamicBanner({ content = {} }) {
+export default function DynamicBanner({ content = {}, settings = {}, styles = {} }) {  
   const {
     slogan = "Welcome",
     title = "Build Your Future",
     subtitle = "Simple, modern, and powerful solutions.",
-    primayButtonTitle = "Get Started",
-    primayButtonLink = "/about",
-    seconderyButtonTitle = "Learn More",
-    seconderyButtonLink = "/contact",
-    items = [],
+    primaryButtonTitle = "Get Started",
+    primaryButtonLink = "/about",
+    secondaryButtonTitle = "Learn More",
+    secondaryButtonLink = "/contact",
+    stats = [],
   } = content;
 
   // Process title for animated display
@@ -90,10 +97,10 @@ export default function DynamicBanner({ content = {} }) {
 
   const colors = ["#3B82F6", "#06B6D4", "#8B5CF6", "#EC4899", "#F59E0B"];
 
-  // Transform items into stats data
-  const statsData = items?.map((item, index) => ({
+  // Transform stats data - using 'stats' instead of 'items'
+  const statsData = stats?.map((item, index) => ({
     id: item._id || index,
-    total: item.count || 0,
+    total: parseInt(item.count) || 0,
     title: item.title || "Stat",
     color: [
       "from-blue-500 to-cyan-500",
@@ -107,7 +114,7 @@ export default function DynamicBanner({ content = {} }) {
       "from-emerald-500/20 to-green-500/20",
       "from-orange-500/20 to-amber-500/20",
     ][index % 4],
-    icon: iconMap[item.icon] || Combine,
+    icon: iconMap[item.Icon] || Combine, // Using 'Icon' property from your data
   })) || [];
 
   return (
@@ -260,33 +267,33 @@ export default function DynamicBanner({ content = {} }) {
               />
             )}
 
-            {/* Buttons */}
-            {(primayButtonTitle || seconderyButtonTitle) && (
+            {/* Buttons - Fixed typo in variable names */}
+            {(primaryButtonTitle || secondaryButtonTitle) && (
               <motion.div
                 className="flex flex-wrap gap-4 mt-8"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
               >
-                {primayButtonTitle && primayButtonLink && (
+                {primaryButtonTitle && primaryButtonLink && (
                   <a
-                    href={primayButtonLink}
+                    href={primaryButtonLink}
                     className="group relative inline-flex items-center px-8 py-3 rounded-full bg-linear-to-r from-primary to-primary hover:from-primary/90 hover:to-primary/90 text-white font-medium transition-all duration-300 overflow-hidden"
                   >
                     <span className="relative z-10 flex items-center">
-                      {primayButtonTitle}
+                      {primaryButtonTitle}
                       <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                     </span>
                     <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                   </a>
                 )}
-                {seconderyButtonTitle && seconderyButtonLink && (
+                {secondaryButtonTitle && secondaryButtonLink && (
                   <a
-                    href={seconderyButtonLink}
+                    href={secondaryButtonLink}
                     className="group inline-flex items-center px-8 py-3 rounded-full border-2 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 font-medium"
                   >
                     <Play className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-                    {seconderyButtonTitle}
+                    {secondaryButtonTitle}
                   </a>
                 )}
               </motion.div>

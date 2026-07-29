@@ -225,6 +225,15 @@ const SocialColumn = ({ column }) => {
     </div>
   );
 };
+
+const CustomText = ({column}) =>{
+  return (
+    <div>
+      <ColumnHeading>{column?.title}</ColumnHeading>
+    <p className="font-bengali text-sm leading-relaxed text-slate-400">{column?.config?.text}</p>
+    </div>
+  )
+}
  
 /* ---------------- Column type registry ---------------- */
 const COLUMN_RENDERERS = {
@@ -232,6 +241,7 @@ const COLUMN_RENDERERS = {
   links: LinksColumn,
   contact: ContactColumn,
   social: SocialColumn,
+  custom_text: CustomText,
 };
  
 /* ---------------- Main Footer ---------------- */

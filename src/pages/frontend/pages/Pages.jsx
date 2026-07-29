@@ -14,6 +14,7 @@ import PageBreadCrumb from "@/components/partials/frontend/PageBreadCrumb";
 import { Loader2 } from "lucide-react";
 import { safeJsonParse } from "@/lib/helper";
 import FrontendSectionRenderer from "@/components/renderers/FrontendSectionRender";
+import PageHeroRenderer from "@/components/renderers/PageHeroRenderer";
 const Pages = () => {
   const { slug } = useParams();
 
@@ -32,7 +33,16 @@ const Pages = () => {
   const pageConfig = safeJsonParse(pageContent?.meta);
   const sections = safeJsonParse(pageConfig?.page_config) || [];
 
-  console.log("Page content - ", { pageContent, pageConfig, sections });
+  const { data: getPageResponse,
+    isLoading: getPageLoading,
+    refetch: getPageRefetch
+  } = useApiQuery({
+    url: `/page-by-slug/${slug}`,
+    enabled: !!slug,
+  });
+
+  const page = getPageResponse?.data
+  const meta = page?.meta ? JSON.parse(page.meta) : {};
 
   if (isLoading) {
     return (
@@ -52,12 +62,29 @@ const Pages = () => {
 
   if (pageContent?.page_type === "custom") {
     return (
-      <div className="max-w-7xl mx-auto">
-        <PageBreadCrumb pageContent={pageContent} />
+      <div>
+       <PageHeroRenderer
+        variant={meta?.headerTemplate ?? "gradient"}
+        eyebrow={meta?.heroContent?.badge ?? pageContent?.page_title}
+        title={meta?.heroContent?.title ?? "Get In"}
+        highlight={meta?.heroContent?.heightlight ?? "Touch"}
+        description={
+          meta?.heroContent?.description ??
+          "We're here to help. Reach out to us with your questions, feedback, or inquiries, and our team will get back to you as soon as possible."
+        }
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label:slug ?? pageContent?.page_title },
+        ]}
+      />
+        <div className="max-w-7xl mx-auto">
+        {/* <PageBreadCrumb pageContent={pageContent} /> */}
         <div className="max-w-7xl">
           <CustomContent pageContent={pageContent} />
         </div>
       </div>
+      </div>
+      
     );
   }
 };

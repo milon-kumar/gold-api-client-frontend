@@ -43,8 +43,9 @@ export default function AboutSection({
     const isImageRight = imagePosition === "right";
 
     return (
-        <section id="about" className={`py-10 sm:py-14 ${sectionBgColor ? sectionBgColor : `bg-gradient-to-b ${backgroundColor}`} ${className} `}>
+        <section id="about" className={`py-10 sm:py-14 ${sectionBgColor ? sectionBgColor : `bg-linear-to-b ${backgroundColor}`} ${className} `}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                
                 {showSectionHeader && (
                     <SectionHeader
                         badge={sectionHeader.badge}
@@ -61,7 +62,7 @@ export default function AboutSection({
                         viewport={{ once: true }}
                         className={isImageRight ? "lg:order-last" : "lg:order-first"}
                     >
-                        <div className="relative rounded-3xl overflow-hidden aspect-[4/3]">
+                        <div className="relative rounded-3xl overflow-hidden aspect-4/3">
                             <img
                                 src={image.src}
                                 alt={image.alt}
@@ -108,7 +109,7 @@ export default function AboutSection({
                             transition={{ delay: i * 0.1 }}
                             className="p-6 rounded-2xl bg-card border border-border/50 hover:shadow-lg transition-all text-center group"
                         >
-                            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${card.color} flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform shadow-lg`}>
+                            <div className={`w-12 h-12 rounded-xl bg-linear-to-br ${card.color} flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform shadow-lg`}>
                                 <card.icon className="w-6 h-6 text-white" />
                             </div>
                             <p className="text-2xl font-black text-foreground font-bengali">{card.value}</p>
