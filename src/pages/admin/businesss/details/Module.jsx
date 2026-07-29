@@ -77,7 +77,7 @@ const Modules = ({ business, user, businessModules }) => {
   const handleUpdateAssign = async () => {
     console.log("Selected Modules to Update:", selectedModules);
     const response = await assignModules({
-      business_id: business?.id,
+      module_business_id: business?.id,
       user_id: user?.id,
       business_modules_id: selectedModules,
     });
