@@ -76,8 +76,8 @@ const ModuleManageTab = () => {
 
   return (
     <div className="space-y-6">
-      <Card className="shadow-sm">
-        <CardHeader className="border-b bg-linear-to-r from-blue-50 to-indigo-50">
+      <Card className="shadow-sm p-0 m-0">
+        <CardHeader className="border-b bg-linear-to-r from-blue-50 to-indigo-50 py-2">
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2 text-xl">

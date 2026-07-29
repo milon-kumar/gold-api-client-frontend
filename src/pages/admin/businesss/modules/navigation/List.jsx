@@ -174,10 +174,12 @@ const PageListing = () => {
 
   // Navigation
   const onEdit = (page) => {
+    // console.log("Page",page)
     if(page?.page_type === 'custom_page'){
-      navigate(`/admin/navigations/custom-page/${page?.id}`);
+      console.log("navigate here - ",page)
+      return navigate(`/admin/navigations/custom-page/${page?.id}`);
     }
-    navigate(`/admin/navigations/save/${page?.id}`);
+    return navigate(`/admin/navigations/save/${page?.id}`);
   };
 
   const onView = (page) => {
