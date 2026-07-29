@@ -169,7 +169,7 @@ const PageListing = () => {
       limit: 15,
       page: 1,
     });
-    setShowAdvancedFilters(false);
+    setShowAdvancedFilters(false); 
   };
 
   // Navigation

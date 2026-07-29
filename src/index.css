@@ -189,11 +189,10 @@ body[data-scroll-locked] {
 
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
-  /* Chrome, Safari, Opera */
 }
 
 .slim-scrollbar {
-  scrollbar-width: thin; /* Firefox */
+  scrollbar-width: thin; 
   scrollbar-color: hsl(var(--border)) transparent;
 }
 
