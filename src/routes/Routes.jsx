@@ -19,6 +19,8 @@ import Introduction from "@/pages/admin/businesss/modules/introduction/Save.jsx"
 import WhatWeWant from "@/pages/admin/businesss/modules/what-we-want/Save.jsx"
 import FoundingPresident from "@/pages/admin/businesss/modules/founding-president/Save.jsx"
 
+import ModuleItems from "@/pages/admin/businesss/modules/module-items/List.jsx"
+import ModuleItemsSave from "@/pages/admin/businesss/modules/module-items/Save.jsx"
 // 
 import StaffList from "@/pages/admin/businesss/modules/staffs/List.jsx"
 import StaffSave from "@/pages/admin/businesss/modules/staffs/save/Save.jsx"
@@ -142,7 +144,14 @@ const router = createBrowserRouter([
 
 
                     // Business Moudles
-
+                    // Manage Dynamic Modules 
+                    {
+                        path: "module/:moduleSlug?",
+                        element : <ModuleItems />
+                    },{
+                        path: "module/:moduleSlug?/:id?",
+                        element : <ModuleItemsSave />
+                    },
                     {
                         path: "president-message",
                         element: <PresidentMessage />

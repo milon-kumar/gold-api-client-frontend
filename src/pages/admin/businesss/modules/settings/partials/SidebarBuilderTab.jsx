@@ -1,12 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { DragDropProvider } from "@dnd-kit/react";
-import { useSortable } from "@dnd-kit/react/sortable";
-import { move } from "@dnd-kit/helpers";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -16,43 +10,31 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useApiMutation } from "@/hooks/useAppMutation";
+import { useApiQuery } from "@/hooks/useAppQuery";
+import { move } from "@dnd-kit/helpers";
+import { DragDropProvider } from "@dnd-kit/react";
+import { useSortable } from "@dnd-kit/react/sortable";
 import {
-  GripVertical,
-  Lock,
+  Boxes,
   Edit,
-  Trash2,
+  GripVertical,
+  Image as ImageIcon,
+  LayoutDashboard,
+  Loader2,
+  Lock,
   Plus,
   Save,
-  Loader2,
-  LayoutDashboard,
-  Settings,
-  FileStack,
-  Boxes,
-  Home,
-  Users,
-  ShoppingCart,
-  BarChart3,
-  Calendar,
-  Bell,
-  Mail,
-  Star,
-  Tag,
-  Folder,
-  LayoutGrid,
-  List,
-  Package,
-  CreditCard,
-  Globe,
-  MapPin,
-  Image as ImageIcon,
+  Trash2
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useApiQuery } from "@/hooks/useAppQuery";
-import { useApiMutation } from "@/hooks/useAppMutation";
 
-import { ICON_OPTIONS } from "@/store/default/component-placeholder";
-import {IconPicker} from "@/components/ui/icon-picker";
 import IconRenderer from "@/components/partials/IconRenderer";
+import { IconPicker } from "@/components/ui/icon-picker";
+import { ICON_OPTIONS } from "@/store/default/component-placeholder";
 
 const ICONS = ICON_OPTIONS.reduce((acc, { key, icon }) => ({ ...acc, [key]: icon }), {});
 
@@ -76,7 +58,9 @@ const DEFAULT_GROUPS = [
     id: "content-management",
     title: "Content Management",
     locked: true,
-    items: [],
+    items: [
+      { id: "categories", label: "Categories", iconKey: "tag", system: true },
+    ],
   },
 ];
 

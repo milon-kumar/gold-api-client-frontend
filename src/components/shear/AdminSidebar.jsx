@@ -1,31 +1,32 @@
-import React from "react";
 import {
-  Settings,
-  Users,
-  Home,
   BarChart3,
+  Home,
   Layers2,
-  Folder,
-  Mail,
-  Calendar,
-  Package,
-  ShoppingCart,
   Loader2,
+  Users
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useLocation, useNavigate } from "react-router";
-import { useAuth } from "@/hooks/useAuth.js";
+import { IconRenderer } from "@/components/ui/icon-renderer";
 import { useApiQuery } from "@/hooks/useAppQuery.js";
-import {IconRenderer} from "@/components/ui/icon-renderer";
-import { useDispatch } from "react-redux";
+import { useAuth } from "@/hooks/useAuth.js";
 import { setModule } from "@/store/features/moudleSlice";
+import { useDispatch } from "react-redux";
+import { useLocation, useNavigate } from "react-router";
 
 const businessDefaultSidebar = [
   {
     id: "overview",
     items: [{ id: "dashboard", label: "Dashboard", icon_key: "dashboard" }],
+  },
+  {
+    id: "content-management",
+    title: "Content Management",
+    locked: true,
+    items: [
+      { id: "categories", label: "Categories", iconKey: "tag", system: true },
+    ],
   },
   {
     id: "management",
@@ -90,9 +91,16 @@ const AdminSidebar = () => {
   };
 
   const handleSidebarItemClick = (item) => {
+    const defaultRoutes = ['dashboard','categories', 'settings','navigations',]
+    let to;
+    if (defaultRoutes?.includes(item?.id)) {
+      to = item.module_slug || item.id;
+    } else {
+      to = `/module/${item.module_slug || item.id}`
+    }
     handleModuleSet({
       ...item,
-      slug: item.module_slug || item.id,
+      slug: to,
     });
   };
 
@@ -140,19 +148,21 @@ const AdminSidebar = () => {
                     {GROUP_LABELS[group.id] || group.id}
                   </h3>
                   <div className="space-y-1">
-                    {group.items.map((item) => (
-                      <Button
-                        key={item.id}
-                        variant={isSidebarItemActive(item) ? "secondary" : "ghost"}
-                        className="w-full justify-start gap-2"
-                        onClick={() => handleSidebarItemClick(item)}
-                      >
-                        <div className="p-1 rounded">
-                          <IconRenderer icon={item?.icon_key} className="h-4 w-4 text-blue-600" />
-                        </div>
-                        {item.label}
-                      </Button>
-                    ))}
+                    {group.items.map((item) => {
+                      return (
+                        <Button
+                          key={item.id}
+                          variant={isSidebarItemActive(item) ? "secondary" : "ghost"}
+                          className="w-full justify-start gap-2"
+                          onClick={() => handleSidebarItemClick(item)}
+                        >
+                          <div className="p-1 rounded">
+                            <IconRenderer icon={item?.icon_key} className="h-4 w-4 text-blue-600" />
+                          </div>
+                          {item.label}
+                        </Button>
+                      )
+                    })}
                   </div>
                 </div>
               ))

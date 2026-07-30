@@ -87,6 +87,16 @@ const Save = () => {
   } = useImageUpload(setting?.setting?.item?.image_size || 5);
 
 
+    const {
+      data: modulesResponse,
+      isLoading: modulesLoading,
+      refetch: refetchModules,
+    } = useApiQuery({
+      url: "/admin/business-modules",
+    });
+  
+    const modules = modulesResponse?.data?.data || [];
+
 
   // Fetch category data for edit mode
   const { data: categoryGetQuery, isLoading: categoryGetLoading } = useApiQuery(
@@ -248,7 +258,7 @@ const Save = () => {
                         <CommandEmpty>No module found.</CommandEmpty>
 
                         <CommandGroup className="max-h-72 overflow-y-auto">
-                          {Object.values(MODULES).map((module) => (
+                          {modules.map((module) => (
                             <CommandItem
                               key={module}
                               value={module}
@@ -260,12 +270,12 @@ const Save = () => {
                               <Check
                                 className={cn(
                                   "mr-2 h-4 w-4",
-                                  formData.type === module
+                                  formData.type === module?.title_slug
                                     ? "opacity-100"
                                     : "opacity-0",
                                 )}
                               />
-                              {module}
+                              {module?.title}
                             </CommandItem>
                           ))}
                         </CommandGroup>

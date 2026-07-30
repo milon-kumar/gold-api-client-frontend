@@ -89,7 +89,7 @@ const PageHeader = ({
                     )}
                     <div>
                         <div className="flex items-center gap-2">
-                            <h1 className="text-sm font-semibold truncate">
+                            <h1 className="text-sm font-semibold truncate capitalize">
                                 {title}
                             </h1>
                             {
@@ -110,6 +110,7 @@ const PageHeader = ({
                             variant={secondaryAction.variant || "outline"}
                             onClick={secondaryAction.onClick}
                             disabled={secondaryAction.disabled}
+                            className={'capitalize'}
                         >
                             {secondaryAction.icon && renderIcon(secondaryAction.icon)}
                             {secondaryAction.title}
@@ -123,6 +124,7 @@ const PageHeader = ({
                             size={primaryAction.variant || "default"}
                             onClick={primaryAction.onClick}
                             disabled={primaryAction.disabled}
+                            className={'capitalize'}
                         >
                             {primaryAction.icon && renderIcon(primaryAction.icon)}
                             {primaryAction.title}

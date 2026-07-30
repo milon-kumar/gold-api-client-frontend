@@ -49,6 +49,7 @@ import PageHeader from '@/components/shear/PageHeader';
 import DeleteConfirmation from '@/components/shear/DeleteConfirmation';
 import StatusBadge from '@/components/shear/StatusBadge';
 import { MODULES } from '@/store/default/modules';
+import SaveModal from './partials/SaveModal';
 
 const CategoriesListing = () => {
   const navigate = useNavigate();
@@ -59,7 +60,7 @@ const CategoriesListing = () => {
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [viewingItem, setViewingItem] = useState(null);
-
+  const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   // Fetch categories
   const {
     data: response,
@@ -149,7 +150,7 @@ const CategoriesListing = () => {
               <FolderOpen className="h-20 w-20 text-gray-400" />
             </div>
           )}
-          
+
           <div className="absolute top-3 right-3 z-20 flex gap-2 opacity-0 transition-all duration-300 group-hover:opacity-100">
             <Button
               size="icon"
@@ -414,7 +415,7 @@ const CategoriesListing = () => {
         primaryAction={{
           title: "Add Category",
           icon: "plus",
-          onClick: () => navigate("/admin/categories/save")
+          onClick: () => setCategoryModalOpen(true)
         }}
         secondaryAction={{
           title: "Refresh",
@@ -513,6 +514,12 @@ const CategoriesListing = () => {
           <TableView />
         )
       )}
+
+      <SaveModal
+        open={categoryModalOpen}
+        onOpenChange={setCategoryModalOpen}
+        onSaved={() => refetchCategories()}
+      />
 
       {/* View Modal */}
       <ViewModal
