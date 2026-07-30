@@ -292,7 +292,7 @@ const Save = () => {
               onStatusChange={(value) => handleFieldChange('status', value)}
             />
 
-          
+
           </div>
 
           <div className="lg:col-span-1 space-y-6">
@@ -304,7 +304,7 @@ const Save = () => {
               onImageChange={handleImageChange}
               onRemoveImage={handleRemoveImage}
             />
-  <SeoCard
+            <SeoCard
               seoContent={seoContent}
               onSeoFieldChange={handleSeoFieldChange}
               seoUseMainImage={seoUseMainImage}

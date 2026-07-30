@@ -114,7 +114,7 @@ const AdminSidebar = () => {
       <div className="flex h-14 items-center border-b px-4 dark:border-gray-800">
         <div className="flex items-center gap-2 font-semibold">
           <BarChart3 className="h-5 w-5" />
-          <span>Acme Dashboard</span>
+          <span>{settingsResponse?.data?.business?.name || "Dashboard"}</span>
         </div>
       </div>
       <nav className="flex-1 space-y-1 p-4 overflow-y-auto hide-scrollbar">

@@ -53,6 +53,21 @@ import { useApiQuery } from "@/hooks/useAppQuery";
 import { useApiMutation } from "@/hooks/useAppMutation";
 import useImageUpload from "@/hooks/use-image-upload";
 import ContentSettings from "./ContentSettings";
+import SeoSettings from "./SeoSettings";
+
+const emptySeoContent = {
+  meta_title: "",
+  meta_description: "",
+  meta_keywords: "",
+  og_title: "",
+  og_description: "",
+  og_image: "",
+  twitter_title: "",
+  twitter_description: "",
+  twitter_image: "",
+  canonical_url: "",
+  robots: "index, follow",
+};
 
 const BusinessSettingTab = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -66,12 +81,14 @@ const BusinessSettingTab = () => {
   const [metaEntries, setMetaEntries] = useState([]);
   const [newMetaKey, setNewMetaKey] = useState("");
   const [newMetaValue, setNewMetaValue] = useState("");
-  
-  const [settingsMeta,setSettingsMeta] = useState({
+
+  const [settingsMeta, setSettingsMeta] = useState({
     navbar_id: null,
     home_page_id: null,
     footer_id: null,
-  })
+  });
+
+  const [seoContent, setSeoContent] = useState(emptySeoContent);
 
   const {
     image: imageBase64,
@@ -99,13 +116,16 @@ const BusinessSettingTab = () => {
     method: "POST",
   });
 
-  useEffect(()=>{
-    setSettingsMeta((p)=>({
+  useEffect(() => {
+    setSettingsMeta((p) => ({
       home_page_id: settings?.meta?.home_page_id,
-      navbar_id:  settings?.meta?.navbar_id,
-      footer_id: settings?.meta?.footer_id
-    }))
-  },[settings])
+      navbar_id: settings?.meta?.navbar_id,
+      footer_id: settings?.meta?.footer_id,
+    }));
+
+    setSeoContent({ ...emptySeoContent, ...(settings?.meta?.seo_content || {}) });
+  }, [settings]);
+
   const copyToClipboard = (text, label) => {
     if (!text) return;
     navigator.clipboard.writeText(text);
@@ -253,20 +273,21 @@ const BusinessSettingTab = () => {
     });
   };
 
-  const {mutate: updateBusinessMeta,isLoading: updatingBusinessmeta} = useApiMutation({
-    url: '/admin/update-business-meta'
-  })
+  const { mutate: updateBusinessMeta, isLoading: updatingBusinessmeta } = useApiMutation({
+    url: "/admin/update-business-meta",
+  });
 
-  const handelSaveBusinessMeta = async (payload) =>{
-    try{
-      const response = await updateBusinessMeta(payload)
-      if(response.success){
+  const handelSaveBusinessMeta = async (payload) => {
+    try {
+      const response = await updateBusinessMeta(payload);
+      if (response.success) {
         toast.success(response.message || "Meta update success");
+        await refetchSettings();
       }
-    }catch(error){
-      toast.error(error.message || "Meta update failed")
+    } catch (error) {
+      toast.error(error.message || "Meta update failed");
     }
-  }
+  };
 
   const renderMetaEntries = () => {
     if (metaEntries.length === 0) {
@@ -640,7 +661,15 @@ const BusinessSettingTab = () => {
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
+        <SeoSettings
+          seoContent={seoContent}
+          setSeoContent={setSeoContent}
+          logo={settings.logo}
+          logoFullPath={settings.logo_full_path}
+          handelSaveBusinessMeta={handelSaveBusinessMeta}
+          updatingBusinessmeta={updatingBusinessmeta}
+        />
+        {/* <Card className="shadow-sm">
           <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-slate-50">
             <CardTitle className="flex items-center gap-2 text-xl">
               <Server className="h-5 w-5 text-slate-600" />
@@ -679,12 +708,11 @@ const BusinessSettingTab = () => {
               )}
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
-        <ContentSettings 
+        <ContentSettings
           settingsMeta={settingsMeta}
           setSettingsMeta={setSettingsMeta}
-          
           handelSaveBusinessMeta={handelSaveBusinessMeta}
           updatingBusinessmeta={updatingBusinessmeta}
         />
