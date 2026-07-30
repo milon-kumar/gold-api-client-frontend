@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText } from "lucide-react";
-import "@/components/ui/rich-text-editor/rich-text-editor.css";
+// import "@/components/ui/rich-text-editor/rich-text-editor.css";
 
 const DetailsContent = ({ item }) => {
   if (!item.sub_description && !item.description) return null;

@@ -7,7 +7,9 @@ import PhotoGallery from "@/pages/frontend/photo-gallery/PhotoGallery";
 import VideoGallery from "@/pages/frontend/video-gallery/VideoGallery";
 import AllStaffs from "@/pages/frontend/all-staffs/AllStaffs";
 import ContactUs from "@/pages/frontend/contact-us/ContactUs";
-import ModuleDetails  from "@/pages/frontend/module-details/Details"
+import CategoryModuleIems from "@/pages/frontend/category-module-iems/List"
+import ModuleItemDetails  from "@/pages/frontend/module-details/Details"
+
 import JoinUs from "@/pages/frontend/join-us/JoinUs";
 import Pages from "@/pages/frontend/pages/Pages";
 
@@ -21,8 +23,12 @@ export const frontendRoutes = {
             element: <Home />
         },
         {
+            path: '/categories/:slug',
+            element: <CategoryModuleIems/>
+        },
+        {
             path: 'details/:id',
-            element: <ModuleDetails />
+            element: <ModuleItemDetails />
         },
         {
             path:'about-us',

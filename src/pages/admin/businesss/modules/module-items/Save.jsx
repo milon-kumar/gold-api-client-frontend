@@ -115,7 +115,6 @@ const Save = () => {
   useEffect(() => {
     if (!itemGetQuery?.success) return;
     const item = itemGetQuery.data;
-
     setFormData({
       title: item.title || '',
       sub_title: item.sub_title || '',
@@ -276,8 +275,6 @@ const Save = () => {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <BasicInfoCard formData={formData} onFieldChange={handleFieldChange} moduleTitle={moduleTitle} />
-
             {requiredCategory && (
               <CategoryCard
                 categories={categories}
@@ -286,6 +283,7 @@ const Save = () => {
                 loading={categoryGetLoading}
               />
             )}
+            <BasicInfoCard formData={formData} onFieldChange={handleFieldChange} moduleTitle={moduleTitle} />
 
             <StatusSettingsCard
               isFeatured={formData.is_featured}
@@ -294,7 +292,19 @@ const Save = () => {
               onStatusChange={(value) => handleFieldChange('status', value)}
             />
 
-            <SeoCard
+          
+          </div>
+
+          <div className="lg:col-span-1 space-y-6">
+            <ImageUploadCard
+              preview={currentImagePreview}
+              imageError={imageError}
+              imageBase64={imageBase64}
+              imageMaxSize={setting?.setting?.item?.image_size || 5}
+              onImageChange={handleImageChange}
+              onRemoveImage={handleRemoveImage}
+            />
+  <SeoCard
               seoContent={seoContent}
               onSeoFieldChange={handleSeoFieldChange}
               seoUseMainImage={seoUseMainImage}
@@ -315,18 +325,6 @@ const Save = () => {
                 onRemove: handleRemoveTwitterImage,
               }}
             />
-          </div>
-
-          <div className="lg:col-span-1 space-y-6">
-            <ImageUploadCard
-              preview={currentImagePreview}
-              imageError={imageError}
-              imageBase64={imageBase64}
-              imageMaxSize={setting?.setting?.item?.image_size || 5}
-              onImageChange={handleImageChange}
-              onRemoveImage={handleRemoveImage}
-            />
-
             {isEditing && <QuickInfoCard item={itemGetQuery?.data} />}
           </div>
         </div>
