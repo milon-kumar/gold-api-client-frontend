@@ -8,7 +8,7 @@ import StaticHome from "./StaticHomePage";
 const Home = () => {
   const { settings } = useOutletContext();
 
-  const settingMeta = safeJsonParse(settings?.meta);
+  const settingMeta = settings?.meta; //safeJsonParse();
 
   const { data: page, isLoading: pageLoading } = useApiQuery({
     url: `/page-by-id/${settingMeta?.home_page_id}`,
@@ -16,6 +16,10 @@ const Home = () => {
   });
 
   const pageConfig = safeJsonParse(page?.data?.meta);
+  console.log("What is the page - ",{
+    pageConfig,
+    pageMeta : page?.data?.meta
+  });
   const sections = safeJsonParse(pageConfig?.page_config) || [];
 
   if (pageLoading) {

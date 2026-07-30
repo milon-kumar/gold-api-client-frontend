@@ -91,8 +91,10 @@ const SaveModal = ({ open, onOpenChange, onSaved }) => {
       } else {
         toast.error(response?.message || "Failed to save categories");
       }
-    } catch (error) {
-      toast.error("Error saving categories");
+    }catch(error){
+      if(error){
+        toast.error(error.message || "Failed to save categories")
+      }
     }
   };
 

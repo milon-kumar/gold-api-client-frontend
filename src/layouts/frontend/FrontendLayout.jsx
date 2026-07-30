@@ -61,7 +61,7 @@ const RootLayout = ({settings}) => {
 };
 
 const BusinessLayout = ({ settings }) => {
-  const settingMeta = settings?.meta ? JSON.parse(settings?.meta) : {};
+  const settingMeta = settings?.meta ? settings?.meta : {};
 
   const {
     data: navbarResponse,

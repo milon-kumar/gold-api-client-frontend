@@ -62,6 +62,13 @@ const CategoriesListing = () => {
   const [viewingItem, setViewingItem] = useState(null);
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   // Fetch categories
+
+  const { data: modulesResponse, isLoading: modulesLoading } = useApiQuery({
+    url: "/admin/business-modules",
+  });
+
+  const modules = modulesResponse?.data?.data || [];
+
   const {
     data: response,
     loading: itemsLoading,
@@ -71,7 +78,6 @@ const CategoriesListing = () => {
     params: {
       search: searchTerm || undefined,
       type: typeFilter !== 'all' ? typeFilter : undefined,
-      module_slug: MODULES.PHOTOS
     }
   });
 
@@ -420,7 +426,7 @@ const CategoriesListing = () => {
         secondaryAction={{
           title: "Refresh",
           icon: "refresh",
-          onClick: refetchItems
+          onClick: refetchItems()
         }}
       />
 
@@ -444,11 +450,11 @@ const CategoriesListing = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="product">Product</SelectItem>
-              <SelectItem value="service">Service</SelectItem>
-              <SelectItem value="blog">Blog</SelectItem>
-              <SelectItem value="portfolio">Portfolio</SelectItem>
-              <SelectItem value="gallery">Gallery</SelectItem>
+              {
+                modules?.map((m) => (
+                  <SelectItem key={m.id} value={m.title_slug}>{m.title}</SelectItem>
+                ))
+              }
             </SelectContent>
           </Select>
         </div>

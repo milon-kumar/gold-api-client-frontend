@@ -21,6 +21,7 @@ import {
   getDataSource,
   getDataSourceOptions,
 } from "@/store/default/componentDataSource";
+import { SearchableSelectPopover } from "../ui/searchable-select-popover";
 
 /**
  * =====================================================================
@@ -54,8 +55,31 @@ const ResourcePicker = ({
   const [activeSourceKey, setActiveSourceKey] = useState(sourceKeys[0]);
   const [search, setSearch] = useState("");
 
-  const sourceOptions = getDataSourceOptions(sourceKeys);
+  // const sourceOptions = getDataSourceOptions(sourceKeys);
   const source = getDataSource(activeSourceKey);
+
+  const { data: modulesResponse, isLoading: modulesLoading } = useApiQuery({
+    url: "/admin/business-modules",
+  });
+
+  const modules = modulesResponse?.data?.data || [];
+  const moduleSlugs = (modules || []).map((page) => ({
+    value: page.title_slug,
+    label: page.title,
+  }));
+
+  const {
+    data: itemsFetching,
+    loading: itemsLoading,
+    refetch: refetchItems
+  } = useApiQuery({
+    url: "/admin/business-module-items",
+    params: {
+      module_slug: activeSourceKey,
+    }
+  });
+
+  const moduleItems = itemsFetching?.data?.data || []
 
   /* Dialog খোলা হলেই কেবল fetch হবে */
   const { data: response, isLoading } = useApiQuery({
@@ -114,19 +138,28 @@ const ResourcePicker = ({
 
         <div className="space-y-3">
           {/* একাধিক source থাকলে switcher */}
-          {sourceOptions.length > 1 && (
-            <Select value={activeSourceKey} onValueChange={setActiveSourceKey}>
-              <SelectTrigger className="h-8 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {sourceOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {moduleSlugs.length > 1 && (
+            <SearchableSelectPopover
+              items={moduleSlugs}
+              value={activeSourceKey}
+              onSelect={(value) => setActiveSourceKey(value)}
+              placeholder="Select Module"
+              searchPlaceholder="Search pages..."
+              emptyText="No pages found."
+              disabled={modulesLoading}
+            />
+            // <Select value={activeSourceKey} onValueChange={setActiveSourceKey}>
+            //   <SelectTrigger className="h-8 text-xs">
+            //     <SelectValue />
+            //   </SelectTrigger>
+            //   <SelectContent>
+            //     {sourceOptions.map((opt) => (
+            //       <SelectItem key={opt.value} value={opt.value}>
+            //         {opt.label}
+            //       </SelectItem>
+            //     ))}
+            //   </SelectContent>
+            // </Select>
           )}
 
           {/* Search */}
@@ -154,17 +187,17 @@ const ResourcePicker = ({
               </p>
             )}
             {
-              items?.length > 0 ? (
+              moduleItems?.length > 0 ? (
                 <>
-                  {items?.map((item, index) => {
-                    const title =
-                      item[source.display?.titleKey] || `Item ${index + 1}`;
-                    const image = source.display?.imageKey
-                      ? item[source.display.imageKey]
-                      : null;
-                    const subtitle = source.display?.subtitleKey
-                      ? item[source.display.subtitleKey]
-                      : null;
+                  {moduleItems?.map((item, index) => {
+                    // item[source.display?.titleKey] 
+                    // source.display?.imageKey
+                    // source.display?.subtitleKey
+
+                    console.log("what is the full item",item)
+                    const title =item?.title || `Item ${index + 1}`;
+                    const image = item?.image_full_path ? item?.image_full_path : null;
+                    const subtitle = item?.sub_title ? item?.sub_title  : null;
                     const isPicked = pickedIds.includes(item.id);
 
                     return (
@@ -173,8 +206,8 @@ const ResourcePicker = ({
                         type="button"
                         onClick={() => handlePick(item)}
                         className={`flex w-full items-center gap-3 rounded-md border p-2 text-left transition-colors ${isPicked
-                            ? "border-primary bg-primary/10 hover:bg-primary/5"
-                            : "hover:border-primary hover:bg-primary/5"
+                          ? "border-primary bg-primary/10 hover:bg-primary/5"
+                          : "hover:border-primary hover:bg-primary/5"
                           }`}
                       >
                         {image ? (

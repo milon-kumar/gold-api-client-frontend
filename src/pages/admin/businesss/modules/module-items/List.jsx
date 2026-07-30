@@ -51,7 +51,7 @@ import { MODULES } from '@/store/default/modules';
 import { getWords } from '@/lib/helper';
 
 const List = () => {
-    const {moduleSlug} = useParams()
+    const { moduleSlug } = useParams()
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -62,7 +62,7 @@ const List = () => {
     const [viewingItem, setViewingItem] = useState(null);
 
 
-    console.log("slug - ",moduleSlug)
+    console.log("slug - ", moduleSlug)
 
     // Fetch module items
     const {
@@ -86,13 +86,15 @@ const List = () => {
         mutate: itemDeleteMutation,
         isLoading: itemDeleteLoading
     } = useApiMutation({
-        url: `/admin/module-items/${selectedItem?.id}`,
-        method: 'DELETE'
+        url: `/admin/business-module-items/${selectedItem?.id}`,
+        method: 'DELETE',
     });
 
     const handleDelete = async () => {
         try {
-            const response = await itemDeleteMutation();
+            const response = await itemDeleteMutation({
+                module_slug: moduleSlug
+            });
             if (response?.success) {
                 toast.success(response?.message || "Organization deleted successfully");
                 await refetchItems();
@@ -368,7 +370,7 @@ const List = () => {
 
                                     <TableCell>
                                         <p className="text-sm text-muted-foreground line-clamp-1">
-                                            {getWords(item.sub_title,10) || '—'}
+                                            {getWords(item.sub_title, 10) || '—'}
                                         </p>
                                     </TableCell>
 

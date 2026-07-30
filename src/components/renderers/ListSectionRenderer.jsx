@@ -2,6 +2,7 @@ import { getWords } from "@/lib/helper";
 import SectionHeader from "./SectionHeaderVarients";
 import { imageFitClass } from "@/lib/styleHelper";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router";
 /**
  * =====================================================================
  * LIST RENDERER (Section) — Template Registry Pattern
@@ -33,6 +34,10 @@ const Empty = ({ label }) => (
 );
 
 const CardGrid = ({ content, settings, styles }) => {
+  const navigate = useNavigate()
+  const handelDetails = (item) =>{
+    navigate(`/details/${item?._sourceId}`)
+  }
   return (
     <div className="">
       <SectionHeader
@@ -68,7 +73,7 @@ const CardGrid = ({ content, settings, styles }) => {
                 )}
 
                 <div className="p-4">
-                  <h3 className="text-2xl font-semibold text-slate-900">
+                  <h3 className="text-2xl font-semibold text-slate-900 cursor-pointer" onClick={() => handelDetails(item)}>
                     {item.title}
                   </h3>
                   {cardContent && (

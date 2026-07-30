@@ -187,7 +187,7 @@ function SortableMenuItem({
 
 /* ==================================================================
    Sortable Item — Right (Buttons: Login / Join, etc.)
-================================================================== */
+   */
 function SortableButtonItem({ item, index, onUpdate, onRemove }) {
   const { ref, handleRef, isDragging } = useSortable({ id: item.id, index });
 
@@ -276,6 +276,8 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
   const [editingId, setEditingId] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
 
+
+
   /* ---------------- API hooks ---------------- */
   const { mutate: fetchNavbars } = useApiMutation({
     url: "/admin/navbars/list",
@@ -292,7 +294,6 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
 
   useEffect(() => {
     loadNavbars();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadNavbars = async () => {

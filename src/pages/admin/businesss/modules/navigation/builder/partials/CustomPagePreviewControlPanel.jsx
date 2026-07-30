@@ -37,8 +37,10 @@ const CustomPagePreviewControlPanel = ({
 
   // Parse settings meta - do this before conditional returns
   const settingMeta = settingsResponse?.data?.settings?.meta
-    ? JSON.parse(settingsResponse.data.settings.meta)
+    ? settingsResponse.data.settings.meta
     : {};
+
+    console.log("settingMeta - ",settingMeta)
 
   const {
     data: navbarResponse,

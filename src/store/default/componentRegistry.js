@@ -1403,15 +1403,16 @@ export const COMPONENT_REGISTRY = {
                 label: "Items",
                 type: "array",
                 default: [],
-                sourceKeys: [
-                  "staff",
-                  "organization",
-                  "photo",
-                  "anual_plan",
-                  "regular_activities",
-                  "archives",
-                  "video",
-                ],
+                sourceKeys: "modules",
+                // [
+                //   "staff",
+                //   "organization",
+                //   "photo",
+                //   "anual_plan",
+                //   "regular_activities",
+                //   "archives",
+                //   "video",
+                // ]
                 itemFields: [
                   {
                     key: "title",
