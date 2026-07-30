@@ -5,17 +5,56 @@ import { move } from "@dnd-kit/helpers";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { GripVertical, Lock, LayoutDashboard, Settings, FileStack, Boxes, Save, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  GripVertical,
+  Lock,
+  Edit,
+  Trash2,
+  Plus,
+  Save,
+  Loader2,
+  LayoutDashboard,
+  Settings,
+  FileStack,
+  Boxes,
+  Home,
+  Users,
+  ShoppingCart,
+  BarChart3,
+  Calendar,
+  Bell,
+  Mail,
+  Star,
+  Tag,
+  Folder,
+  LayoutGrid,
+  List,
+  Package,
+  CreditCard,
+  Globe,
+  MapPin,
+  Image as ImageIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useApiQuery } from "@/hooks/useAppQuery";
 import { useApiMutation } from "@/hooks/useAppMutation";
 
-const ICONS = {
-  dashboard: LayoutDashboard,
-  settings: Settings,
-  pages: FileStack,
-  module: Boxes,
-};
+import { ICON_OPTIONS } from "@/store/default/component-placeholder";
+import {IconPicker} from "@/components/ui/icon-picker";
+import IconRenderer from "@/components/partials/IconRenderer";
+
+const ICONS = ICON_OPTIONS.reduce((acc, { key, icon }) => ({ ...acc, [key]: icon }), {});
 
 const DEFAULT_GROUPS = [
   {
@@ -30,7 +69,7 @@ const DEFAULT_GROUPS = [
     locked: true,
     items: [
       { id: "settings", label: "Settings", iconKey: "settings", system: true },
-      { id: "pages", label: "Pages", iconKey: "pages", system: true },
+      { id: "navigations", label: "Pages", iconKey: "pages", system: true },
     ],
   },
   {
@@ -40,6 +79,60 @@ const DEFAULT_GROUPS = [
     items: [],
   },
 ];
+
+const EditMenuItemDialog = ({ open, onOpenChange, item, onSave }) => {
+  const [label, setLabel] = useState("");
+  const [iconKey, setIconKey] = useState("module");
+
+  useEffect(() => {
+    if (open && item) {
+      setLabel(item.label);
+      setIconKey(item.iconKey);
+    }
+  }, [open, item]);
+
+  const handleSubmit = () => {
+    if (!label.trim()) {
+      toast.error("Title is required");
+      return;
+    }
+    onSave({ label: label.trim(), iconKey });
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Edit Menu Item</DialogTitle>
+          <DialogDescription>Update the title and icon shown in the sidebar</DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          <div className="space-y-2">
+            <Label>Title</Label>
+            <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Menu title" />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Icon</Label>
+            <IconPicker
+              icon={iconKey}
+              setIcon={setIconKey}
+            />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit}>Save</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 const SortableGroup = ({ group, index, children }) => {
   const { ref, handleRef, isDragging } = useSortable({
@@ -63,7 +156,7 @@ const SortableGroup = ({ group, index, children }) => {
   );
 };
 
-const SortableItem = ({ item, index, groupId }) => {
+const SortableItem = ({ item, index, groupId, onEdit, onRemove }) => {
   const { ref, handleRef, isDragging } = useSortable({
     id: item.id,
     index,
@@ -78,82 +171,152 @@ const SortableItem = ({ item, index, groupId }) => {
   return (
     <div
       ref={ref}
-      className={`flex items-center justify-between p-3 rounded-lg border bg-gray-50 ${isDragging ? "opacity-50" : ""}`}
+      className={`flex items-center justify-between p-3 rounded-lg border bg-gray-50 group ${isDragging ? "opacity-50" : ""}`}
     >
       <div className="flex items-center gap-3">
         <button ref={handleRef} type="button" className="text-muted-foreground cursor-grab active:cursor-grabbing">
           <GripVertical className="h-4 w-4" />
         </button>
-        <Icon className="h-4 w-4 text-blue-600" />
+        <IconRenderer icon={item?.iconKey} className="h-4 w-4 text-blue-600"/>
         <span className="text-sm font-medium">{item.label}</span>
       </div>
-      {item.system ? (
-        <Lock className="h-3.5 w-3.5 text-muted-foreground" />
-      ) : (
-        <Badge variant="outline" className="text-xs">{item.module_slug}</Badge>
-      )}
+      <div className="flex items-center gap-2">
+        {item.system && <Lock className="h-3.5 w-3.5 text-muted-foreground" />}
+        {!item.system && item.module_slug && (
+          <Badge variant="outline" className="text-xs">{item.module_slug}</Badge>
+        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onEdit(groupId, item)}
+          className="opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <Edit className="h-4 w-4" />
+        </Button>
+        {!item.system && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onRemove(groupId, item)}
+            className="text-red-500 hover:text-red-700 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
     </div>
   );
 };
 
 const SidebarBuilderTab = () => {
   const [groups, setGroups] = useState(DEFAULT_GROUPS);
+  const [allModules, setAllModules] = useState([]);
+  const [selectedModuleIds, setSelectedModuleIds] = useState([]);
+  const [editTarget, setEditTarget] = useState(null);
+
+  const {
+    data: settingsResponse,
+    isLoading: settingsLoading,
+    refetch: refetchSettings,
+  } = useApiQuery({
+    url: `/admin/business-settings`,
+  });
+
+  // useEffect(async () => {
+  //   await refetchSettings()
+  // }, [])
+
+  const settings = settingsResponse?.data?.settings?.meta || {}
+
 
   const { data: modulesResponse, isLoading: modulesLoading } = useApiQuery({
-    url: "/admin/modules",
+    url: "/admin/business-modules",
   });
 
-  const { data: sidebarResponse } = useApiQuery({
-    url: "/admin/sidebar-order",
-  });
 
   const { mutate: saveOrder, isLoading: saving } = useApiMutation({
-    url: "/admin/sidebar-order",
+    url: "/admin/update-business-meta",
     method: "POST",
   });
 
   useEffect(() => {
-    const modules = modulesResponse?.data || [];
-    const moduleItems = modules?.length > 0 ? modules.map((module) => ({
-      id: module.id,
-      label: module.title,
-      module_slug: module.module_slug,
-      iconKey: "module",
-      system: false,
-    })) : [];
+    setAllModules(modulesResponse?.data?.data || []);
+  }, [modulesResponse]);
 
-    const savedGroups = sidebarResponse?.data?.groups;
+  useEffect(() => {
+    const savedGroups = settings?.business_sidebar?.groups;
+    if (!savedGroups?.length) return;
 
-    if (savedGroups?.length) {
-      const nextGroups = DEFAULT_GROUPS.map((defaultGroup) => {
-        const savedGroup = savedGroups.find((g) => g.id === defaultGroup.id);
-        if (defaultGroup.id === "content-management") {
-          const savedOrder = savedGroup?.items || [];
-          const ordered = savedOrder.map((id) => moduleItems.find((item) => item.id === id)).filter(Boolean);
-          const remaining = moduleItems.filter((item) => !savedOrder.includes(item.id));
-          return { ...defaultGroup, items: [...ordered, ...remaining] };
-        }
-        if (!savedGroup) return defaultGroup;
-        const orderedItems = savedGroup.items
-          .map((id) => defaultGroup.items.find((item) => item.id === id))
-          .filter(Boolean);
-        return { ...defaultGroup, items: orderedItems.length ? orderedItems : defaultGroup.items };
-      });
+    const nextGroups = DEFAULT_GROUPS.map((defaultGroup) => {
+      const savedGroup = savedGroups.find((g) => g.id === defaultGroup.id);
+      if (!savedGroup) return defaultGroup;
 
-      const savedGroupOrder = savedGroups.map((g) => g.id);
-      nextGroups.sort((a, b) => {
-        const aIndex = savedGroupOrder.indexOf(a.id);
-        const bIndex = savedGroupOrder.indexOf(b.id);
-        return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex);
-      });
+      if (defaultGroup.id === "content-management") {
+        const items = (savedGroup.items || []).map((saved) => ({
+          id: saved.id,
+          label: saved.label,
+          iconKey: saved.icon_key || "module",
+          module_slug: saved.module_slug,
+          system: false,
+        }));
+        return { ...defaultGroup, items };
+      }
 
-      setGroups(nextGroups);
-    } else {
-      setGroups((prev) =>
-        prev.map((group) => (group.id === "content-management" ? { ...group, items: moduleItems } : group)),
-      );
-    }
-  }, [modulesResponse, sidebarResponse]);
+      const orderedItems = (savedGroup.items || [])
+        .map((saved) => {
+          const original = defaultGroup.items.find((item) => item.id === saved.id);
+          if (!original) return null;
+          return { ...original, label: saved.label || original.label, iconKey: saved.icon_key || original.iconKey };
+        })
+        .filter(Boolean);
+      return { ...defaultGroup, items: orderedItems.length ? orderedItems : defaultGroup.items };
+    });
+
+    const savedGroupOrder = savedGroups.map((g) => g.id);
+    nextGroups.sort((a, b) => {
+      const aIndex = savedGroupOrder.indexOf(a.id);
+      const bIndex = savedGroupOrder.indexOf(b.id);
+      return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex);
+    });
+
+    setGroups(nextGroups);
+  }, [settings]);
+
+  const contentManagementIds = groups.find((g) => g.id === "content-management")?.items.map((i) => i.id) || [];
+  const availableModules = allModules.filter((module) => !contentManagementIds.includes(module.id));
+
+  const toggleModuleSelect = (moduleId) => {
+    setSelectedModuleIds((prev) =>
+      prev.includes(moduleId) ? prev.filter((id) => id !== moduleId) : [...prev, moduleId],
+    );
+  };
+
+  const handleAddSelected = () => {
+    if (selectedModuleIds.length === 0) return;
+
+    const modulesToAdd = allModules.filter((module) => selectedModuleIds.includes(module.id));
+
+    setGroups((prev) =>
+      prev.map((group) =>
+        group.id === "content-management"
+          ? {
+            ...group,
+            items: [
+              ...group.items,
+              ...modulesToAdd.map((module) => ({
+                id: module.id,
+                label: module.title,
+                module_slug: module.title_slug,
+                iconKey: "module",
+                system: false,
+              })),
+            ],
+          }
+          : group,
+      ),
+    );
+    setSelectedModuleIds([]);
+  };
 
   const handleDragEnd = (event) => {
     const { source } = event.operation;
@@ -172,13 +335,43 @@ const SidebarBuilderTab = () => {
     }
   };
 
+  const handleItemEdit = ({ label, iconKey }) => {
+    setGroups((prev) =>
+      prev.map((group) =>
+        group.id === editTarget.groupId
+          ? {
+            ...group,
+            items: group.items.map((item) =>
+              item.id === editTarget.item.id ? { ...item, label, iconKey } : item,
+            ),
+          }
+          : group,
+      ),
+    );
+  };
+
+  const handleItemRemove = (groupId, item) => {
+    setGroups((prev) =>
+      prev.map((group) =>
+        group.id === groupId ? { ...group, items: group.items.filter((i) => i.id !== item.id) } : group,
+      ),
+    );
+  };
+
   const handleSave = async () => {
     try {
       const payload = {
-        groups: groups.map((group) => ({
-          id: group.id,
-          items: group.items.map((item) => item.id),
-        })),
+        business_sidebar: {
+          groups: groups.map((group) => ({
+            id: group.id,
+            items: group.items.map((item) => ({
+              id: item.id,
+              label: item.label,
+              icon_key: item.iconKey,
+              module_slug: item.module_slug,
+            })),
+          })),
+        },
       };
       const response = await saveOrder(payload);
       if (response?.success) {
@@ -202,16 +395,63 @@ const SidebarBuilderTab = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <Card className="shadow-sm">
-        <CardHeader className="border-b bg-linear-to-r from-slate-50 to-gray-50">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <Card className="shadow-sm lg:col-span-1 p-0 m-0">
+        <CardHeader className="border-b bg-linear-to-r from-blue-50 to-indigo-50 pt-4">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Boxes className="h-4 w-4 text-blue-600" />
+            Available Modules
+          </CardTitle>
+          <CardDescription>Select modules to add to Content Management</CardDescription>
+        </CardHeader>
+        <CardContent className="pt-4 space-y-3">
+          {availableModules.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Boxes className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">All modules have been added</p>
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
+              {availableModules.map((module) => (
+                <label
+                  key={module.id}
+                  className="flex items-center gap-3 p-2 rounded-lg border cursor-pointer hover:bg-gray-50"
+                >
+                  <Checkbox
+                    checked={selectedModuleIds.includes(module.id)}
+                    onCheckedChange={() => toggleModuleSelect(module.id)}
+                  />
+                  <div className="h-8 w-8 rounded bg-gray-100 overflow-hidden shrink-0 flex items-center justify-center">
+                    {module.image_full_path ? (
+                      <img src={module.image_full_path} alt={module.title} className="h-full w-full object-cover" />
+                    ) : (
+                      <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </div>
+                  <span className="text-sm font-medium truncate">{module.title}</span>
+                </label>
+              ))}
+            </div>
+          )}
+
+          <Button className="w-full gap-2" disabled={selectedModuleIds.length === 0} onClick={handleAddSelected}>
+            <Plus className="h-4 w-4" />
+            Add Selected {selectedModuleIds.length > 0 && `(${selectedModuleIds.length})`}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-sm lg:col-span-2 p-0 m-0">
+        <CardHeader className="border-b bg-linear-to-r from-slate-50 to-gray-50 pt-4">
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2 text-xl">
                 <LayoutDashboard className="h-5 w-5 text-slate-600" />
                 Sidebar Builder
               </CardTitle>
-              <CardDescription>Drag a group to reorder it, or drag items within a group to rearrange them</CardDescription>
+              <CardDescription>
+                Drag a group to reorder it, drag items within a group to rearrange them, or edit an item's title and icon
+              </CardDescription>
             </div>
             <Button onClick={handleSave} disabled={saving} className="gap-2">
               {saving ? (
@@ -239,7 +479,14 @@ const SidebarBuilderTab = () => {
                   </div>
                 ) : (
                   group.items.map((item, itemIndex) => (
-                    <SortableItem key={item.id} item={item} index={itemIndex} groupId={group.id} />
+                    <SortableItem
+                      key={item.id}
+                      item={item}
+                      index={itemIndex}
+                      groupId={group.id}
+                      onEdit={(groupId, item) => setEditTarget({ groupId, item })}
+                      onRemove={handleItemRemove}
+                    />
                   ))
                 )}
               </SortableGroup>
@@ -247,6 +494,13 @@ const SidebarBuilderTab = () => {
           </DragDropProvider>
         </CardContent>
       </Card>
+
+      <EditMenuItemDialog
+        open={Boolean(editTarget)}
+        onOpenChange={(open) => !open && setEditTarget(null)}
+        item={editTarget?.item}
+        onSave={handleItemEdit}
+      />
     </div>
   );
 };

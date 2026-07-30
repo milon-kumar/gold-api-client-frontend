@@ -57,3 +57,13 @@ export const safeJsonParse = (data, fallback = {}) => {
     return fallback;
   }
 };
+
+
+export const generateSlug = (text) => {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '') // Remove non-word characters
+    .replace(/[\s_-]+/g, '-') // Replace spaces and underscores with a hyphen
+    .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+};

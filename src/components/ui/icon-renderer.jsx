@@ -15,7 +15,7 @@ const toPascalCase = (value = "") =>
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join("");
 
-const IconRenderer = ({
+export const IconRenderer = ({
   icon,
   size = 20,
   color = "currentColor",
@@ -50,5 +50,3 @@ const IconRenderer = ({
   // 4. unknown key, fall back to a neutral dot
   return <Circle {...props} />;
 };
-
-export default IconRenderer;

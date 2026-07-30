@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -52,6 +52,7 @@ import { toast } from "sonner";
 import { useApiQuery } from "@/hooks/useAppQuery";
 import { useApiMutation } from "@/hooks/useAppMutation";
 import useImageUpload from "@/hooks/use-image-upload";
+import ContentSettings from "./ContentSettings";
 
 const BusinessSettingTab = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -65,6 +66,12 @@ const BusinessSettingTab = () => {
   const [metaEntries, setMetaEntries] = useState([]);
   const [newMetaKey, setNewMetaKey] = useState("");
   const [newMetaValue, setNewMetaValue] = useState("");
+  
+  const [settingsMeta,setSettingsMeta] = useState({
+    navbar_id: null,
+    home_page_id: null,
+    footer_id: null,
+  })
 
   const {
     image: imageBase64,
@@ -92,6 +99,13 @@ const BusinessSettingTab = () => {
     method: "POST",
   });
 
+  useEffect(()=>{
+    setSettingsMeta((p)=>({
+      home_page_id: settings?.meta?.home_page_id,
+      navbar_id:  settings?.meta?.navbar_id,
+      footer_id: settings?.meta?.footer_id
+    }))
+  },[settings])
   const copyToClipboard = (text, label) => {
     if (!text) return;
     navigator.clipboard.writeText(text);
@@ -238,6 +252,21 @@ const BusinessSettingTab = () => {
       day: "numeric",
     });
   };
+
+  const {mutate: updateBusinessMeta,isLoading: updatingBusinessmeta} = useApiMutation({
+    url: '/admin/update-business-meta'
+  })
+
+  const handelSaveBusinessMeta = async (payload) =>{
+    try{
+      const response = await updateBusinessMeta(payload)
+      if(response.success){
+        toast.success(response.message || "Meta update success");
+      }
+    }catch(error){
+      toast.error(error.message || "Meta update failed")
+    }
+  }
 
   const renderMetaEntries = () => {
     if (metaEntries.length === 0) {
@@ -652,107 +681,13 @@ const BusinessSettingTab = () => {
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
-          <CardHeader className="border-b bg-linear-to-r from-purple-50 to-violet-50">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <FileText className="h-5 w-5 text-purple-600" />
-              Content & Settings
-            </CardTitle>
-            <CardDescription>Contract text, copyright information and configurations</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6 space-y-4">
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg group">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-indigo-100 rounded-full">
-                  <Copy className="h-4 w-4 text-indigo-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Footer Text</p>
-                  <p className="text-xs text-muted-foreground truncate max-w-[200px]">{settings.footer_text || "Not set"}</p>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleEdit("footer_text", settings.footer_text, "Footer Text")}
-                className="opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <Edit className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg group">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-amber-100 rounded-full">
-                  <Copy className="h-4 w-4 text-amber-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Copyright Text</p>
-                  <p className="text-xs text-muted-foreground truncate max-w-[200px]">{settings.copyright_text || "Not set"}</p>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleEdit("copyright_text", settings.copyright_text, "Copyright Text")}
-                className="opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <Edit className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg group">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-cyan-100 rounded-full">
-                  <Layout className="h-4 w-4 text-cyan-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Module Order</p>
-                  <p className="text-xs text-muted-foreground">{settings.module_order ? "Custom order set" : "Default order"}</p>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() =>
-                  handleEdit(
-                    "module_order",
-                    settings.module_order ? JSON.stringify(settings.module_order, null, 2) : "[]",
-                    "Module Order",
-                    false,
-                    null,
-                    true,
-                  )
-                }
-                className="opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <Edit className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg group">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-teal-100 rounded-full">
-                  <SettingsIcon className="h-4 w-4 text-teal-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Meta Settings</p>
-                  <p className="text-xs text-muted-foreground">
-                    {settings.meta ? `${Object.keys(settings.meta).length} entries configured` : "No entries"}
-                  </p>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleEdit("meta", settings.meta ? settings.meta : {}, "Meta Settings", false, null, false, true)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <Edit className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <ContentSettings 
+          settingsMeta={settingsMeta}
+          setSettingsMeta={setSettingsMeta}
+          
+          handelSaveBusinessMeta={handelSaveBusinessMeta}
+          updatingBusinessmeta={updatingBusinessmeta}
+        />
       </div>
 
       <Dialog
