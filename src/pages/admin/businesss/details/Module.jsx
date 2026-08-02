@@ -1,10 +1,9 @@
-import { Button } from "@/components/ui/button.jsx";
 import { Switch } from "@/components/ui/switch";
 import * as LucideIcons from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useApiQuery } from "@/hooks/useAppQuery.js";
-import { Save, Search, Shield, Loader2 } from "lucide-react";
+import { Search, Loader2, Shield } from "lucide-react";
 
 import Loading from "@/components/shear/Loading.jsx";
 import {
@@ -12,20 +11,33 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useState } from "react";
 import { useApiMutation } from "@/hooks/useAppMutation";
 
 const Modules = ({ business, user, businessModules }) => {
   const [search, setSearch] = useState("");
   const [selectedModules, setSelectedModules] = useState([]);
+  const [pendingIds, setPendingIds] = useState([]);
 
   const { data: modulesResponse, isLoading: modulesLoading } = useApiQuery({
     url: "/admin/modules",
   });
 
-  const modules = modulesResponse?.data?.data || [];
+  // /admin/modules returns a Laravel paginator wrapped by ApiResponse + axios:
+  // modulesResponse.data       -> { data: <paginator> }
+  // modulesResponse.data.data  -> <paginator> (current_page, data: [...], total, ...)
+  // modulesResponse.data.data.data -> the actual array of modules
+  const modules = modulesResponse?.data?.data?.data || [];
 
-  const moduleGroups = modules.reduce((acc, module) => {
+  const filteredModules = search.trim()
+    ? modules.filter(
+        (m) =>
+          m.name?.toLowerCase().includes(search.toLowerCase()) ||
+          m.slug?.toLowerCase().includes(search.toLowerCase()) ||
+          m.group_name?.toLowerCase().includes(search.toLowerCase()),
+      )
+    : modules;
+
+  const moduleGroups = filteredModules.reduce((acc, module) => {
     const group = module.group_slug;
 
     if (!acc[group]) {
@@ -47,47 +59,41 @@ const Modules = ({ business, user, businessModules }) => {
     setSelectedModules(businessModuleIds);
   }, [businessModules]);
 
-  useEffect(() => {
-    const coreModuleIds = modules
-      .filter((module) => module.is_core === 1)
-      .map((module) => module.id);
-
-    setSelectedModules([...new Set([...businessModuleIds, ...coreModuleIds])]);
-  }, [businessModules, modules]);
-
-  const onToggle = (moduleId) => {
-    console.log("Toggling module:", moduleId);
-    setSelectedModules((prevSelected) => {
-      if (prevSelected.includes(moduleId)) {
-        return prevSelected.filter((id) => id !== moduleId);
-      } else {
-        return [...prevSelected, moduleId];
-      }
-    });
-  };
-
-  const {
-    mutate: assignModules,
-    isLoading: assignModulesLoading,
-    errors: assignModulesError,
-  } = useApiMutation({
+  const { mutate: assignModules } = useApiMutation({
     url: "/admin/modules/create",
   });
 
-  const handleUpdateAssign = async () => {
-    console.log("Selected Modules to Update:", selectedModules);
-    const response = await assignModules({
-      module_business_id: business?.id,
-      user_id: user?.id,
-      business_modules_id: selectedModules,
-    });
+  // Toggling a switch saves immediately — no separate "Update" step.
+  const onToggle = async (moduleId) => {
+    const wasSelected = selectedModules.includes(moduleId);
+    const nextSelected = wasSelected
+      ? selectedModules.filter((id) => id !== moduleId)
+      : [...selectedModules, moduleId];
 
-    console.log("Update Assign Response:", response);
+    setSelectedModules(nextSelected);
+    setPendingIds((prev) => [...prev, moduleId]);
 
-    if (response.success) {
-      toast.success(
-        response.message || "Module assignment updated successfully.",
-      );
+    try {
+      const response = await assignModules({
+        tenant_id: business?.id,
+        user_id: user?.id,
+        module_id: moduleId
+      });
+
+      if (response?.success) {
+        toast.success(
+          wasSelected ? "Module deactivated" : "Module activated",
+        );
+      } else {
+        // Revert on failure
+        setSelectedModules(selectedModules);
+        toast.error(response?.message || "Failed to update module.");
+      }
+    } catch (error) {
+      setSelectedModules(selectedModules);
+      toast.error("Failed to update module.");
+    } finally {
+      setPendingIds((prev) => prev.filter((id) => id !== moduleId));
     }
   };
 
@@ -107,7 +113,7 @@ const Modules = ({ business, user, businessModules }) => {
                 Module Access Management
               </h1>
               <p className="mt-1 text-slate-500">
-                Configure module permissions for this business
+                Turn modules on or off for this business — changes save instantly.
               </p>
             </div>
 
@@ -123,30 +129,17 @@ const Modules = ({ business, user, businessModules }) => {
                   className="h-10 w-full rounded-[5px] border border-slate-200 bg-white pl-10 pr-4 text-sm shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
-
-              <Button
-                onClick={handleUpdateAssign}
-                disabled={assignModulesLoading}
-                className="h-10 min-w-40 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-70"
-              >
-                {assignModulesLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Assigning...
-                  </>
-                ) : (
-                  <>
-                    <Save className="mr-2 h-4 w-4" />
-                    Update Assign
-                  </>
-                )}
-              </Button>
             </div>
           </div>
         </div>
       </div>
       <div className="w-full py-8">
         <div className="space-y-6">
+          {Object.keys(moduleGroups).length === 0 && (
+            <div className="text-center text-sm text-slate-400 py-16">
+              No modules match "{search}".
+            </div>
+          )}
           {Object.keys(moduleGroups).map((groupSlug) => {
             const group = moduleGroups[groupSlug];
             return (
@@ -169,7 +162,8 @@ const Modules = ({ business, user, businessModules }) => {
                         <ModuleCard
                           key={module.id}
                           module={module}
-                          selectedModules={selectedModules}
+                          isAssigned={selectedModules.includes(module.id)}
+                          isPending={pendingIds.includes(module.id)}
                           onToggle={onToggle}
                         />
                       );
@@ -185,42 +179,17 @@ const Modules = ({ business, user, businessModules }) => {
   );
 };
 
-const ModuleCard = ({ module, selectedModules = [], onToggle }) => {
+const ModuleCard = ({ module, isAssigned, isPending, onToggle }) => {
   const IconComponent = LucideIcons[module?.icon] || LucideIcons["Box"];
-  const isCore = module.is_core === 1;
-  const isAssigned = selectedModules.includes(module.id);
-  const isActive = isAssigned || isCore;
   const [isHovered, setIsHovered] = useState(false);
-
-  const getCardStyles = () => {
-    if (isCore) {
-      return {
-        border: "border-purple-200",
-        bg: "bg-linear-to-br from-purple-50/60 via-white to-white",
-        ring: "hover:ring-purple-100",
-      };
-    }
-    if (isActive) {
-      return {
-        border: "border-emerald-200",
-        bg: "bg-linear-to-br from-emerald-50/40 via-white to-white",
-        ring: "hover:ring-emerald-100",
-      };
-    }
-    return {
-      border: "border-slate-200",
-      bg: "bg-white",
-      ring: "hover:ring-slate-100",
-    };
-  };
-
-  const styles = getCardStyles();
 
   return (
     <div
-      className={`relative rounded-[5px] border cursor-pointer ${styles.border} ${styles.bg} ${styles.ring} transition-all duration-300 overflow-hidden group hover:ring-2 ${
-        isHovered ? "shadow-sm -translate-y-0.5" : "shadow-sm"
-      }`}
+      className={`relative rounded-[5px] border transition-all duration-300 overflow-hidden group ${
+        isAssigned
+          ? "border-emerald-200 bg-linear-to-br from-emerald-50/40 via-white to-white hover:ring-emerald-100"
+          : "border-slate-200 bg-white hover:ring-slate-100"
+      } ${isHovered ? "shadow-sm -translate-y-0.5 hover:ring-2" : "shadow-sm hover:ring-2"}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -233,31 +202,16 @@ const ModuleCard = ({ module, selectedModules = [], onToggle }) => {
 
       <div className="p-4 relative">
         <div className="flex items-start space-x-3">
-          <div className="relative shrink-0">
-            <div
-              className={`p-2.5 rounded-[5px] bg-linear-to-br ${module.color} text-white shadow-md transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg`}
-            >
-              <IconComponent className="w-5 h-5" />
-            </div>
-            {isCore && (
-              <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-purple-500 border-2 border-white" />
-              </span>
-            )}
+          <div
+            className={`shrink-0 p-2.5 rounded-[5px] bg-linear-to-br ${module.color} text-white shadow-md transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg`}
+          >
+            <IconComponent className="w-5 h-5" />
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold text-slate-800 truncate group-hover:text-slate-900 transition-colors">
-                {module.name}
-              </h3>
-              {isCore && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-[3px] text-[9px] font-bold bg-linear-to-r from-purple-100 to-purple-50 text-purple-700 border border-purple-200/60 uppercase tracking-wider shrink-0">
-                  Core
-                </span>
-              )}
-            </div>
+            <h3 className="text-sm font-semibold text-slate-800 truncate group-hover:text-slate-900 transition-colors">
+              {module.name}
+            </h3>
 
             {module.description ? (
               <p className="text-xs text-slate-500 mt-0.5 line-clamp-1 group-hover:text-slate-600 transition-colors">
@@ -283,74 +237,56 @@ const ModuleCard = ({ module, selectedModules = [], onToggle }) => {
                 </span>
               )}
 
-              {module.sort_order != null && (
-                <span className="text-[10px] text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded-[3px] border border-slate-100">
-                  ID: {module.id}
-                </span>
-              )}
+              <span className="text-[10px] text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded-[3px] border border-slate-100">
+                ID: {module.id}
+              </span>
             </div>
           </div>
         </div>
 
         <div className="mt-3 pt-3 border-t border-slate-200/60 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {/* Live status pill */}
-            <div
-              className={`flex items-center gap-1.5 px-2 py-0.5 rounded-[3px] border ${
-                isActive
-                  ? "bg-emerald-50 border-emerald-200/60"
-                  : "bg-slate-50 border-slate-200/60"
+          <div
+            className={`flex items-center gap-1.5 px-2 py-0.5 rounded-[3px] border ${
+              isAssigned
+                ? "bg-emerald-50 border-emerald-200/60"
+                : "bg-slate-50 border-slate-200/60"
+            }`}
+          >
+            <span className="relative flex h-1.5 w-1.5">
+              {isAssigned && (
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              )}
+              <span
+                className={`relative inline-flex rounded-full h-1.5 w-1.5 ${
+                  isAssigned ? "bg-emerald-500" : "bg-slate-400"
+                }`}
+              />
+            </span>
+            <span
+              className={`text-[10px] font-medium ${
+                isAssigned ? "text-emerald-700" : "text-slate-500"
               }`}
             >
-              <span className="relative flex h-1.5 w-1.5">
-                {isActive && (
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                )}
-                <span
-                  className={`relative inline-flex rounded-full h-1.5 w-1.5 ${
-                    isActive ? "bg-emerald-500" : "bg-slate-400"
-                  }`}
-                />
-              </span>
-              <span
-                className={`text-[10px] font-medium ${
-                  isActive ? "text-emerald-700" : "text-slate-500"
-                }`}
-              >
-                {isActive ? "Active" : "Inactive"}
-              </span>
-            </div>
-
-            {/* Assignment badge */}
-            {!isAssigned && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-[3px] text-[9px] font-medium bg-amber-50 text-amber-600 border border-amber-200/60">
-                Not Assigned
-              </span>
-            )}
+              {isAssigned ? "Active" : "Inactive"}
+            </span>
           </div>
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={isActive}
-                  onCheckedChange={() => onToggle?.(module.id)}
-                  disabled={isCore}
-                  className={`data-[state=checked]:bg-linear-to-r data-[state=unchecked]:bg-slate-300`}
-                />
-                {isCore && (
-                  <LucideIcons.Lock className="w-3 h-3 text-purple-400" />
+              <div className="flex items-center">
+                {isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                ) : (
+                  <Switch
+                    checked={isAssigned}
+                    onCheckedChange={() => onToggle?.(module.id)}
+                    className="data-[state=checked]:bg-linear-to-r data-[state=unchecked]:bg-slate-300"
+                  />
                 )}
               </div>
             </TooltipTrigger>
             <TooltipContent className="rounded-[5px] bg-slate-800 text-white border-0 text-xs px-3 py-1.5">
-              <p>
-                {isCore
-                  ? "🔒 Core module — always active"
-                  : isActive
-                    ? "Click to deactivate"
-                    : "Click to activate"}
-              </p>
+              <p>{isAssigned ? "Click to deactivate" : "Click to activate"}</p>
             </TooltipContent>
           </Tooltip>
         </div>

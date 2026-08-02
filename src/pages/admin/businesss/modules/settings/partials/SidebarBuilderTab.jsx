@@ -46,20 +46,28 @@ const DEFAULT_GROUPS = [
     items: [{ id: "dashboard", label: "Dashboard", iconKey: "dashboard", system: true }],
   },
   {
-    id: "management",
-    title: "Management",
+    id: "default-content",
+    title: "Default Content",
     locked: true,
-    items: [
-      { id: "settings", label: "Settings", iconKey: "settings", system: true },
-      { id: "navigations", label: "Pages", iconKey: "pages", system: true },
-    ],
+    items: [],
   },
   {
     id: "content-management",
     title: "Content Management",
     locked: true,
+    items: [],
+  },
+  {
+    id: "settings",
+    title: "Settings",
+    locked: true,
     items: [
-      { id: "categories", label: "Categories", iconKey: "tag", system: true },
+      { id: "settings", label: "Business Overview", iconKey: "settings", system: true },
+      { id: "navigations", label: "Pages", iconKey: "pages", system: true },
+      { id: "builder", label: "Menu Builder", iconKey: "pages", system: true },
+      { id: "sidebar-builder", label: "Sidebar Builder", iconKey: "pages", system: true },
+      { id: "modules", label: "Modules Manager", iconKey: "pages", system: true },
+      { id: "account-settings", label: "Accounts", iconKey: "pages", system: true },
     ],
   },
 ];
@@ -161,7 +169,7 @@ const SortableItem = ({ item, index, groupId, onEdit, onRemove }) => {
         <button ref={handleRef} type="button" className="text-muted-foreground cursor-grab active:cursor-grabbing">
           <GripVertical className="h-4 w-4" />
         </button>
-        <IconRenderer icon={item?.iconKey} className="h-4 w-4 text-blue-600"/>
+        <IconRenderer icon={item?.iconKey} className="h-4 w-4 text-blue-600" />
         <span className="text-sm font-medium">{item.label}</span>
       </div>
       <div className="flex items-center gap-2">

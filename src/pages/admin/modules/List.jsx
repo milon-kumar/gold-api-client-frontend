@@ -246,13 +246,19 @@ const List = () => {
     [modulesResponse],
   );
 
-  const groupedModules = useMemo(() => {
-    const filtered = modules.filter(
-      (m) =>
-        m.name?.toLowerCase().includes(search.toLowerCase()) ||
-        m.slug?.toLowerCase().includes(search.toLowerCase()),
-    );
+  console.log("Modules data:", modules);
 
+  const groupedModules = useMemo(() => {
+  const moduleList = Array.isArray(modules?.data) ? modules?.data : [];
+
+  const filtered = moduleList.filter((m) => {
+    const searchTerm = search.toLowerCase();
+
+    return (
+      m.name?.toLowerCase().includes(searchTerm) ||
+      m.slug?.toLowerCase().includes(searchTerm)
+    );
+  });
     const groups = {};
     for (const mod of filtered) {
       const key = mod.group_slug || "ungrouped";
@@ -278,9 +284,14 @@ const List = () => {
   }, [modules, search]);
 
   const totalCount = modules.length;
-  const coreCount = modules.filter((m) => m.is_core === 1).length;
-  const activeCount = modules.filter((m) => m.status === "active").length;
+  const moduleList = Array.isArray(modules)
+  ? modules
+  : Array.isArray(modules?.data)
+    ? modules.data
+    : [];
 
+const coreCount = moduleList.filter((m) => m.is_core === 1).length;
+const activeCount = moduleList.filter((m) => m.status === "active").length;
 
   const handleEdit = (module) => {
     navigate(`/admin/modules/save/${module.id}`);

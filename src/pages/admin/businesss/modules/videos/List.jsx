@@ -1,7 +1,7 @@
 // List.jsx
 import React, { useState } from 'react';
 import { toast } from "sonner";
-import { useNavigate } from 'react-router';
+import { useNavigate,useSearchParams} from 'react-router';
 import {
   Card,
   CardContent,
@@ -96,7 +96,9 @@ const VideoListing = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [viewingItem, setViewingItem] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [searchParams] = useSearchParams();
 
+  const slug = searchParams.get('slug') || null;
   // Fetch module items
   const {
     data: response,
@@ -105,7 +107,7 @@ const VideoListing = () => {
   } = useApiQuery({
     url: "/admin/business-module-items",
     params: {
-      module_slug: MODULES?.VIDEO || 'video',
+      module_slug: slug || MODULES?.VIDEO || 'video',
       search: searchTerm || undefined,
       status: statusFilter !== 'all' ? statusFilter : undefined,
       is_featured: featuredFilter !== 'all' ? featuredFilter : undefined,
@@ -149,7 +151,7 @@ const VideoListing = () => {
   };
 
   const handleEditItem = (item) => {
-    navigate(`/admin/videos/save/${item?.id}`);
+    navigate(`/admin/videos/save/${item?.id}?slug=${encodeURIComponent(slug)}`);
   };
 
   const handleDeleteItem = (item) => {
@@ -493,7 +495,7 @@ const VideoListing = () => {
         primaryAction={{
           title: "Add Video",
           icon: "plus",
-          onClick: () => navigate("/admin/videos/save")
+          onClick: () => navigate(`/admin/videos/save?slug=${encodeURIComponent(slug)}`)
         }}
         secondaryAction={{
           title: "Refresh",

@@ -92,7 +92,7 @@ const SaveModal = ({ open, onOpenChange, onSaved }) => {
         toast.error(response?.message || "Failed to save categories");
       }
     }catch(error){
-      if(error){
+      if(error.message){
         toast.error(error.message || "Failed to save categories")
       }
     }
@@ -128,7 +128,7 @@ const SaveModal = ({ open, onOpenChange, onSaved }) => {
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
-
+{console.log("Modules data:", modules)}
               <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
                 <Command>
                   <CommandInput placeholder="Search module..." />
@@ -146,7 +146,7 @@ const SaveModal = ({ open, onOpenChange, onSaved }) => {
                         <Check
                           className={cn("mr-2 h-4 w-4", type === module.title_slug ? "opacity-100" : "opacity-0")}
                         />
-                        {module.title}
+                        {module.title} - ({module?.module_type === 'system' ? 'Page Module' : 'Custom'})
                       </CommandItem>
                     ))}
                   </CommandGroup>

@@ -18,6 +18,7 @@ import {
   ChevronLeft,
   ChevronRight,
   MoreHorizontal,
+  Pickaxe,
 } from "lucide-react";
 
 // shadcn/ui imports
@@ -186,6 +187,21 @@ const PageListing = () => {
     return;
     navigate(`/admin/navigations/view/${page?.id}`);
   };
+
+  const onManage = (page) => {
+    const manageLinks = {
+      "about-us": `/admin/founding-president`,
+      "organizations": `/admin/organizations`,
+      "photo-gallery": `/admin/photos`,
+      "video-gallery": `/admin/videos`,
+      "all-staffs": `/admin/staffs`,
+    }
+    
+    const url = manageLinks[page?.page_slug] || null;
+  if (url) {
+    navigate(`${url}?slug=${encodeURIComponent(page.page_slug)}`);
+  }
+  }
 
   const onCreate = () => {
     navigate("/admin/navigations/save");
@@ -436,6 +452,15 @@ const PageListing = () => {
                           Delete
                         </DropdownMenuItem>
                       )}
+                      {
+                        page?.page_type === 'default' && (
+                          <DropdownMenuItem onClick={() => onManage(page)}>
+                            <Pickaxe className="mr-2 h-4 w-4" />
+                            Manage Content
+                          </DropdownMenuItem>
+                        )
+                      }
+                      
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

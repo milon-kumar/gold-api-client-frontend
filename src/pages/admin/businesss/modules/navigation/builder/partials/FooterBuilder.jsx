@@ -3,7 +3,6 @@ import { DragDropProvider } from "@dnd-kit/react";
 import { useSortable } from "@dnd-kit/react/sortable";
 import { CollisionPriority } from "@dnd-kit/abstract";
 import { move } from "@dnd-kit/helpers";
-import { Badge } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,6 +44,7 @@ import {
   Type,
   Copy,
   Check,
+  Palette,
 } from "lucide-react";
 import { useApiMutation } from "@/hooks/useAppMutation";
 import { toast } from "sonner";
@@ -67,6 +67,166 @@ const SOCIAL_KEYS = [
   { key: "instagram_link", label: "Instagram" },
   { key: "linkedin_link", label: "LinkedIn" },
 ];
+
+/* ------------------------------------------------------------------
+   Footer themes — same 6 identities as PageHeroRenderer
+   (gradient / editorial / wave / minimal / split / aurora).
+   Same data (columns, links, copyright), only the look changes.
+------------------------------------------------------------------ */
+const FOOTER_THEMES = [
+  {
+    value: "gradient",
+    label: "Gradient",
+    hint: "Dark emerald gradient + grid, amber accents",
+    swatch: "bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900",
+  },
+  {
+    value: "editorial",
+    label: "Editorial",
+    hint: "Light, dotted pattern, gold underline",
+    swatch: "bg-[#f9fbf9] border border-slate-200",
+  },
+  {
+    value: "wave",
+    label: "Wave",
+    hint: "Emerald–teal gradient, curved wave top",
+    swatch: "bg-gradient-to-br from-emerald-700 to-teal-900",
+  },
+  {
+    value: "minimal",
+    label: "Minimal",
+    hint: "Quiet, thin borders, understated",
+    swatch: "bg-white border border-slate-200",
+  },
+  {
+    value: "split",
+    label: "Split",
+    hint: "Dark brand panel + light content strip",
+    swatch: "bg-gradient-to-r from-slate-900 to-slate-700",
+  },
+  {
+    value: "aurora",
+    label: "Aurora",
+    hint: "Deep navy, soft aurora glow, premium",
+    swatch: "bg-[#0b1120]",
+  },
+];
+
+const FOOTER_THEME_STYLES = {
+  gradient: {
+    wrapper:
+      "relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900 text-slate-300 p-6",
+    heading: "text-white",
+    item: "text-emerald-100/70 hover:text-amber-300",
+    border: "border-emerald-900/50",
+    copyright: "text-slate-500",
+  },
+  editorial: {
+    wrapper:
+      "relative rounded-xl bg-[#f9fbf9] text-slate-600 p-6 border border-slate-200",
+    heading: "text-slate-900",
+    item: "text-slate-500 hover:text-emerald-700",
+    border: "border-slate-200",
+    copyright: "text-slate-400",
+  },
+  wave: {
+    wrapper:
+      "relative overflow-hidden rounded-xl bg-gradient-to-br from-emerald-700 to-teal-900 text-emerald-50 p-6 pt-12",
+    heading: "text-white",
+    item: "text-emerald-100/70 hover:text-amber-300",
+    border: "border-emerald-600/40",
+    copyright: "text-emerald-200/60",
+  },
+  minimal: {
+    wrapper: "relative rounded-xl bg-white text-slate-500 p-6 border border-slate-100",
+    heading: "text-slate-800",
+    item: "text-slate-500 hover:text-slate-900",
+    border: "border-slate-100",
+    copyright: "text-slate-400",
+  },
+  split: {
+    wrapper:
+      "relative overflow-hidden rounded-xl bg-slate-900 text-slate-300 p-6",
+    heading: "text-white",
+    item: "text-slate-400 hover:text-amber-300",
+    border: "border-white/10",
+    copyright: "text-slate-500",
+  },
+  aurora: {
+    wrapper: "relative overflow-hidden rounded-xl bg-[#0b1120] text-slate-300 p-6",
+    heading: "text-white",
+    item: "text-slate-400 hover:text-cyan-300",
+    border: "border-white/10",
+    copyright: "text-slate-500",
+  },
+};
+
+/* Decorative background layers per theme — purely visual, sit behind content */
+const GradientDecor = () => (
+  <>
+    <div
+      className="absolute inset-0 opacity-[0.06]"
+      style={{
+        backgroundImage:
+          "linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px)",
+        backgroundSize: "28px 28px",
+      }}
+    />
+    <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-amber-400/10 blur-3xl" />
+  </>
+);
+
+const WaveDecor = () => (
+  <svg
+    className="absolute inset-x-0 top-0 h-8 w-full"
+    viewBox="0 0 400 24"
+    preserveAspectRatio="none"
+  >
+    <path
+      d="M0,12 C100,24 300,0 400,12 L400,0 L0,0 Z"
+      fill="rgba(255,255,255,0.06)"
+    />
+  </svg>
+);
+
+const AuroraDecor = () => (
+  <>
+    <div className="absolute -left-16 top-0 h-48 w-48 rounded-full bg-emerald-500/15 blur-3xl" />
+    <div className="absolute right-0 -bottom-10 h-48 w-48 rounded-full bg-cyan-400/10 blur-3xl" />
+    <div className="absolute right-10 top-6 h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+  </>
+);
+
+const THEME_DECOR = {
+  gradient: GradientDecor,
+  wave: WaveDecor,
+  aurora: AuroraDecor,
+};
+
+/* ------------------------------------------------------------------
+   Theme picker — used in the Footer builder settings section
+------------------------------------------------------------------ */
+const ThemePicker = ({ value, onChange }) => (
+  <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
+    {FOOTER_THEMES.map((t) => (
+      <button
+        type="button"
+        key={t.value}
+        onClick={() => onChange(t.value)}
+        className={`text-left rounded-lg border p-3 transition-colors ${
+          value === t.value ? "border-primary bg-primary/5" : "hover:bg-slate-50"
+        }`}
+      >
+        <div className={`h-10 rounded-md mb-2 ${t.swatch}`} />
+        <div className="text-xs font-medium flex items-center gap-1.5">
+          {t.label}
+          {value === t.value && <Check className="w-3 h-3 text-primary" />}
+        </div>
+        <div className="text-[10px] text-slate-400 mt-0.5">{t.hint}</div>
+      </button>
+    ))}
+  </div>
+);
 
 const defaultConfig = (type, setting) => {
   const s = setting?.settings || {};
@@ -108,6 +268,9 @@ const emptyFooter = (setting) => ({
   name: "",
   is_active: true,
   copyright_text: setting?.settings?.copyright_text || "",
+  meta: {
+    theme: "aurora",
+  },
 });
 
 const SortableLink = ({ link, index, columnId, onRemove }) => {
@@ -308,6 +471,99 @@ const ColumnConfigEditor = ({ column, onUpdateConfig }) => {
   return null;
 };
 
+/* ------------------------------------------------------------------
+   Themed footer preview — same data, look driven by meta.theme
+------------------------------------------------------------------ */
+const FooterThemedPreview = ({ columns, links, copyrightText, theme }) => {
+  const style = FOOTER_THEME_STYLES[theme] || FOOTER_THEME_STYLES.aurora;
+  const Decor = THEME_DECOR[theme];
+  const isSplit = theme === "split";
+
+  return (
+    <div className={style.wrapper}>
+      {Decor && <Decor />}
+      <div className="relative z-10">
+        <div
+          className="grid gap-6 text-sm"
+          style={{
+            gridTemplateColumns: `repeat(${Math.max(columns.length, 1)}, minmax(0, 1fr))`,
+          }}
+        >
+          {columns.map((col, idx) => (
+            <div
+              key={col.id}
+              className={
+                isSplit && idx === 0
+                  ? "rounded-lg border border-emerald-400/20 bg-emerald-500/10 p-4"
+                  : ""
+              }
+            >
+              <h4
+                className={`${style.heading} font-semibold text-xs mb-2 uppercase tracking-wide`}
+              >
+                {col.title}
+              </h4>
+              {col.type === "links" && (
+                <ul className="space-y-1.5">
+                  {(links[col.id] || []).map((it) => (
+                    <li
+                      key={it.id}
+                      className={`text-xs cursor-pointer transition-colors ${style.item}`}
+                    >
+                      {it.label}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {col.type === "about" && (
+                <div className="space-y-2">
+                  {col.config?.show_logo && col.config?.logo && (
+                    <img
+                      src={col.config.logo}
+                      alt="logo"
+                      className="h-10"
+                      onError={(e) => (e.currentTarget.style.display = "none")}
+                    />
+                  )}
+                  <p className={`text-xs ${style.item}`}>{col.config?.about_text}</p>
+                </div>
+              )}
+              {col.type === "contact" && (
+                <ul className={`space-y-1.5 text-xs ${style.item}`}>
+                  {col.config?.show_email && <li>✉ {col.config.email}</li>}
+                  {col.config?.show_phone && <li>☎ {col.config.phone}</li>}
+                  {col.config?.show_location && <li>⚲ {col.config.location}</li>}
+                </ul>
+              )}
+              {col.type === "social" && (
+                <ul className="space-y-1.5 text-xs">
+                  {SOCIAL_KEYS.filter(({ key }) => col.config?.[key]?.enabled).map(
+                    ({ key, label }) => (
+                      <li key={key} className={`cursor-pointer transition-colors ${style.item}`}>
+                        {label}
+                      </li>
+                    ),
+                  )}
+                </ul>
+              )}
+              {col.type === "custom_text" && (
+                <p className={`text-xs whitespace-pre-line ${style.item}`}>
+                  {col.config?.text}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+        <div
+          className={`border-t ${style.border} mt-5 pt-3 text-[11px] text-center ${style.copyright}`}
+        >
+          {copyrightText}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const FooterBuilder = ({ allActivePages = [], setting }) => {
   const [footers, setFooters] = useState([]);
   const [current, setCurrent] = useState(emptyFooter(setting));
@@ -349,6 +605,10 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
       name: f.name,
       is_active: !!f.is_active,
       copyright_text: f.copyright_text || "",
+      meta: {
+        ...emptyFooter(setting).meta,
+        ...(f.meta || {}),
+      },
     });
     const cols = (f.columns || []).map((c) => ({
       id: `col-${c.id}`,
@@ -416,6 +676,9 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
       cols.map((col) => (col.id === id ? { ...col, config } : col)),
     );
 
+  const updateMeta = (patch) =>
+    setCurrent((c) => ({ ...c, meta: { ...c.meta, ...patch } }));
+
   const addLinkFromPage = (colId, pageId) => {
     const page = allActivePages.find((p) => p.id === Number(pageId));
     if (!page) return;
@@ -433,20 +696,6 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
       ],
     }));
   };
-
-  // const addCustomLink = (colId) => {
-  //   const label = prompt("Link label:");
-  //   if (!label) return;
-  //   const url = prompt("URL:");
-  //   if (!url) return;
-  //   setLinks((l) => ({
-  //     ...l,
-  //     [colId]: [
-  //       ...(l[colId] || []),
-  //       { id: newId("l"), page_id: null, label, url, target: "_blank" },
-  //     ],
-  //   }));
-  // };
 
   const addCustomLink = (colId) => {
     setLinkModal({
@@ -500,6 +749,7 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
       name: current.name,
       is_active: current.is_active,
       copyright_text: current.copyright_text,
+      meta: current.meta,
       columns: columns.map((col, ci) => ({
         title: col.title,
         type: col.type,
@@ -675,6 +925,24 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
         </CardContent>
       </Card>
 
+      {/* -------- Theme -------- */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Palette className="w-4 h-4" /> Footer theme
+          </CardTitle>
+          <CardDescription className="text-xs">
+            Same columns, links and copyright — pick how the footer should look.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ThemePicker
+            value={current.meta?.theme}
+            onChange={(v) => updateMeta({ theme: v })}
+          />
+        </CardContent>
+      </Card>
+
       <DragDropProvider
         onDragStart={() => {
           snapshot.current = {
@@ -784,78 +1052,18 @@ export const FooterBuilder = ({ allActivePages = [], setting }) => {
       </Card>
 
       <div>
-        <p className="text-xs text-slate-400 mb-2">Preview</p>
-        <div className="rounded-xl bg-slate-900 text-slate-300 p-6">
-          <div
-            className="grid gap-6 text-sm"
-            style={{
-              gridTemplateColumns: `repeat(${Math.max(columns.length, 1)}, minmax(0, 1fr))`,
-            }}
-          >
-            {columns.map((col) => (
-              <div key={col.id}>
-                <h4 className="text-white font-semibold text-xs mb-2 uppercase tracking-wide">
-                  {col.title}
-                </h4>
-                {col.type === "links" && (
-                  <ul className="space-y-1.5">
-                    {(links[col.id] || []).map((it) => (
-                      <li
-                        key={it.id}
-                        className="text-xs hover:text-white cursor-pointer"
-                      >
-                        {it.label}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {col.type === "about" && (
-                  <div className="space-y-2">
-                    {col.config?.show_logo && col.config?.logo && (
-                      <img
-                        src={col.config.logo}
-                        alt="logo"
-                        className="h-10"
-                        onError={(e) =>
-                          (e.currentTarget.style.display = "none")
-                        }
-                      />
-                    )}
-                    <p className="text-xs">{col.config?.about_text}</p>
-                  </div>
-                )}
-                {col.type === "contact" && (
-                  <ul className="space-y-1.5 text-xs">
-                    {col.config?.show_email && <li>✉ {col.config.email}</li>}
-                    {col.config?.show_phone && <li>☎ {col.config.phone}</li>}
-                    {col.config?.show_location && (
-                      <li>⚲ {col.config.location}</li>
-                    )}
-                  </ul>
-                )}
-                {col.type === "social" && (
-                  <ul className="space-y-1.5 text-xs">
-                    {SOCIAL_KEYS.filter(
-                      ({ key }) => col.config?.[key]?.enabled,
-                    ).map(({ key, label }) => (
-                      <li key={key} className="hover:text-white">
-                        {label}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {col.type === "custom_text" && (
-                  <p className="text-xs whitespace-pre-line">
-                    {col.config?.text}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-          <div className="border-t border-slate-700 mt-5 pt-3 text-[11px] text-slate-500 text-center">
-            {current.copyright_text}
-          </div>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-xs text-slate-400">Preview</p>
+          <span className="text-[10px] rounded-full border px-2 py-0.5 capitalize text-slate-400">
+            {current.meta?.theme || "aurora"}
+          </span>
         </div>
+        <FooterThemedPreview
+          columns={columns}
+          links={links}
+          copyrightText={current.copyright_text}
+          theme={current.meta?.theme || "aurora"}
+        />
       </div>
 
       {linkModal.open && (

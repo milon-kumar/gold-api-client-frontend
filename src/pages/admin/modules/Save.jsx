@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router";
+import * as LucideIcons from "lucide-react";
+import { toast } from "sonner";
+
 import { useApiQuery } from "@/hooks/useAppQuery";
 import { useApiMutation } from "@/hooks/useAppMutation";
-import { useParams, useNavigate } from "react-router";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import {
   Card,
   CardContent,
@@ -9,10 +18,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -20,102 +25,88 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Sparkles, LayoutGrid, Loader2, icons } from "lucide-react";
-import { toast } from "sonner";
+import { ArrowLeft, Save, Loader2, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
-const DEFAULT_FORM = {
-  name: "",
-  slug: "",
-  icon: "LayoutGrid",
-  color: "from-purple-500 to-purple-600",
-  group_name: "",
-  group_slug: "",
-  group_sort_order: 1,
-  sort_order: 1,
-  status: "active",
-  is_core: false,
-  meta: "",
-};
+// A handful of ready-made gradients — the "color" field just needs Tailwind
+// `from-*`/`to-*` classes, custom values are also allowed.
+const COLOR_PRESETS = [
+  { label: "Indigo", value: "from-indigo-500 to-indigo-600" },
+  { label: "Emerald", value: "from-emerald-500 to-emerald-600" },
+  { label: "Amber", value: "from-amber-500 to-amber-600" },
+  { label: "Rose", value: "from-rose-500 to-rose-600" },
+  { label: "Sky", value: "from-sky-500 to-sky-600" },
+  { label: "Purple", value: "from-purple-500 to-purple-600" },
+  { label: "Slate", value: "from-slate-500 to-slate-600" },
+];
 
 const slugify = (str = "") =>
   str
-    .toLowerCase()
+    .toString()
     .trim()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-");
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)+/g, "");
 
-const STATUS_STYLES = {
-  active:
-    "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
-  inactive: "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300",
-  draft: "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
-};
+const emptyForm = () => ({
+  name: "",
+  slug: "",
+  icon: "Box",
+  color: COLOR_PRESETS[0].value,
+  group_name: "",
+  group_slug: "",
+  group_sort_order: 0,
+  sort_order: 0,
+  status: "active",
+  is_core: false,
+  meta: "{}", // kept as a raw JSON string in the form, parsed on submit
+});
 
-const Save = () => {
+const ModuleSave = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const isEditMode = !!id;
+  const isEditMode = !!id && id !== "new";
 
-  const [form, setForm] = useState(DEFAULT_FORM);
-  const [slugTouched, setSlugTouched] = useState(false);
-  const [groupSlugTouched, setGroupSlugTouched] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [form, setForm] = useState(emptyForm());
+  const [metaError, setMetaError] = useState("");
 
-  const {
-    data: moduleResponse,
-    isLoading: moduleLoading,
-    error: moduleError,
-    refetch: moduleRefetch,
-  } = useApiQuery({
-    url: `admin/modules/${id}`,
+  const { data: response, isLoading: loadingModule } = useApiQuery({
+    url: `/admin/modules/${id}`,
     enabled: isEditMode,
   });
 
-  useEffect(() => {
-    const module = moduleResponse?.data?.data;
-    if (!module) return;
-
-    setForm({
-      name: module.name ?? "",
-      slug: module.slug ?? "",
-      icon: module.icon ?? "LayoutGrid",
-      color: module.color ?? DEFAULT_FORM.color,
-      group_name: module.group_name ?? "",
-      group_slug: module.group_slug ?? "",
-      group_sort_order: module.group_sort_order ?? 1,
-      sort_order: module.sort_order ?? 1,
-      status: module.status ?? "active",
-      is_core: !!module.is_core,
-      meta: module.meta
-        ? typeof module.meta === "string"
-          ? module.meta
-          : JSON.stringify(module.meta, null, 2)
-        : "",
-    });
-    // Existing records shouldn't have their slugs auto-overwritten
-    setSlugTouched(true);
-    setGroupSlugTouched(true);
-  }, [moduleResponse]);
-
-  // ---- Save mutation ----
-  const { mutate: saveModule, isPending: isSaving } = useApiMutation({
-    url: `admin/modules`,
-    method: "POST",
+  const { mutate: saveModule, isLoading: saving } = useApiMutation({
+    url: "/admin/modules",
+    method: "POST", // store() handles both create & update via `id`
   });
 
-  const setField = (key, value) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
-    if (errors[key]) setErrors((prev) => ({ ...prev, [key]: undefined }));
-  };
+  useEffect(() => {
+    if (!response?.data?.data) return;
+    const m = response.data.data;
 
+    setForm({
+      name: m.name || "",
+      slug: m.slug || "",
+      icon: m.icon || "Box",
+      color: m.color || COLOR_PRESETS[0].value,
+      group_name: m.group_name || "",
+      group_slug: m.group_slug || "",
+      group_sort_order: m.group_sort_order ?? 0,
+      sort_order: m.sort_order ?? 0,
+      status: m.status || "active",
+      is_core: !!m.is_core,
+      meta: m.meta ? JSON.stringify(m.meta, null, 2) : "{}",
+    });
+  }, [response]);
+
+  const set = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
+
+  // Slug auto-follows the name until the user edits the slug by hand.
   const handleNameChange = (value) => {
     setForm((prev) => ({
       ...prev,
       name: value,
-      slug: slugTouched ? prev.slug : slugify(value),
+      slug: prev.slug === slugify(prev.name) ? slugify(value) : prev.slug,
     }));
   };
 
@@ -123,257 +114,229 @@ const Save = () => {
     setForm((prev) => ({
       ...prev,
       group_name: value,
-      group_slug: groupSlugTouched ? prev.group_slug : slugify(value),
+      // Only auto-fill the slug while it hasn't been hand-edited away from the derived value
+      group_slug: prev.group_slug === slugify(prev.group_name) ? slugify(value) : prev.group_slug,
     }));
   };
 
-  const handleSave = async () => {
+  const IconPreview = LucideIcons[form.icon] || LucideIcons.Box;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!form.name.trim()) {
+      toast.error("Name is required");
+      return;
+    }
+
+    // Validate meta JSON before sending
+    let metaParsed = {};
+    if (form.meta.trim()) {
+      try {
+        metaParsed = JSON.parse(form.meta);
+        setMetaError("");
+      } catch (err) {
+        setMetaError("Meta must be valid JSON.");
+        toast.error("Fix the Meta field — it must be valid JSON.");
+        return;
+      }
+    }
+
     const payload = {
-      ...form,
-      id: id || null,
+      id: isEditMode ? id : undefined,
+      name: form.name,
+      slug: form.slug || slugify(form.name),
+      icon: form.icon,
+      color: form.color,
+      group_name: form.group_name,
+      group_slug: form.group_slug || slugify(form.group_name),
       group_sort_order: Number(form.group_sort_order) || 0,
       sort_order: Number(form.sort_order) || 0,
-      meta: form.meta.trim() ? JSON.parse(form.meta) : null,
+      status: form.status,
+      is_core: !!form.is_core,
+      meta: metaParsed,
     };
 
-    console.log("Payload - ", payload);
-    const response = await saveModule(payload);
-
-    if (response.success) {
-      await moduleRefetch();
-      toast.success(response.message || "Module save successfully.");
+    const res = await saveModule(payload);
+    if (res?.success) {
+      toast.success(res?.message || (isEditMode ? "Module updated" : "Module created"));
+      navigate("/admin/modules");
+    } else {
+      toast.error(res?.message || "Failed to save module");
     }
   };
 
-  const PreviewIcon = icons[form.icon] || LayoutGrid;
-
-  if (isEditMode && moduleLoading) {
+  if (isEditMode && loadingModule) {
     return (
-      <div className="flex items-center justify-center h-64 text-muted-foreground gap-2">
-        <Loader2 className="h-5 w-5 animate-spin" />
-        Loading module...
-      </div>
-    );
-  }
-
-  if (isEditMode && moduleError) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 gap-3">
-        <p className="text-sm text-destructive">Failed to load this module.</p>
-        <Button variant="outline" onClick={() => navigate(-1)}>
-          Go back
-        </Button>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   return (
-    <div className="mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-y-1 gap-3">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => navigate(-1)}
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">
-              {isEditMode ? "Edit Navigation Item" : "Create Navigation Item"}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              {isEditMode
-                ? "Update this page, dashboard link, or module in your system routing."
-                : "Add a new page, dashboard link, or module to your system routing."}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button
-            className={"rounded-[5px]"}
-            variant="disctrive"
-            onClick={() => navigate(-1)}
-            disabled={isSaving}
-          >
-            Go back
-          </Button>
-          <Button
-            className={"rounded-[5px]"}
-            onClick={handleSave}
-            disabled={isSaving}
-            size="lg"
-          >
-            {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            {isEditMode ? "Update Module" : "Save Module"}
-          </Button>
+    <div className="w-full mx-auto py-6 space-y-6">
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="sm" onClick={() => navigate("/admin/modules")}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
+        </Button>
+        <div>
+          <h1 className="text-2xl font-bold">
+            {isEditMode ? "Edit Module" : "Add Module"}
+          </h1>
+          <p className="text-muted-foreground">
+            {isEditMode ? "Update this module's details" : "Add a new module to the catalog"}
+          </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left column */}
-        <div className="md:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>General Information</CardTitle>
-              <CardDescription>
-                Configure the user-facing details for this item.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Display Name</Label>
-                  <Input
-                    id="name"
-                    value={form.name}
-                    onChange={(e) => handleNameChange(e.target.value)}
-                    placeholder="e.g. Analytics Dashboard"
-                    aria-invalid={!!errors.name}
-                  />
-                  {errors.name && (
-                    <p className="text-xs text-destructive">{errors.name}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="slug">Slug (URL Path)</Label>
-                  <Input
-                    id="slug"
-                    value={form.slug}
-                    onChange={(e) => {
-                      setSlugTouched(true);
-                      setField("slug", slugify(e.target.value));
-                    }}
-                    placeholder="e.g. analytics-dashboard"
-                    aria-invalid={!!errors.slug}
-                  />
-                  {errors.slug && (
-                    <p className="text-xs text-destructive">{errors.slug}</p>
-                  )}
-                </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Basic Information</CardTitle>
+            <CardDescription>Name, icon and visual identity</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Title *</Label>
+                <Input
+                  id="name"
+                  value={form.name}
+                  onChange={(e) => handleNameChange(e.target.value)}
+                  placeholder="e.g., Notice Board"
+                  required
+                />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="icon">Lucide Icon Name</Label>
-                  <div className="relative">
-                    <Input
-                      id="icon"
-                      value={form.icon}
-                      onChange={(e) => setField("icon", e.target.value)}
-                      placeholder="e.g. LayoutDashboard"
-                      className="pr-10"
-                    />
-                    <span className="absolute right-3 top-2.5 text-muted-foreground text-xs font-mono">
-                      <PreviewIcon className="h-4 w-4" />
-                    </span>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="color">Theme Color / Gradient CSS</Label>
-                  <Input
-                    id="color"
-                    value={form.color}
-                    onChange={(e) => setField("color", e.target.value)}
-                    placeholder="e.g. from-blue-500 to-cyan-500"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Group & Sorting</CardTitle>
-              <CardDescription>
-                Determine where this item lives inside your navigation layout
-                tree.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="group_name">Parent Group Name</Label>
-                  <Input
-                    id="group_name"
-                    value={form.group_name}
-                    onChange={(e) => handleGroupNameChange(e.target.value)}
-                    placeholder="e.g. Management"
-                    aria-invalid={!!errors.group_name}
-                  />
-                  {errors.group_name && (
-                    <p className="text-xs text-destructive">
-                      {errors.group_name}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="group_slug">Parent Group Slug</Label>
-                  <Input
-                    id="group_slug"
-                    value={form.group_slug}
-                    onChange={(e) => {
-                      setGroupSlugTouched(true);
-                      setField("group_slug", slugify(e.target.value));
-                    }}
-                    placeholder="e.g. management"
-                    aria-invalid={!!errors.group_slug}
-                  />
-                  {errors.group_slug && (
-                    <p className="text-xs text-destructive">
-                      {errors.group_slug}
-                    </p>
-                  )}
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="slug">Slug</Label>
+                <Input
+                  id="slug"
+                  value={form.slug}
+                  onChange={(e) => set("slug", slugify(e.target.value))}
+                  placeholder="notice-board"
+                  className="font-mono text-sm"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Auto-filled from the title — edit it directly to override.
+                </p>
               </div>
 
-              <Separator className="my-2" />
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="group_sort_order">
-                    Group Order Placement
-                  </Label>
+              <div className="space-y-2">
+                <Label htmlFor="icon">Icon (Lucide name)</Label>
+                <div className="flex items-center gap-2">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-md border bg-muted shrink-0">
+                    <IconPreview className="h-4 w-4" />
+                  </span>
                   <Input
-                    id="group_sort_order"
-                    type="number"
-                    min={0}
-                    value={form.group_sort_order}
-                    onChange={(e) =>
-                      setField("group_sort_order", e.target.value)
-                    }
+                    id="icon"
+                    value={form.icon}
+                    onChange={(e) => set("icon", e.target.value)}
+                    placeholder="e.g., FolderOpen"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="sort_order">Item Order Within Group</Label>
-                  <Input
-                    id="sort_order"
-                    type="number"
-                    min={0}
-                    value={form.sort_order}
-                    onChange={(e) => setField("sort_order", e.target.value)}
-                  />
-                </div>
+                <p className="text-xs text-muted-foreground">
+                  Must match a component name from{" "}
+                  <a
+                    href="https://lucide.dev/icons"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline"
+                  >
+                    lucide.dev/icons
+                  </a>{" "}
+                  (PascalCase).
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
 
-        {/* Right column - Status, Metadata & Live Preview */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>System & Visibility Settings</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-5">
+            <div className="space-y-2">
+              <Label>Color</Label>
+              <div className="flex flex-wrap items-center gap-2">
+                {COLOR_PRESETS.map((c) => (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => set("color", c.value)}
+                    title={c.label}
+                    className={`h-8 w-8 rounded-full bg-linear-to-br ${c.value} border-2 transition-all ${
+                      form.color === c.value
+                        ? "border-slate-900 scale-110"
+                        : "border-transparent hover:scale-105"
+                    }`}
+                  />
+                ))}
+              </div>
+              <Input
+                value={form.color}
+                onChange={(e) => set("color", e.target.value)}
+                placeholder="from-indigo-500 to-indigo-600"
+                className="font-mono text-xs mt-1"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Group & Ordering</CardTitle>
+            <CardDescription>Controls how modules are grouped and sorted in listings</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="group_name">Group Name</Label>
+                <Input
+                  id="group_name"
+                  value={form.group_name}
+                  onChange={(e) => handleGroupNameChange(e.target.value)}
+                  placeholder="e.g., Content"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="group_slug">Group Slug</Label>
+                <Input
+                  id="group_slug"
+                  value={form.group_slug}
+                  onChange={(e) => set("group_slug", e.target.value)}
+                  placeholder="content"
+                  className="font-mono text-sm"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="group_sort_order">Group Sort Order</Label>
+                <Input
+                  id="group_sort_order"
+                  type="number"
+                  value={form.group_sort_order}
+                  onChange={(e) => set("group_sort_order", e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="sort_order">Sort Order</Label>
+                <Input
+                  id="sort_order"
+                  type="number"
+                  value={form.sort_order}
+                  onChange={(e) => set("sort_order", e.target.value)}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Status & Access</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
-                <Select
-                  value={form.status}
-                  onValueChange={(value) => setField("status", value)}
-                >
-                  <SelectTrigger id="status" className="w-full">
+                <Select value={form.status} onValueChange={(v) => set("status", v)}>
+                  <SelectTrigger>
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -383,79 +346,75 @@ const Save = () => {
                 </Select>
               </div>
 
-              <Separator />
-
-              <div className="flex items-center justify-between space-x-2">
-                <div className="flex flex-col space-y-1">
-                  <Label htmlFor="is_core">Core Architecture Module</Label>
-                  <p className="text-xs text-muted-foreground">
-                    If toggled, this feature cannot be disabled by standard
-                    users.
-                  </p>
-                </div>
-                <Switch
-                  id="is_core"
-                  checked={form.is_core}
-                  onCheckedChange={(checked) => setField("is_core", checked)}
-                />
-              </div>
-
-              <Separator />
-
               <div className="space-y-2">
-                <Label htmlFor="meta">Extended Meta Metadata (JSON)</Label>
-                <textarea
-                  id="meta"
-                  value={form.meta}
-                  onChange={(e) => setField("meta", e.target.value)}
-                  placeholder='{"roles": ["admin"], "hidden": false}'
-                  className="flex min-h-20 w-full rounded-[5px] border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono"
-                />
-                {errors.meta && (
-                  <p className="text-xs text-destructive">{errors.meta}</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Live preview driven by form state */}
-          <Card className="bg-slate-50 dark:bg-slate-900 border-dashed">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-xs font-semibold tracking-wider text-muted-foreground uppercase flex items-center gap-1">
-                <Sparkles className="h-3 w-3 text-purple-500" /> Card UI Live
-                Preview
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between p-3 rounded-[5px] bg-white dark:bg-black border shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`p-2.5 rounded-[5px] bg-linear-to-br ${form.color} text-white`}
-                  >
-                    <PreviewIcon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-sm">
-                      {form.name || "Untitled"} 
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {form.group_name || "No group"}
-                    </div>
-                  </div>
+                <Label>Core Module</Label>
+                <div className="flex items-center justify-between rounded-lg border p-3 h-9.5">
+                  <span className="text-sm text-muted-foreground">
+                    Always assigned, cannot be unassigned
+                  </span>
+                  <Switch
+                    checked={form.is_core}
+                    onCheckedChange={(v) => set("is_core", v)}
+                  />
                 </div>
-                <Badge
-                  variant="secondary"
-                  className={`capitalize ${STATUS_STYLES[form.status] || ""}`}
-                >
-                  {form.status}
-                </Badge>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Meta (JSON)</CardTitle>
+            <CardDescription>
+              Free-form settings for this module — must be valid JSON.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Textarea
+              value={form.meta}
+              onChange={(e) => {
+                set("meta", e.target.value);
+                if (metaError) setMetaError("");
+              }}
+              rows={8}
+              className="font-mono text-xs"
+              placeholder='{ "key": "value" }'
+            />
+            {metaError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{metaError}</AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
+        </Card>
+
+        <div className="flex items-center justify-end gap-4 pt-2 border-t">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => navigate("/admin/modules")}
+            disabled={saving}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" disabled={saving}>
+            {saving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {isEditMode ? "Updating..." : "Creating..."}
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                {isEditMode ? "Update Module" : "Create Module"}
+              </>
+            )}
+          </Button>
         </div>
-      </div>
+      </form>
     </div>
   );
 };
 
-export default Save;
+export default ModuleSave;

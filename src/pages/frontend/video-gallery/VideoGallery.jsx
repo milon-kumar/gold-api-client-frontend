@@ -102,9 +102,9 @@ export default function VideoGallery() {
     error: videoItemError,
   } = useApiQuery({
     url: "/module-items",
-    queryKey: [MODULES.VIDEOS],
+    queryKey: slug,
     params: {
-      module_slug: MODULES.VIDEOS,
+      module_slug: slug,
       limit: 6,
     },
   });
@@ -123,6 +123,8 @@ export default function VideoGallery() {
 
   const page = getPageResponse?.data
   const meta = page?.meta ? JSON.parse(page.meta) : {};
+
+  console.log("Selected Video:", selectedVideo);
   return (
     <div className="min-h-screen bg-background">
       <PageHeroRenderer

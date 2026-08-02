@@ -92,30 +92,6 @@ const NoContentFound = ({
           )}
         </div>
 
-        {/* Search (Optional) */}
-        {showSearch && (
-          <div className="mt-8">
-            <p className="text-sm text-muted-foreground mb-3">
-              Or search for what you're looking for
-            </p>
-            <div className="relative max-w-sm mx-auto">
-              <input
-                type="text"
-                placeholder="Search..."
-                className="w-full px-4 py-3 pl-12 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200 bg-white"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    const query = e.target.value.trim();
-                    if (query) {
-                      window.location.href = `/search?q=${encodeURIComponent(query)}`;
-                    }
-                  }
-                }}
-              />
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            </div>
-          </div>
-        )}
 
         {/* Additional Info */}
         <div className="mt-8 flex items-center justify-center gap-2 text-xs text-muted-foreground">

@@ -1,7 +1,7 @@
 // Save.jsx
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate,useSearchParams } from "react-router";
 import { toast } from "sonner";
 import useImageUpload from "@/hooks/use-image-upload";
 import { cn } from "@/lib/utils";
@@ -94,12 +94,12 @@ const Save = () => {
     setImageUrl,
   } = useImageUpload(setting?.setting?.item?.image_size || 5);
 
-  console.log("Form data - ", formData);
+  const [searchParams] = useSearchParams();
+  const slug = searchParams.get('slug') || null;
 
-  // Fetch category data for edit mode
   const { data: categoryGetQuery, isLoading: categoryGetLoading } = useApiQuery(
     {
-      url: `/admin/business-module-item-categories-by-slug/${MODULES.PHOTOS}`,
+      url: `/admin/business-module-item-categories-by-slug/${slug}`,
     },
   );
 
@@ -115,6 +115,9 @@ const Save = () => {
   const { data: itemGetQuery, isLoading: itemGetLoading } = useApiQuery({
     url: `/admin/business-module-items/${id}`,
     enabled: !!id && id !== "new",
+    params:{
+      module_slug: slug
+    }
   });
 
   useEffect(() => {
@@ -189,8 +192,8 @@ const Save = () => {
 
     const payload = {
       id: id && id !== "new" ? id : undefined,
-      module_slug: MODULES?.PHOTOS || "photos",
-      category_id: formData.category_id || null, // Fixed typo
+      module_slug: slug,
+      category_id: formData.category_id || null,
       title: formData.title,
       sub_title: formData.sub_title,
       is_featured: formData.is_featured ? 1 : 0,
@@ -202,7 +205,7 @@ const Save = () => {
       const response = await itemMutation(payload);
       if (response?.success) {
         toast.success(response?.message || "Photo saved successfully");
-        navigate("/admin/photos");
+        navigate(`/admin/photos?slug=${encodeURIComponent(slug)}`);
       } else {
         toast.error(response?.message || "Failed to save photo");
       }
@@ -244,7 +247,7 @@ const Save = () => {
             : `Add a new photo to the module`
         }
         showBackButton={true}
-        onBackClick={() => navigate("/admin/photos")}
+        onBackClick={() => navigate(`/admin/photos?slug=${encodeURIComponent(slug)}`)}
         primaryAction={{
           onClick: handleSubmit,
           disabled: saving,
@@ -302,7 +305,6 @@ const Save = () => {
                         <CommandEmpty>No module found.</CommandEmpty>
                         <CommandGroup className="max-h-72 overflow-y-auto">
                           {categories.map((category) => {
-                            console.log("category", category);
                             return (
                               <CommandItem
                                 key={category.id}

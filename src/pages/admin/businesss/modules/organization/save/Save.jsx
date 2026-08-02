@@ -25,6 +25,7 @@ import {
   AlertDescription,
 } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import PageHeader from '@/components/shear/PageHeader';
 import StatusBadge from '@/components/shear/StatusBadge';
@@ -47,8 +48,29 @@ import {
   Calendar,
   Building2,
   FileText,
+  Search,
+  Share2,
 } from 'lucide-react';
+import {FiTwitter as Twitter,} from 'react-icons/fi';
 import { RICH_TEXT_VARIANTS, RichTextEditor } from '@/components/ui/rich-text-editor';
+
+/* ------------------------------------------------------------------
+   Same SEO shape used across the app (module settings, footer, etc.)
+   Saved into meta.seo_content on the backend.
+------------------------------------------------------------------ */
+const emptySeoContent = () => ({
+  meta_title: '',
+  meta_description: '',
+  meta_keywords: '',
+  og_title: '',
+  og_description: '',
+  og_image: '',
+  twitter_title: '',
+  twitter_description: '',
+  twitter_image: '',
+  canonical_url: '',
+  robots: 'index, follow',
+});
 
 const Save = () => {
   const { module, setting } = useSelector((state) => state);
@@ -67,6 +89,7 @@ const Save = () => {
     description: '',
     is_featured: false,
     status: 'active',
+    seo_content: emptySeoContent(),
   });
 
   // Image upload hook
@@ -78,6 +101,14 @@ const Save = () => {
     resetImage,
     setImageUrl
   } = useImageUpload(setting?.setting?.item?.image_size || 5);
+
+  // OG / Twitter image — each can either reuse the organization's own image,
+  // or have its own uploaded image. Default: use the organization image.
+  const [ogUseItemImage, setOgUseItemImage] = useState(true);
+  const [twitterUseItemImage, setTwitterUseItemImage] = useState(true);
+
+  const ogImageUpload = useImageUpload(setting?.setting?.item?.image_size || 5);
+  const twitterImageUpload = useImageUpload(setting?.setting?.item?.image_size || 5);
 
   // Fetch item data for edit mode
   const {
@@ -102,6 +133,10 @@ const Save = () => {
       description: item.description || '',
       is_featured: item.is_featured || false,
       status: item.status || 'active',
+      seo_content: {
+        ...emptySeoContent(),
+        ...(item.meta?.seo_content || {}),
+      },
     });
 
     if (item.image) {
@@ -110,6 +145,24 @@ const Save = () => {
         image: item?.image,
         preview: item?.image_full_path
       });
+    }
+
+    // OG image: if a custom one was saved before, load it and switch out of "use organization image"
+    const savedOgImage = item.meta?.seo_content?.og_image;
+    if (savedOgImage) {
+      setOgUseItemImage(false);
+      ogImageUpload.setImageUrl({ image: savedOgImage, preview: savedOgImage });
+    } else {
+      setOgUseItemImage(true);
+    }
+
+    // Twitter image: same logic
+    const savedTwitterImage = item.meta?.seo_content?.twitter_image;
+    if (savedTwitterImage) {
+      setTwitterUseItemImage(false);
+      twitterImageUpload.setImageUrl({ image: savedTwitterImage, preview: savedTwitterImage });
+    } else {
+      setTwitterUseItemImage(true);
     }
   }, [itemGetQuery]);
 
@@ -144,6 +197,35 @@ const Save = () => {
     }));
   };
 
+  // SEO field change — keeps seo_content nested and isolated from the rest of the form
+  const handleSeoChange = (field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      seo_content: {
+        ...prev.seo_content,
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleToggleOgUseItemImage = (checked) => {
+    setOgUseItemImage(checked);
+    if (checked) ogImageUpload.resetImage();
+  };
+
+  const handleToggleTwitterUseItemImage = (checked) => {
+    setTwitterUseItemImage(checked);
+    if (checked) twitterImageUpload.resetImage();
+  };
+
+  // Resolves the final value to save for an SEO image:
+  // - "use organization image" -> empty string (frontend/backend falls back to the item image)
+  // - custom -> newly uploaded base64, or the previously saved value if nothing new was chosen
+  const resolveSeoImageValue = (useItemImage, uploadState, storedValue) => {
+    if (useItemImage) return '';
+    return uploadState.image || storedValue || '';
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -165,6 +247,13 @@ const Save = () => {
       is_featured: formData.is_featured ? 1 : 0,
       status: formData.status,
       image: imageBase64 || null,
+      meta: {
+        seo_content: {
+          ...formData.seo_content,
+          og_image: resolveSeoImageValue(ogUseItemImage, ogImageUpload, formData.seo_content.og_image),
+          twitter_image: resolveSeoImageValue(twitterUseItemImage, twitterImageUpload, formData.seo_content.twitter_image),
+        },
+      },
     };
 
     try {
@@ -428,6 +517,284 @@ const Save = () => {
                     </AlertDescription>
                   </Alert>
                 )}
+              </CardContent>
+            </Card>
+
+
+            {/* SEO Card — same shape/pattern as the module & footer SEO content (meta.seo_content) */}
+            <Card className="shadow-sm">
+              <CardHeader className="border-b bg-gray-50/50">
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Search className="h-5 w-5 text-emerald-600" />
+                  SEO Settings
+                </CardTitle>
+                <CardDescription>
+                  Controls how this organization appears in search results and when shared.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <Tabs defaultValue="general">
+                  <TabsList>
+                    <TabsTrigger value="general">
+                      <Search className="w-3.5 h-3.5 mr-1" /> General
+                    </TabsTrigger>
+                    <TabsTrigger value="og">
+                      <Share2 className="w-3.5 h-3.5 mr-1" /> Open Graph
+                    </TabsTrigger>
+                    <TabsTrigger value="twitter">
+                      <Twitter className="w-3.5 h-3.5 mr-1" /> Twitter
+                    </TabsTrigger>
+                  </TabsList>
+
+                  {/* -------- General -------- */}
+                  <TabsContent value="general" className="space-y-4 pt-4">
+                    <div>
+                      <Label className="text-sm font-semibold">Meta Title</Label>
+                      <Input
+                        value={formData.seo_content.meta_title}
+                        onChange={(e) => handleSeoChange('meta_title', e.target.value)}
+                        placeholder="Title shown in search engine results"
+                        className="mt-1.5"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm font-semibold">Meta Description</Label>
+                      <Textarea
+                        value={formData.seo_content.meta_description}
+                        onChange={(e) => handleSeoChange('meta_description', e.target.value)}
+                        placeholder="A short summary shown under the title in search results"
+                        rows="3"
+                        className="mt-1.5"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm font-semibold">Meta Keywords</Label>
+                      <Input
+                        value={formData.seo_content.meta_keywords}
+                        onChange={(e) => handleSeoChange('meta_keywords', e.target.value)}
+                        placeholder="Comma separated keywords"
+                        className="mt-1.5"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm font-semibold">Canonical URL</Label>
+                      <Input
+                        value={formData.seo_content.canonical_url}
+                        onChange={(e) => handleSeoChange('canonical_url', e.target.value)}
+                        placeholder="https://example.com/organizations/slug"
+                        className="mt-1.5"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm font-semibold">Robots</Label>
+                      <Select
+                        value={formData.seo_content.robots}
+                        onValueChange={(v) => handleSeoChange('robots', v)}
+                      >
+                        <SelectTrigger className="mt-1.5">
+                          <SelectValue placeholder="Select robots directive" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="index, follow">Index, Follow</SelectItem>
+                          <SelectItem value="index, nofollow">Index, No Follow</SelectItem>
+                          <SelectItem value="noindex, follow">No Index, Follow</SelectItem>
+                          <SelectItem value="noindex, nofollow">No Index, No Follow</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </TabsContent>
+
+                  {/* -------- Open Graph -------- */}
+                  <TabsContent value="og" className="space-y-4 pt-4">
+                    <div>
+                      <Label className="text-sm font-semibold">OG Title</Label>
+                      <Input
+                        value={formData.seo_content.og_title}
+                        onChange={(e) => handleSeoChange('og_title', e.target.value)}
+                        placeholder="Title shown when shared on Facebook/LinkedIn"
+                        className="mt-1.5"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm font-semibold">OG Description</Label>
+                      <Textarea
+                        value={formData.seo_content.og_description}
+                        onChange={(e) => handleSeoChange('og_description', e.target.value)}
+                        rows="3"
+                        className="mt-1.5"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-semibold">OG Image</Label>
+                        <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                          Use organization image
+                          <Switch
+                            checked={ogUseItemImage}
+                            onCheckedChange={handleToggleOgUseItemImage}
+                          />
+                        </label>
+                      </div>
+
+                      {ogUseItemImage ? (
+                        <div className="flex items-center gap-3 rounded-lg border bg-gray-50 p-3">
+                          {currentImagePreview ? (
+                            <img
+                              src={currentImagePreview}
+                              alt="Organization"
+                              className="h-14 w-14 rounded-md border object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-14 w-14 items-center justify-center rounded-md border bg-gray-100 text-[10px] text-muted-foreground">
+                              No image
+                            </div>
+                          )}
+                          <p className="text-xs text-muted-foreground">
+                            The organization's logo/image will be used automatically when this is shared.
+                          </p>
+                        </div>
+                      ) : (
+                        <div>
+                          {ogImageUpload.preview ? (
+                            <div className="relative overflow-hidden rounded-lg border">
+                              <img
+                                src={ogImageUpload.preview}
+                                alt="OG preview"
+                                className="h-32 w-full object-cover"
+                              />
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                className="absolute top-2 right-2 gap-1"
+                                onClick={() => ogImageUpload.resetImage()}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                Remove
+                              </Button>
+                            </div>
+                          ) : (
+                            <Label
+                              htmlFor="og-image-upload"
+                              className="flex h-28 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed bg-gray-50/30 text-xs text-muted-foreground transition-colors hover:border-primary"
+                            >
+                              <Upload className="h-5 w-5" />
+                              Upload OG image
+                              <input
+                                id="og-image-upload"
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp,image/gif"
+                                className="hidden"
+                                onChange={ogImageUpload.handleImageChange}
+                              />
+                            </Label>
+                          )}
+                          {ogImageUpload.error && (
+                            <Alert variant="destructive" className="mt-2">
+                              <AlertCircle className="h-4 w-4" />
+                              <AlertDescription>{ogImageUpload.error}</AlertDescription>
+                            </Alert>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+
+                  {/* -------- Twitter -------- */}
+                  <TabsContent value="twitter" className="space-y-4 pt-4">
+                    <div>
+                      <Label className="text-sm font-semibold">Twitter Title</Label>
+                      <Input
+                        value={formData.seo_content.twitter_title}
+                        onChange={(e) => handleSeoChange('twitter_title', e.target.value)}
+                        className="mt-1.5"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm font-semibold">Twitter Description</Label>
+                      <Textarea
+                        value={formData.seo_content.twitter_description}
+                        onChange={(e) => handleSeoChange('twitter_description', e.target.value)}
+                        rows="3"
+                        className="mt-1.5"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-semibold">Twitter Image</Label>
+                        <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                          Use organization image
+                          <Switch
+                            checked={twitterUseItemImage}
+                            onCheckedChange={handleToggleTwitterUseItemImage}
+                          />
+                        </label>
+                      </div>
+
+                      {twitterUseItemImage ? (
+                        <div className="flex items-center gap-3 rounded-lg border bg-gray-50 p-3">
+                          {currentImagePreview ? (
+                            <img
+                              src={currentImagePreview}
+                              alt="Organization"
+                              className="h-14 w-14 rounded-md border object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-14 w-14 items-center justify-center rounded-md border bg-gray-100 text-[10px] text-muted-foreground">
+                              No image
+                            </div>
+                          )}
+                          <p className="text-xs text-muted-foreground">
+                            The organization's logo/image will be used automatically when this is shared.
+                          </p>
+                        </div>
+                      ) : (
+                        <div>
+                          {twitterImageUpload.preview ? (
+                            <div className="relative overflow-hidden rounded-lg border">
+                              <img
+                                src={twitterImageUpload.preview}
+                                alt="Twitter preview"
+                                className="h-32 w-full object-cover"
+                              />
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                className="absolute top-2 right-2 gap-1"
+                                onClick={() => twitterImageUpload.resetImage()}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                Remove
+                              </Button>
+                            </div>
+                          ) : (
+                            <Label
+                              htmlFor="twitter-image-upload"
+                              className="flex h-28 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed bg-gray-50/30 text-xs text-muted-foreground transition-colors hover:border-primary"
+                            >
+                              <Upload className="h-5 w-5" />
+                              Upload Twitter image
+                              <input
+                                id="twitter-image-upload"
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp,image/gif"
+                                className="hidden"
+                                onChange={twitterImageUpload.handleImageChange}
+                              />
+                            </Label>
+                          )}
+                          {twitterImageUpload.error && (
+                            <Alert variant="destructive" className="mt-2">
+                              <AlertCircle className="h-4 w-4" />
+                              <AlertDescription>{twitterImageUpload.error}</AlertDescription>
+                            </Alert>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </CardContent>
             </Card>
 

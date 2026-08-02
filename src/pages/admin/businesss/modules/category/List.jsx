@@ -524,7 +524,7 @@ const CategoriesListing = () => {
       <SaveModal
         open={categoryModalOpen}
         onOpenChange={setCategoryModalOpen}
-        onSaved={() => refetchCategories()}
+        onSaved={() => refetchItems()}
       />
 
       {/* View Modal */}

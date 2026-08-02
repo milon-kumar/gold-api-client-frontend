@@ -1,7 +1,7 @@
 // Save.jsx
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate,useSearchParams } from 'react-router';
 import { toast } from "sonner";
 import useImageUpload from '@/hooks/use-image-upload';
 
@@ -81,7 +81,9 @@ const Save = () => {
     const [saving, setSaving] = useState(false);
     const [existingImageUrl, setExistingImageUrl] = useState('');
     const [videoPreview, setVideoPreview] = useState(null);
+  const [searchParams] = useSearchParams();
 
+  const slug = searchParams.get('slug') || null;
     // Form state
     const [formData, setFormData] = useState({
         title: '',
@@ -114,6 +116,9 @@ const Save = () => {
     } = useApiQuery({
         url: `/admin/module-items/${id}`,
         enabled: !!id && id !== 'new',
+        params: {
+            module_slug: slug || MODULES?.VIDEOS || 'videos',
+        },
     });
 
     useEffect(() => {
@@ -156,6 +161,9 @@ const Save = () => {
     } = useApiMutation({
         url: "/admin/business-module-items",
         method: 'POST',
+        params: {
+            module_slug: slug || MODULES?.VIDEOS || 'videos',
+        },
     });
 
     const handleInputChange = (e) => {
@@ -217,7 +225,7 @@ const Save = () => {
 
         const payload = {
             id: id && id !== 'new' ? id : undefined,
-            module_slug: MODULES?.VIDEOS || 'videos',
+            module_slug: slug || MODULES?.VIDEOS || 'videos',
             title: formData.title,
             sub_title: formData.sub_title,
             sub_description: formData.sub_description,
@@ -231,7 +239,7 @@ const Save = () => {
             const response = await itemMutation(payload);
             if (response?.success) {
                 toast.success(response?.message || "Video saved successfully");
-                navigate('/admin/videos');
+                navigate(`/admin/videos?slug=${encodeURIComponent(slug)}`);
             } else {
                 toast.error(response?.message || "Failed to save video");
             }
@@ -268,7 +276,7 @@ const Save = () => {
                 title={id && id !== 'new' ? 'Edit Video' : 'Add New Video'}
                 subtitle={id && id !== 'new' ? `Update video information` : `Add a new video to the module`}
                 showBackButton={true}
-                onBackClick={() => navigate('/admin/videos')}
+                onBackClick={() => navigate(`/admin/videos?slug=${encodeURIComponent(slug)}`)}
                 primaryAction={{
                     onClick: handleSubmit,
                     disabled: saving,

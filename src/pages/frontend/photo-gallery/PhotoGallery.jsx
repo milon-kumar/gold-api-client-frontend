@@ -12,7 +12,6 @@ export default function PhotoGallery() {
   const { pathname } = useLocation()
   const slug = pathname.split("/").filter(Boolean).pop();
 
-
   const getDynamicSpan = (index) => {
     if (index === 0) {
       return "col-span-2 row-span-2";
@@ -35,9 +34,9 @@ export default function PhotoGallery() {
     error: imageItemError,
   } = useApiQuery({
     url: "/module-items",
-    queryKey: [MODULES.PHOTOS],
+    queryKey: slug,
     params: {
-      module_slug: MODULES.PHOTOS,
+      module_slug: slug,
       limit: 9,
     },
   });

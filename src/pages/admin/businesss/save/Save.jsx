@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
+import * as LucideIcons from "lucide-react";
+import { toast } from "sonner";
+
 import { useApiQuery } from "@/hooks/useAppQuery";
 import { useApiMutation } from "@/hooks/useAppMutation";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -20,152 +25,136 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {toast} from "sonner"
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Loader2, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
-const BusinessSave = () => {
+// A handful of ready-made gradients — the "color" field just needs Tailwind
+// `from-*`/`to-*` classes, custom values are also allowed.
+const COLOR_PRESETS = [
+  { label: "Indigo", value: "from-indigo-500 to-indigo-600" },
+  { label: "Emerald", value: "from-emerald-500 to-emerald-600" },
+  { label: "Amber", value: "from-amber-500 to-amber-600" },
+  { label: "Rose", value: "from-rose-500 to-rose-600" },
+  { label: "Sky", value: "from-sky-500 to-sky-600" },
+  { label: "Purple", value: "from-purple-500 to-purple-600" },
+  { label: "Slate", value: "from-slate-500 to-slate-600" },
+];
+
+const slugify = (str = "") =>
+  str
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)+/g, "");
+
+const emptyForm = () => ({
+  name: "",
+  icon: "Box",
+  color: COLOR_PRESETS[0].value,
+  group_name: "",
+  group_slug: "",
+  group_sort_order: 0,
+  sort_order: 0,
+  status: "active",
+  is_core: false,
+  meta: "{}", // kept as a raw JSON string in the form, parsed on submit
+});
+
+const ModuleSave = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const isEditMode = !!id && id !== "new";
 
-  const isEditMode = !!id;
+  const [form, setForm] = useState(emptyForm());
+  const [metaError, setMetaError] = useState("");
 
-  // Form state
-  const [formData, setFormData] = useState({
-    // Business fields
-    name: "",
-    email: "",
-    phone: "",
-    location: "",
-    subdomain: "",
-    domain: "",
-    database_type: "shared",
-    status: "active",
-    settings: {
-      theme: "default",
-      language: "en",
-    },
-    // User fields
-    user_name: "",
-    user_email: "",
-    user_phone: "",
-    user_type: "business",
+  const { data: response, isLoading: loadingModule } = useApiQuery({
+    url: `/admin/modules/${id}`,
+    enabled: isEditMode,
   });
 
-  // Fetch business data if in edit mode
-  const { data: response, isLoading: isLoadingBusiness } = useApiQuery({
-    url: `/admin/businesses/${id}`,
-    enabled: !!id,
+  const { mutate: saveModule, isLoading: saving } = useApiMutation({
+    url: "/admin/modules",
+    method: "POST", // store() handles both create & update via `id`
   });
 
-  // Single mutation for both business and user
-  const { mutate: saveBusinessAndUser, isLoading: isSaving } = useApiMutation({
-    url: isEditMode ? `/admin/businesses/${id}` : "/admin/businesses",
-    method: isEditMode ? "PUT" : "POST",
-    onSuccess: (data) => {
-      toast({
-        title: isEditMode ? "Business Updated" : "Business Created",
-        description: isEditMode
-          ? "Business and user information updated successfully"
-          : "New business created successfully",
-      });
-      const businessId = data?.data?.data?.id || id;
-      navigate(`/admin/businesses/${businessId}`);
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: error?.message || "Failed to save business",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Load business data when available
   useEffect(() => {
-    if (response?.data?.data) {
-      const businessData = response.data.data;
-      const userData = businessData.user || {};
+    if (!response?.data?.data) return;
+    const m = response.data.data;
 
-      setFormData({
-        // Business fields
-        name: businessData.name || "",
-        email: businessData.email || "",
-        phone: businessData.phone || "",
-        location: businessData.location || "",
-        subdomain: businessData.subdomain || "",
-        domain: businessData.domain || "",
-        database_type: businessData.database_type || "shared",
-        status: businessData.status || "active",
-        settings: businessData.settings
-          ? typeof businessData.settings === "string"
-            ? JSON.parse(businessData.settings)
-            : businessData.settings
-          : { theme: "default", language: "en" },
-        // User fields
-        user_name: userData.name || "",
-        user_email: userData.email || "",
-        user_phone: userData.phone || "",
-        user_type: userData.type || "business",
-      });
-    }
+    setForm({
+      name: m.name || "",
+      icon: m.icon || "Box",
+      color: m.color || COLOR_PRESETS[0].value,
+      group_name: m.group_name || "",
+      group_slug: m.group_slug || "",
+      group_sort_order: m.group_sort_order ?? 0,
+      sort_order: m.sort_order ?? 0,
+      status: m.status || "active",
+      is_core: !!m.is_core,
+      meta: m.meta ? JSON.stringify(m.meta, null, 2) : "{}",
+    });
   }, [response]);
 
-  // Handle form field changes
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
+  const set = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
+
+  const handleGroupNameChange = (value) => {
+    setForm((prev) => ({
       ...prev,
-      [name]: value,
+      group_name: value,
+      // Only auto-fill the slug while it hasn't been hand-edited away from the derived value
+      group_slug: prev.group_slug === slugify(prev.group_name) ? slugify(value) : prev.group_slug,
     }));
   };
 
-  // Handle settings changes
-  const handleSettingsChange = (key, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      settings: {
-        ...prev.settings,
-        [key]: value,
-      },
-    }));
-  };
+  const IconPreview = LucideIcons[form.icon] || LucideIcons.Box;
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    try {
-      // Prepare payload with both business and user data
-      const payload = {
-        // Business fields
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        location: formData.location,
-        subdomain: formData.subdomain,
-        domain: formData.domain,
-        database_type: formData.database_type,
-        status: formData.status,
-        settings: JSON.stringify(formData.settings),
-        // User fields
-        user: {
-          name: formData.user_name,
-          email: formData.user_email,
-          phone: formData.user_phone,
-          type: formData.user_type,
-        },
-      };
+    if (!form.name.trim()) {
+      toast.error("Name is required");
+      return;
+    }
 
-      // Save business with user in one API call
-      saveBusinessAndUser(payload);
-    } catch (error) {
-      console.error("Error saving business:", error);
+    // Validate meta JSON before sending
+    let metaParsed = {};
+    if (form.meta.trim()) {
+      try {
+        metaParsed = JSON.parse(form.meta);
+        setMetaError("");
+      } catch (err) {
+        setMetaError("Meta must be valid JSON.");
+        toast.error("Fix the Meta field — it must be valid JSON.");
+        return;
+      }
+    }
+
+    const payload = {
+      id: isEditMode ? id : undefined,
+      name: form.name,
+      icon: form.icon,
+      color: form.color,
+      group_name: form.group_name,
+      group_slug: form.group_slug || slugify(form.group_name),
+      group_sort_order: Number(form.group_sort_order) || 0,
+      sort_order: Number(form.sort_order) || 0,
+      status: form.status,
+      is_core: !!form.is_core,
+      meta: metaParsed,
+    };
+
+    const res = await saveModule(payload);
+    if (res?.success) {
+      toast.success(res?.message || (isEditMode ? "Module updated" : "Module created"));
+      navigate("/admin/modules");
+    } else {
+      toast.error(res?.message || "Failed to save module");
     }
   };
 
-  if (isLoadingBusiness) {
+  if (isEditMode && loadingModule) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -174,339 +163,220 @@ const BusinessSave = () => {
   }
 
   return (
-    <div className="container max-w-5xl mx-auto py-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate("/admin/businesses")}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">
-              {isEditMode ? "Edit Business" : "Create New Business"}
-            </h1>
-            <p className="text-muted-foreground">
-              {isEditMode
-                ? `Update business and user information`
-                : "Add a new business with user account"}
-            </p>
-          </div>
+    <div className="container max-w-4xl mx-auto py-6 space-y-6">
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="sm" onClick={() => navigate("/admin/modules")}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
+        </Button>
+        <div>
+          <h1 className="text-2xl font-bold">
+            {isEditMode ? "Edit Module" : "Add Module"}
+          </h1>
+          <p className="text-muted-foreground">
+            {isEditMode ? "Update this module's details" : "Add a new module to the catalog"}
+          </p>
         </div>
-        {isEditMode && (
-          <Badge
-            variant={formData.status === "active" ? "default" : "secondary"}
-          >
-            {formData.status}
-          </Badge>
-        )}
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <Tabs defaultValue="basic" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="basic">Basic Information</TabsTrigger>
-            <TabsTrigger value="user">User Information</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
-            {isEditMode && <TabsTrigger value="advanced">Advanced</TabsTrigger>}
-          </TabsList>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Basic Information</CardTitle>
+            <CardDescription>Name, icon and visual identity</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name *</Label>
+                <Input
+                  id="name"
+                  value={form.name}
+                  onChange={(e) => set("name", e.target.value)}
+                  placeholder="e.g., Notice Board"
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  Slug is generated automatically from the name.
+                </p>
+              </div>
 
-          {/* Basic Information Tab */}
-          <TabsContent value="basic">
-            <Card>
-              <CardHeader>
-                <CardTitle>Basic Information</CardTitle>
-                <CardDescription>
-                  Enter the core business details
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Business Name *</Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder="Enter business name"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Business Email *</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="business@example.com"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Business Phone</Label>
-                    <Input
-                      id="phone"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      placeholder="+8801712345678"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="location">Location</Label>
-                    <Input
-                      id="location"
-                      name="location"
-                      value={formData.location}
-                      onChange={handleChange}
-                      placeholder="City, Country"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="subdomain">Subdomain</Label>
-                    <Input
-                      id="subdomain"
-                      name="subdomain"
-                      value={formData.subdomain}
-                      onChange={handleChange}
-                      placeholder="business-subdomain"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="domain">Custom Domain</Label>
-                    <Input
-                      id="domain"
-                      name="domain"
-                      value={formData.domain}
-                      onChange={handleChange}
-                      placeholder="business.com"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="database_type">Database Type</Label>
-                    <Select
-                      value={formData.database_type}
-                      onValueChange={(value) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          database_type: value,
-                        }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select database type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="shared">Shared</SelectItem>
-                        <SelectItem value="dedicated">Dedicated</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="status">Status</Label>
-                    <Select
-                      value={formData.status}
-                      onValueChange={(value) =>
-                        setFormData((prev) => ({ ...prev, status: value }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="inactive">Inactive</SelectItem>
-                        <SelectItem value="suspended">Suspended</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+              <div className="space-y-2">
+                <Label htmlFor="icon">Icon (Lucide name)</Label>
+                <div className="flex items-center gap-2">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-md border bg-muted shrink-0">
+                    <IconPreview className="h-4 w-4" />
+                  </span>
+                  <Input
+                    id="icon"
+                    value={form.icon}
+                    onChange={(e) => set("icon", e.target.value)}
+                    placeholder="e.g., FolderOpen"
+                  />
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                <p className="text-xs text-muted-foreground">
+                  Must match a component name from{" "}
+                  <a
+                    href="https://lucide.dev/icons"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline"
+                  >
+                    lucide.dev/icons
+                  </a>{" "}
+                  (PascalCase).
+                </p>
+              </div>
+            </div>
 
-          {/* User Information Tab */}
-          <TabsContent value="user">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Information</CardTitle>
-                <CardDescription>
-                  Manage the business owner/user account
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="user_name">User Name *</Label>
-                    <Input
-                      id="user_name"
-                      name="user_name"
-                      value={formData.user_name}
-                      onChange={handleChange}
-                      placeholder="Enter user name"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="user_email">User Email *</Label>
-                    <Input
-                      id="user_email"
-                      name="user_email"
-                      type="email"
-                      value={formData.user_email}
-                      onChange={handleChange}
-                      placeholder="user@example.com"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="user_phone">User Phone</Label>
-                    <Input
-                      id="user_phone"
-                      name="user_phone"
-                      value={formData.user_phone}
-                      onChange={handleChange}
-                      placeholder="+8801712345678"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="user_type">User Type</Label>
-                    <Select
-                      value={formData.user_type}
-                      onValueChange={(value) =>
-                        setFormData((prev) => ({ ...prev, user_type: value }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select user type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="business">Business</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="manager">Manager</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+            <div className="space-y-2">
+              <Label>Color</Label>
+              <div className="flex flex-wrap items-center gap-2">
+                {COLOR_PRESETS.map((c) => (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => set("color", c.value)}
+                    title={c.label}
+                    className={`h-8 w-8 rounded-full bg-linear-to-br ${c.value} border-2 transition-all ${
+                      form.color === c.value
+                        ? "border-slate-900 scale-110"
+                        : "border-transparent hover:scale-105"
+                    }`}
+                  />
+                ))}
+              </div>
+              <Input
+                value={form.color}
+                onChange={(e) => set("color", e.target.value)}
+                placeholder="from-indigo-500 to-indigo-600"
+                className="font-mono text-xs mt-1"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Group & Ordering</CardTitle>
+            <CardDescription>Controls how modules are grouped and sorted in listings</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="group_name">Group Name</Label>
+                <Input
+                  id="group_name"
+                  value={form.group_name}
+                  onChange={(e) => handleGroupNameChange(e.target.value)}
+                  placeholder="e.g., Content"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="group_slug">Group Slug</Label>
+                <Input
+                  id="group_slug"
+                  value={form.group_slug}
+                  onChange={(e) => set("group_slug", e.target.value)}
+                  placeholder="content"
+                  className="font-mono text-sm"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="group_sort_order">Group Sort Order</Label>
+                <Input
+                  id="group_sort_order"
+                  type="number"
+                  value={form.group_sort_order}
+                  onChange={(e) => set("group_sort_order", e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="sort_order">Sort Order</Label>
+                <Input
+                  id="sort_order"
+                  type="number"
+                  value={form.sort_order}
+                  onChange={(e) => set("sort_order", e.target.value)}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Status & Access</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select value={form.status} onValueChange={(v) => set("status", v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Core Module</Label>
+                <div className="flex items-center justify-between rounded-lg border p-3 h-9.5">
+                  <span className="text-sm text-muted-foreground">
+                    Always assigned, cannot be unassigned
+                  </span>
+                  <Switch
+                    checked={form.is_core}
+                    onCheckedChange={(v) => set("is_core", v)}
+                  />
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Settings Tab */}
-          <TabsContent value="settings">
-            <Card>
-              <CardHeader>
-                <CardTitle>Business Settings</CardTitle>
-                <CardDescription>
-                  Configure business preferences and options
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="theme">Theme</Label>
-                    <Select
-                      value={formData.settings?.theme || "default"}
-                      onValueChange={(value) =>
-                        handleSettingsChange("theme", value)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select theme" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="default">Default</SelectItem>
-                        <SelectItem value="dark">Dark</SelectItem>
-                        <SelectItem value="light">Light</SelectItem>
-                        <SelectItem value="custom">Custom</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="language">Language</Label>
-                    <Select
-                      value={formData.settings?.language || "en"}
-                      onValueChange={(value) =>
-                        handleSettingsChange("language", value)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select language" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="en">English</SelectItem>
-                        <SelectItem value="bn">Bengali</SelectItem>
-                        <SelectItem value="hi">Hindi</SelectItem>
-                        <SelectItem value="ar">Arabic</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+        <Card>
+          <CardHeader>
+            <CardTitle>Meta (JSON)</CardTitle>
+            <CardDescription>
+              Free-form settings for this module — must be valid JSON.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Textarea
+              value={form.meta}
+              onChange={(e) => {
+                set("meta", e.target.value);
+                if (metaError) setMetaError("");
+              }}
+              rows={8}
+              className="font-mono text-xs"
+              placeholder='{ "key": "value" }'
+            />
+            {metaError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{metaError}</AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
+        </Card>
 
-          {/* Advanced Tab (Edit Mode Only) */}
-          {isEditMode && (
-            <TabsContent value="advanced">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Advanced Options</CardTitle>
-                  <CardDescription>
-                    Additional business configurations
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Business ID</Label>
-                    <Input
-                      value={id}
-                      disabled
-                      className="font-mono text-sm bg-muted"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Created At</Label>
-                    <Input
-                      value={response?.data?.data?.created_at || ""}
-                      disabled
-                      className="bg-muted"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Last Updated</Label>
-                    <Input
-                      value={response?.data?.data?.updated_at || ""}
-                      disabled
-                      className="bg-muted"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          )}
-        </Tabs>
-
-        {/* Form Actions */}
-        <div className="flex items-center justify-end gap-4 pt-4 border-t">
+        <div className="flex items-center justify-end gap-4 pt-2 border-t">
           <Button
             type="button"
             variant="outline"
-            onClick={() => navigate("/admin/businesses")}
-            disabled={isSaving}
+            onClick={() => navigate("/admin/modules")}
+            disabled={saving}
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={isSaving}>
-            {isSaving ? (
+          <Button type="submit" disabled={saving}>
+            {saving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 {isEditMode ? "Updating..." : "Creating..."}
@@ -514,7 +384,7 @@ const BusinessSave = () => {
             ) : (
               <>
                 <Save className="mr-2 h-4 w-4" />
-                {isEditMode ? "Update Business" : "Create Business"}
+                {isEditMode ? "Update Module" : "Create Module"}
               </>
             )}
           </Button>
@@ -524,4 +394,4 @@ const BusinessSave = () => {
   );
 };
 
-export default BusinessSave;
+export default ModuleSave;

@@ -1,7 +1,7 @@
 // List.jsx
 import React, { useState } from 'react';
 import { toast } from "sonner";
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import {
   Card,
   CardContent,
@@ -61,6 +61,11 @@ const PhotosListing = () => {
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [viewingItem, setViewingItem] = useState(null);
+  const [searchParams] = useSearchParams();
+
+  const slug = searchParams.get('slug') || null;
+
+
 
   // Fetch module items
   const {
@@ -70,7 +75,7 @@ const PhotosListing = () => {
   } = useApiQuery({
     url: "/admin/business-module-items",
     params: {
-      module_slug: MODULES?.PHOTOS || 'photos',
+      module_slug: slug,
       search: searchTerm || undefined,
       status: statusFilter !== 'all' ? statusFilter : undefined,
       is_featured: featuredFilter !== 'all' ? featuredFilter : undefined,
@@ -109,7 +114,7 @@ const PhotosListing = () => {
   };
 
   const handleEditItem = (item) => {
-    navigate(`/admin/photos/save/${item?.id}`);
+    navigate(`/admin/photos/save/${item?.id}?slug=${encodeURIComponent(slug)}`);
   };
 
   const handleDeleteItem = (item) => {
@@ -369,7 +374,7 @@ const PhotosListing = () => {
         primaryAction={{
           title: "Add Photo",
           icon: "plus",
-          onClick: () => navigate("/admin/photos/save")
+          onClick: () => navigate(`/admin/photos/save?slug=${encodeURIComponent(slug)}`)
         }}
         secondaryAction={{
           title: "Refresh",

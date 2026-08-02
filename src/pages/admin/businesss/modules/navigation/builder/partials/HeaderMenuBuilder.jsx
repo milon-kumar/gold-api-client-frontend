@@ -688,15 +688,18 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
   const addPages = () => {
     const items = allActivePages
       .filter((p) => checked.includes(p.id))
-      .map((p) => ({
+      .map((p) => {
+        console.log("Adding page:", p);
+        return {
         id: newId("m"),
         page_id: p.id,
         label: p.page_title,
         type: p.page_type,
-        url: p.custom_link || p.page_slug,
+        url: p.custom_link || p.page_type === "custom_page" ? `/page/${p.page_slug}` : p.page_slug,
         depth: 0,
         newTab: p.page_type === "link",
-      }));
+      }
+      });
     setCurrent((c) => ({ ...c, middle: [...c.middle, ...items] }));
     setChecked([]);
   };
