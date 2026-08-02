@@ -151,16 +151,114 @@ const RightActions = ({ rightConfig = [], className }) => {
   );
 };
 
+const NAV_WRAPPER_CLASS = {
+  simple:
+    "border-b border-border/60 bg-white/80 backdrop-blur-2xl",
+  centered:
+    "border-b border-border/60 bg-white/80 backdrop-blur-2xl",
+  split: "bg-transparent",
+  minimal: "bg-white",
+  bold: "border-b border-white/10 bg-slate-900",
+};
+ 
+const getNavWrapperClass = (variant, sticky) =>
+  `${sticky ? "sticky top-0" : "relative"} z-40 w-full ${
+    NAV_WRAPPER_CLASS[variant] || NAV_WRAPPER_CLASS.simple
+  }`;
+ 
+const isDarkVariant = (variant) => variant === "bold";
+ 
+const desktopLinkClass = (dark) =>
+  dark
+    ? "flex cursor-pointer items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-white/75 transition-colors hover:bg-white/10 hover:text-white"
+    : "flex cursor-pointer items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground";
+ 
+const desktopLinkAnchorClass = (dark, minimal) =>
+  minimal
+    ? dark
+      ? "block px-2 py-2 text-sm text-white/75 transition-colors hover:text-white"
+      : "block px-2 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+    : dark
+    ? "block rounded-lg px-3 py-2 text-sm font-medium text-white/75 transition-colors hover:bg-white/10 hover:text-white"
+    : "block rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground";
+ 
+/* Split the flat items list roughly in half — used only by the "split" variant */
+const splitInHalf = (items) => {
+  const half = Math.ceil(items.length / 2);
+  return [items.slice(0, half), items.slice(half)];
+};
+ 
+/* ---------------- Desktop nav items (shared renderer) ---------------- */
+const DesktopNavItems = ({
+  items,
+  openDropdown,
+  setOpenDropdown,
+  dark,
+  minimal,
+  className = "",
+}) => (
+  <div className={`hidden items-center gap-1 lg:flex ${className}`}>
+    {items.map((item) => {
+      const hasChildren = item?.children?.length > 0;
+ 
+      return (
+        <div key={item.id} className="relative">
+          {hasChildren ? (
+            <button
+              type="button"
+              onClick={() =>
+                setOpenDropdown(openDropdown === item.id ? null : item.id)
+              }
+              className={desktopLinkClass(dark)}
+            >
+              {item.label}
+              <motion.div
+                animate={{ rotate: openDropdown === item.id ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <ChevronDown className="h-3.5 w-3.5" />
+              </motion.div>
+            </button>
+          ) : (
+            <a
+              href={resolveUrl(item.url)}
+              target={item.target || "_self"}
+              className={desktopLinkAnchorClass(dark, minimal)}
+            >
+              {item.label}
+            </a>
+          )}
+ 
+          {hasChildren && (
+            <DesktopDropdown
+              items={item.children}
+              isOpen={openDropdown === item.id}
+            />
+          )}
+        </div>
+      );
+    })}
+  </div>
+);
+ 
 /* ---------------- Main Navbar ---------------- */
 const Navbar = ({ navbar = {} }) => {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState(null);
-
+ 
   const items = sortByOrder(navbar?.items || []);
   const leftConfig = navbar?.left_config || {};
   const rightConfig = navbar?.right_config || [];
-
+  const meta = navbar?.meta || {};
+ 
+  const variant = meta.navbarVarients || "simple";
+  const sticky = meta.navbarSticky !== false; // default true
+  const dark = isDarkVariant(variant);
+  const minimal = variant === "minimal";
+  const centered = variant === "centered";
+  const split = variant === "split";
+ 
   // Nothing configured yet -> placeholder for the preview
   if (!items.length && !rightConfig.length) {
     return (
@@ -169,88 +267,124 @@ const Navbar = ({ navbar = {} }) => {
       </div>
     );
   }
-
+ 
+  const [leftItems, rightItems] = split ? splitInHalf(items) : [items, []];
+ 
   return (
     <>
       <motion.nav
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="relative z-40 w-full border-b border-border/60 bg-white/80 backdrop-blur-2xl"
+        className={getNavWrapperClass(variant, sticky)}
         onMouseLeave={() => setOpenDropdown(null)}
       >
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="flex h-16 items-center justify-between md:h-20">
-            {/* Left: Logo */}
-            <NavLogo leftConfig={leftConfig} />
-
-            {/* Center: Desktop nav items */}
-            <div className="hidden items-center gap-1 lg:flex">
-              {items.map((item) => {
-                const hasChildren = item?.children?.length > 0;
-
-                return (
-                  <div key={item.id} className="relative">
-                    {hasChildren ? (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setOpenDropdown(
-                            openDropdown === item.id ? null : item.id,
-                          )
-                        }
-                        className="flex cursor-pointer items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                      >
-                        {item.label}
-                        <motion.div
-                          animate={{
-                            rotate: openDropdown === item.id ? 180 : 0,
-                          }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <ChevronDown className="h-3.5 w-3.5" />
-                        </motion.div>
-                      </button>
-                    ) : (
-                      <a
-                        href={resolveUrl(item.url)}
-                        target={item.target || "_self"}
-                        className="block rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                      >
-                        {item.label}
-                      </a>
-                    )}
-
-                    {hasChildren && (
-                      <DesktopDropdown
-                        items={item.children}
-                        isOpen={openDropdown === item.id}
-                      />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Right: Actions + mobile toggle */}
-            <div className="flex items-center gap-2">
-              <RightActions
-                rightConfig={rightConfig}
-                className="hidden md:flex"
+        <div
+          className={
+            split
+              ? "mx-auto max-w-6xl px-4 py-2 sm:px-6"
+              : "mx-auto max-w-7xl px-4 sm:px-6"
+          }
+        >
+          {/* ---------------- SPLIT: pill container, logo centered ---------------- */}
+          {split ? (
+            <div className="flex h-14 items-center justify-between gap-4 rounded-full border border-border/60 bg-white px-4 md:h-16">
+              <DesktopNavItems
+                items={leftItems}
+                openDropdown={openDropdown}
+                setOpenDropdown={setOpenDropdown}
+                dark={false}
+                minimal={false}
+                className="flex-1 justify-start"
               />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="lg:hidden"
-                onClick={() => setMobileOpen(true)}
-              >
-                <Menu className="h-5 w-5" />
-              </Button>
+              <NavLogo leftConfig={leftConfig} />
+              <div className="flex flex-1 items-center justify-end gap-2">
+                <DesktopNavItems
+                  items={rightItems}
+                  openDropdown={openDropdown}
+                  setOpenDropdown={setOpenDropdown}
+                  dark={false}
+                  minimal={false}
+                />
+                <RightActions rightConfig={rightConfig} className="hidden md:flex" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="lg:hidden"
+                  onClick={() => setMobileOpen(true)}
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </div>
             </div>
-          </div>
+          ) : centered ? (
+            /* ---------------- CENTERED: logo on top, links centered below ---------------- */
+            <div className="flex flex-col">
+              <div className="flex h-16 items-center justify-between md:h-20">
+                <div className="w-24 md:w-32" />
+                <NavLogo leftConfig={leftConfig} />
+                <div className="flex items-center gap-2">
+                  <RightActions
+                    rightConfig={rightConfig}
+                    className="hidden md:flex"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="lg:hidden"
+                    onClick={() => setMobileOpen(true)}
+                  >
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
+              <div className="hidden justify-center border-t border-border/60 py-2 lg:flex">
+                <DesktopNavItems
+                  items={items}
+                  openDropdown={openDropdown}
+                  setOpenDropdown={setOpenDropdown}
+                  dark={false}
+                  minimal={false}
+                />
+              </div>
+            </div>
+          ) : (
+            /* ---------------- SIMPLE / MINIMAL / BOLD: single row ---------------- */
+            <div
+              className={`flex items-center justify-between ${
+                minimal ? "h-14" : "h-16 md:h-20"
+              }`}
+            >
+              <div className="flex items-center gap-8">
+                <NavLogo leftConfig={leftConfig} />
+                <DesktopNavItems
+                  items={items}
+                  openDropdown={openDropdown}
+                  setOpenDropdown={setOpenDropdown}
+                  dark={dark}
+                  minimal={minimal}
+                />
+              </div>
+ 
+              <div className="flex items-center gap-2">
+                <RightActions
+                  rightConfig={rightConfig}
+                  className="hidden md:flex"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={`lg:hidden ${dark ? "text-white hover:bg-white/10" : ""}`}
+                  onClick={() => setMobileOpen(true)}
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </motion.nav>
-
-      {/* ---------------- Mobile menu ---------------- */}
+ 
+      {/* ---------------- Mobile menu (same for every variant) ---------------- */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
@@ -278,11 +412,11 @@ const Navbar = ({ navbar = {} }) => {
                   <X className="h-5 w-5" />
                 </Button>
               </div>
-
+ 
               <div className="space-y-1">
                 {items.map((item) => {
                   const hasChildren = item?.children?.length > 0;
-
+ 
                   return (
                     <div key={item.id}>
                       {hasChildren ? (
@@ -306,7 +440,7 @@ const Navbar = ({ navbar = {} }) => {
                               <ChevronDown className="h-4 w-4 text-muted-foreground" />
                             </motion.div>
                           </button>
-
+ 
                           <AnimatePresence>
                             {mobileExpanded === item.id && (
                               <motion.div
@@ -351,7 +485,7 @@ const Navbar = ({ navbar = {} }) => {
                   );
                 })}
               </div>
-
+ 
               {/* Mobile right actions */}
               <div className="mt-6 flex flex-col gap-2">
                 {sortByOrder(rightConfig).map((action, idx) => (
@@ -380,7 +514,7 @@ const Navbar = ({ navbar = {} }) => {
     </>
   );
 };
-
+ 
 export default Navbar;
 
 export const RootNavbar = ({ activeId, onNavigate }) => {

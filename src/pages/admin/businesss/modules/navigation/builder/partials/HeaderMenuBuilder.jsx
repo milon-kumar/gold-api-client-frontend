@@ -38,6 +38,8 @@ import {
   MousePointerClick,
   Copy,
   Check,
+  Settings2,
+  ChevronDown,
 } from "lucide-react";
 import { useApiMutation } from "@/hooks/useAppMutation";
 import { toast } from "sonner";
@@ -54,6 +56,341 @@ const TypeBadge = ({ type }) => (
   </span>
 );
 
+/* ------------------------------------------------------------------
+   Navbar variants — same data, 5 different looks
+------------------------------------------------------------------ */
+const NAVBAR_VARIANTS = [
+  {
+    value: "simple",
+    label: "Simple",
+    hint: "Logo left · links left · buttons right",
+  },
+  {
+    value: "centered",
+    label: "Centered",
+    hint: "Logo centered on top, links centered below",
+  },
+  {
+    value: "split",
+    label: "Split",
+    hint: "Links split around a centered logo, pill buttons",
+  },
+  {
+    value: "minimal",
+    label: "Minimal",
+    hint: "Slim, borderless, understated links",
+  },
+  {
+    value: "bold",
+    label: "Bold",
+    hint: "Dark background, high-contrast CTA",
+  },
+];
+
+const buttonVariantClass = (variant, tone = "light") => {
+  const base = "text-xs font-medium rounded-md px-3 py-1.5 transition-colors";
+  if (variant === "primary") {
+    return tone === "dark"
+      ? `${base} bg-white text-slate-900 hover:bg-slate-100`
+      : `${base} bg-primary text-primary-foreground hover:opacity-90`;
+  }
+  if (variant === "outline") {
+    return tone === "dark"
+      ? `${base} border border-white/30 text-white hover:bg-white/10`
+      : `${base} border border-slate-300 text-slate-700 hover:bg-slate-50`;
+  }
+  // ghost
+  return tone === "dark"
+    ? `${base} text-white/80 hover:text-white`
+    : `${base} text-slate-600 hover:text-slate-900`;
+};
+
+const LogoBlock = ({ left, tone = "light", size = "h-8" }) => (
+  <div className="flex items-center gap-2 shrink-0">
+    {left.logo_type !== "text" && left.logo_url ? (
+      <img
+        src={left.logo_url}
+        alt="logo"
+        className={`${size} w-auto object-contain`}
+        onError={(e) => (e.currentTarget.style.display = "none")}
+      />
+    ) : left.logo_type !== "text" ? (
+      <div
+        className={`${size} aspect-square rounded-md flex items-center justify-center text-[10px] ${
+          tone === "dark" ? "bg-white/10 text-white/50" : "bg-slate-100 text-slate-400"
+        }`}
+      >
+        LOGO
+      </div>
+    ) : null}
+    {left.logo_type !== "image" && (
+      <span
+        className={`font-semibold text-sm ${
+          tone === "dark" ? "text-white" : "text-slate-900"
+        }`}
+      >
+        {left.logo_text || "Site name"}
+      </span>
+    )}
+  </div>
+);
+
+const MiddleLinks = ({ items, tone = "light", justify = "start" }) => {
+  const parents = items.filter((it) => it.depth === 0);
+  const childrenOf = (id) =>
+    items.filter(
+      (it, i) => it.depth === 1 && items.indexOf(it) > items.indexOf(id),
+    );
+
+  // group flat depth list into parent + its following depth-1 children
+  const groups = [];
+  items.forEach((it) => {
+    if (it.depth === 0) groups.push({ parent: it, children: [] });
+    else if (groups.length) groups[groups.length - 1].children.push(it);
+  });
+
+  return (
+    <div
+      className={`flex items-center gap-5 flex-wrap ${
+        justify === "center" ? "justify-center" : "justify-start"
+      }`}
+    >
+      {groups.map(({ parent, children }) => (
+        <div key={parent.id} className="relative group/nav">
+          <button
+            type="button"
+            className={`flex items-center gap-1 text-sm ${
+              tone === "dark"
+                ? "text-white/85 hover:text-white"
+                : "text-slate-700 hover:text-slate-950"
+            }`}
+          >
+            {parent.label}
+            {children.length > 0 && <ChevronDown className="w-3 h-3 opacity-60" />}
+          </button>
+          {children.length > 0 && (
+            <div
+              className={`invisible group-hover/nav:visible opacity-0 group-hover/nav:opacity-100 transition-opacity absolute left-0 top-full mt-2 min-w-[160px] rounded-lg border shadow-lg py-1 z-10 ${
+                tone === "dark"
+                  ? "bg-slate-800 border-white/10"
+                  : "bg-white border-slate-200"
+              }`}
+            >
+              {children.map((c) => (
+                <div
+                  key={c.id}
+                  className={`px-3 py-1.5 text-xs ${
+                    tone === "dark"
+                      ? "text-white/80 hover:bg-white/5"
+                      : "text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  {c.label}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+      {groups.length === 0 && (
+        <span
+          className={`text-xs ${
+            tone === "dark" ? "text-white/30" : "text-slate-300"
+          }`}
+        >
+          No menu links yet
+        </span>
+      )}
+    </div>
+  );
+};
+
+const RightButtons = ({ items, tone = "light" }) => (
+  <div className="flex items-center gap-2 shrink-0">
+    {items.map((b) => (
+      <span key={b.id} className={buttonVariantClass(b.variant, tone)}>
+        {b.label}
+      </span>
+    ))}
+  </div>
+);
+
+/* -------- Individual variant layouts (same data, different design) -------- */
+function VariantSimple({ left, middle, right, sticky }) {
+  return (
+    <div className="rounded-lg border bg-white overflow-hidden">
+      <div
+        className={`flex items-center justify-between px-5 py-3 border-b ${
+          sticky ? "ring-1 ring-primary/20" : ""
+        }`}
+      >
+        <div className="flex items-center gap-8">
+          <LogoBlock left={left} />
+          <MiddleLinks items={middle} />
+        </div>
+        <RightButtons items={right} />
+      </div>
+    </div>
+  );
+}
+
+function VariantCentered({ left, middle, right, sticky }) {
+  return (
+    <div className="rounded-lg border bg-white overflow-hidden">
+      <div className={`flex flex-col items-center gap-2 px-5 py-3 ${sticky ? "ring-1 ring-primary/20" : ""}`}>
+        <div className="w-full flex items-center justify-between">
+          <div className="w-24" />
+          <LogoBlock left={left} />
+          <RightButtons items={right} />
+        </div>
+        <div className="border-t w-full pt-2">
+          <MiddleLinks items={middle} justify="center" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function VariantSplit({ left, middle, right, sticky }) {
+  const half = Math.ceil(middle.filter((m) => m.depth === 0).length / 2);
+  const groups = [];
+  middle.forEach((it) => {
+    if (it.depth === 0) groups.push({ parent: it, children: [] });
+    else if (groups.length) groups[groups.length - 1].children.push(it);
+  });
+  const leftGroup = groups.slice(0, half);
+  const rightGroup = groups.slice(half);
+  const flat = (g) => g.flatMap((x) => [x.parent, ...x.children]);
+
+  return (
+    <div className={`rounded-full border bg-white overflow-hidden px-2 ${sticky ? "ring-1 ring-primary/20" : ""}`}>
+      <div className="flex items-center justify-between px-4 py-2.5 gap-4">
+        <MiddleLinks items={flat(leftGroup)} />
+        <LogoBlock left={left} size="h-7" />
+        <div className="flex items-center gap-4">
+          <MiddleLinks items={flat(rightGroup)} />
+          <RightButtons items={right} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function VariantMinimal({ left, middle, right, sticky }) {
+  return (
+    <div className={`bg-white overflow-hidden ${sticky ? "ring-1 ring-primary/10" : ""}`}>
+      <div className="flex items-center justify-between px-1 py-3">
+        <LogoBlock left={left} size="h-6" />
+        <MiddleLinks items={middle} />
+        <div className="flex items-center gap-4">
+          {right.map((b) => (
+            <span key={b.id} className="text-xs text-slate-600 hover:text-slate-900">
+              {b.label}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="h-px bg-slate-100" />
+    </div>
+  );
+}
+
+function VariantBold({ left, middle, right, sticky }) {
+  return (
+    <div
+      className={`rounded-lg overflow-hidden bg-slate-900 ${
+        sticky ? "ring-1 ring-white/20" : ""
+      }`}
+    >
+      <div className="flex items-center justify-between px-5 py-3.5">
+        <div className="flex items-center gap-8">
+          <LogoBlock left={left} tone="dark" />
+          <MiddleLinks items={middle} tone="dark" />
+        </div>
+        <RightButtons items={right} tone="dark" />
+      </div>
+    </div>
+  );
+}
+
+const VARIANT_COMPONENTS = {
+  simple: VariantSimple,
+  centered: VariantCentered,
+  split: VariantSplit,
+  minimal: VariantMinimal,
+  bold: VariantBold,
+};
+
+/* ------------------------------------------------------------------
+   Live preview wrapper — picks the right variant component
+------------------------------------------------------------------ */
+function NavbarPreview({ left, middle, right, meta }) {
+  const Variant = VARIANT_COMPONENTS[meta.navbarVarients] || VariantSimple;
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-slate-500">Live preview</span>
+        <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+          {meta.navbarSticky && (
+            <span className="rounded-full border px-2 py-0.5">Sticky</span>
+          )}
+          <span className="rounded-full border px-2 py-0.5 capitalize">
+            {meta.navbarVarients}
+          </span>
+        </div>
+      </div>
+      <Variant left={left} middle={middle} right={right} sticky={meta.navbarSticky} />
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------
+   Variant picker — small thumbnails to choose from, 5 options
+------------------------------------------------------------------ */
+function VariantPicker({ value, onChange }) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
+      {NAVBAR_VARIANTS.map((v) => (
+        <button
+          type="button"
+          key={v.value}
+          onClick={() => onChange(v.value)}
+          className={`text-left rounded-lg border p-3 transition-colors ${
+            value === v.value
+              ? "border-primary bg-primary/5"
+              : "hover:bg-slate-50"
+          }`}
+        >
+          <div
+            className={`h-10 rounded-md mb-2 flex items-center px-2 gap-1 ${
+              v.value === "bold" ? "bg-slate-900" : "bg-slate-100"
+            } ${v.value === "split" ? "rounded-full" : "rounded-md"}`}
+          >
+            <span
+              className={`w-4 h-4 rounded-sm ${
+                v.value === "bold" ? "bg-white/30" : "bg-slate-300"
+              }`}
+            />
+            <span
+              className={`flex-1 flex gap-1 ${
+                v.value === "centered" ? "justify-center" : "justify-start"
+              }`}
+            >
+              <span className={`h-1.5 w-4 rounded-full ${v.value === "bold" ? "bg-white/20" : "bg-slate-300"}`} />
+              <span className={`h-1.5 w-4 rounded-full ${v.value === "bold" ? "bg-white/20" : "bg-slate-300"}`} />
+            </span>
+          </div>
+          <div className="text-xs font-medium flex items-center gap-1.5">
+            {v.label}
+            {value === v.value && <Check className="w-3 h-3 text-primary" />}
+          </div>
+          <div className="text-[10px] text-slate-400 mt-0.5">{v.hint}</div>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 const emptyNavbar = () => ({
   id: null, // null means new navbar (will be created in backend)
   name: "",
@@ -67,6 +404,10 @@ const emptyNavbar = () => ({
   },
   middle: [], // [{ id, page_id, label, type, url, depth, newTab }]
   right: [], // [{ id, label, url, variant, newTab }]
+  meta: {
+    navbarSticky: true,
+    navbarVarients: "simple",
+  },
 });
 
 /* ==================================================================
@@ -276,8 +617,6 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
   const [editingId, setEditingId] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
 
-
-
   /* ---------------- API hooks ---------------- */
   const { mutate: fetchNavbars } = useApiMutation({
     url: "/admin/navbars/list",
@@ -334,6 +673,10 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
         id: newId("b"),
         ...b,
       })),
+      meta: {
+        ...emptyNavbar().meta,
+        ...(nb.meta || {}),
+      },
     });
   };
 
@@ -427,6 +770,10 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
   const removeRight = (id) =>
     setCurrent((c) => ({ ...c, right: c.right.filter((it) => it.id !== id) }));
 
+  /* ---------------- Meta / settings helpers ---------------- */
+  const updateMeta = (patch) =>
+    setCurrent((c) => ({ ...c, meta: { ...c.meta, ...patch } }));
+
   /* -------- Drag end (same logic for both lists) -------- */
   const makeDragEnd = (key) => (event) => {
     if (event.canceled) return;
@@ -469,6 +816,7 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
         ...b,
         sort_order: i,
       })),
+      meta: current.meta,
     };
 
     const res = await saveNavbar(payload);
@@ -635,19 +983,23 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
         </CardContent>
       </Card>
 
-      {/* -------- 3 sections -------- */}
+      {/* -------- 4 sections -------- */}
       <Tabs defaultValue="middle">
         <TabsList>
-          <TabsTrigger value="left">
+          <TabsTrigger value="left" className={'cursor-pointer'}>
             <ImageIcon className="w-3.5 h-3.5 mr-1" /> Left Section (Logo)
           </TabsTrigger>
-          <TabsTrigger value="middle">
+          <TabsTrigger value="middle" className={'cursor-pointer'}>
             <FileText className="w-3.5 h-3.5 mr-1" />
             Middle Section (Links)
           </TabsTrigger>
-          <TabsTrigger value="right">
+          <TabsTrigger value="right" className={'cursor-pointer'}>
             <MousePointerClick className="w-3.5 h-3.5 mr-1" />
             Right Section (Buttons)
+          </TabsTrigger>
+          <TabsTrigger value="settings" className={'cursor-pointer'}>
+            <Settings2 className="w-3.5 h-3.5 mr-1" />
+            Settings & Preview
           </TabsTrigger>
         </TabsList>
 
@@ -928,6 +1280,70 @@ export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* ================= SETTINGS : META + VARIANT + LIVE PREVIEW ================= */}
+        <TabsContent value="settings">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm">Behavior</CardTitle>
+                <CardDescription className="text-xs">
+                  General settings saved in the navbar's meta.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <label className="flex items-center justify-between rounded-lg border p-3 max-w-md">
+                  <span>
+                    <span className="text-sm font-medium block">
+                      Sticky navbar
+                    </span>
+                    <span className="text-xs text-slate-400">
+                      Keeps the navbar fixed at the top while scrolling.
+                    </span>
+                  </span>
+                  <Switch
+                    checked={!!current.meta.navbarSticky}
+                    onCheckedChange={(v) => updateMeta({ navbarSticky: v })}
+                  />
+                </label>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm">Navbar variant</CardTitle>
+                <CardDescription className="text-xs">
+                  Same links, logo and buttons — pick how they should look.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <VariantPicker
+                  value={current.meta.navbarVarients}
+                  onChange={(v) => updateMeta({ navbarVarients: v })}
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm">Preview</CardTitle>
+                <CardDescription className="text-xs">
+                  This is how the navbar will look with the current data.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-xl border bg-slate-50 p-4">
+                  <NavbarPreview
+                    left={current.left}
+                    middle={current.middle}
+                    right={current.right}
+                    meta={current.meta}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
