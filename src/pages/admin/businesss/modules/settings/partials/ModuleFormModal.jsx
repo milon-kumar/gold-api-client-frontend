@@ -245,7 +245,7 @@ const ModuleFormModal = ({ open, onOpenChange, module, onSaved }) => {
                 </div>
                 <div className="space-y-2">
                   <Label>Module Slug</Label>
-                  <Input value={form.slug} disabled placeholder="module-slug" />
+                  <Input value={form.slug} onChange={(e) => updateField("slug", e.target.value)} placeholder="module-slug" />
                 </div>
               </div>
 
