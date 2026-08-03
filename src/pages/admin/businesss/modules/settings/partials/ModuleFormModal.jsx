@@ -193,6 +193,7 @@ const ModuleFormModal = ({ open, onOpenChange, module, onSaved }) => {
       short_description: form.short_description.trim(),
       description: form.description,
       image: imageBase64 || module?.image || null,
+      module_type: "custom",
       meta: {
         seo_content: form.seo_content,
         category_required: form.category_required,
@@ -201,7 +202,6 @@ const ModuleFormModal = ({ open, onOpenChange, module, onSaved }) => {
 
     try {
       const response = await createModule(payload);
-      console.log("Response - ",response)
       if (response?.success) {
         toast.success(`Module ${isEdit ? "updated" : "created"} successfully`);
         onSaved?.();

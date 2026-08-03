@@ -43,6 +43,7 @@ import {
   Award,
   Star,
 } from 'lucide-react';
+import { RichTextEditor, RICH_TEXT_VARIANTS } from '@/components/ui/rich-text-editor';
 
 const Save = () => {
   const { module, setting } = useSelector((state) => state);
@@ -76,12 +77,14 @@ const Save = () => {
     isLoading: itemGetLoading,
     refetch: refetchItem
   } = useApiQuery({
-    url: `/admin/business-modules/${MODULES?.FOUNDING_PRESIDENT}`,
+    url: `/admin/business-modules/${'about-us'}`,
     params: {
-      module_slug: MODULES?.FOUNDING_PRESIDENT || 'founding-president',
+      module_slug: 'about-us',
       limit: 1,
     }
   });
+
+  console.log("itemGetQuery:", itemGetQuery);
 
   useEffect(() => {
     const item = itemGetQuery?.data || [];
@@ -159,12 +162,13 @@ const Save = () => {
 
     const payload = {
       id: isEditing ? itemId : undefined,
-      module_slug: MODULES?.FOUNDING_PRESIDENT || 'founding-president',
+      module_slug: 'about-us',
       title: formData.title,
       sub_title: formData.sub_title,
       short_description: formData.short_description,
       description: formData.description,
       is_featured: 0,
+      module_type: 'system',
       status: formData.status,
       image: imageBase64 || null,
     };
@@ -276,7 +280,20 @@ const Save = () => {
                   <Label htmlFor="description" className="text-sm font-semibold">
                     Full Description <span className="text-red-500">*</span>
                   </Label>
-                  <Textarea
+                   <RichTextEditor
+                      variant={RICH_TEXT_VARIANTS.SIMPLE}
+                      name="description"
+                      value={formData.description}
+                      onChange={(content) => {
+                        handleInputChange({
+                          target:{
+                            name:'description',
+                            value: content
+                          }
+                        })
+                      }}
+                    />
+                  {/* <Textarea
                     id="description"
                     name="description"
                     value={formData.description}
@@ -284,7 +301,7 @@ const Save = () => {
                     placeholder="Write about the founding president's journey, achievements, vision, and legacy..."
                     rows="12"
                     className="mt-1.5 resize-y min-h-[300px]"
-                  />
+                  /> */}
                   <p className="text-xs text-muted-foreground mt-1.5">
                     Share the inspiring story of the founding president, their contributions, and lasting impact.
                   </p>

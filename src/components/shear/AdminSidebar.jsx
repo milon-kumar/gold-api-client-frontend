@@ -14,7 +14,7 @@ import { useAuth } from "@/hooks/useAuth.js";
 import { setModule } from "@/store/features/moudleSlice";
 import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
-
+import { setActiveTab } from "@/store/features/businessSettingSlice.js";
 const businessDefaultSidebar = [
   {
     id: "overview",
@@ -40,6 +40,7 @@ const businessDefaultSidebar = [
 const GROUP_LABELS = {
   overview: "Overview",
   management: "Management",
+  'default-content': "Default Content",
   "content-management": "Content Management",
 };
 
@@ -91,12 +92,21 @@ const AdminSidebar = () => {
   };
 
   const handleSidebarItemClick = (item) => {
-    const defaultRoutes = ['dashboard','categories', 'settings','navigations',]
+    const settingTabs = ["businessSetting", "manageModule", "sidebarBuilder", "accountSetting"];
     let to;
-    if (defaultRoutes?.includes(item?.id)) {
-      to = item.module_slug || item.id;
+    if (item?.url) {
+      if(settingTabs.includes(item.id)) {
+        dispath(
+          setActiveTab(item.id)
+        )
+      }
+      to = item.url;
     } else {
-      to = `/module/${item.module_slug || item.id}`
+      if(item.module_slug === "about-us"){
+        to = `/${item.module_slug || item.id}`
+      }else{
+        to = `/module/${item.module_slug || item.id}`
+      }
     }
     handleModuleSet({
       ...item,

@@ -79,6 +79,7 @@ export default function Builder() {
           <TabsContent value="menu" className="mt-5">
             <HeaderMenuBuilder 
               allActivePages={allActivePages}
+              settings={setting?.settings || {}}
             />
           </TabsContent>
           <TabsContent value="footer" className="mt-5">

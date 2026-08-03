@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Play,
   Clock,
   Eye,
-  ChevronRight,
+  X,
   Video,
   AlertCircle,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,6 +16,22 @@ import { useApiQuery } from "@/hooks/useAppQuery";
 import { MODULES } from "@/store/default/modules";
 import PageHeroRenderer from "@/components/renderers/PageHeroRenderer";
 import { useLocation } from "react-router";
+
+/* ---------------------------------- */
+/*  Helpers                           */
+/* ---------------------------------- */
+// video.meta comes back as a JSON string, e.g. {"url":"https://youtube.com/...","source":"youtube"}
+const parseVideoMeta = (video) => {
+  if (!video?.meta) return {};
+  if (typeof video.meta === "string") {
+    try {
+      return JSON.parse(video.meta);
+    } catch {
+      return {};
+    }
+  }
+  return video.meta;
+};
 
 /* ---------------------------------- */
 /*  Video Card                        */
@@ -93,7 +110,7 @@ const VideoCardSkeleton = () => (
 export default function VideoGallery() {
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [openModal, setOpenModal] = useState(false);
-  const { pathname } = useLocation()
+  const { pathname } = useLocation();
   const slug = pathname.split("/").filter(Boolean).pop();
 
   const {
@@ -121,10 +138,9 @@ export default function VideoGallery() {
     enabled: !!slug,
   });
 
-  const page = getPageResponse?.data
+  const page = getPageResponse?.data;
   const meta = page?.meta ? JSON.parse(page.meta) : {};
 
-  console.log("Selected Video:", selectedVideo);
   return (
     <div className="min-h-screen bg-background">
       <PageHeroRenderer
@@ -207,60 +223,122 @@ export default function VideoGallery() {
         )}
       </main>
 
-      <VideoModal
-        open={openModal}
-        setOpen={setOpenModal}
-        videoUrl={selectedVideo?.video_link}
-      />
+      <VideoModal open={openModal} setOpen={setOpenModal} video={selectedVideo} />
     </div>
   );
 }
 
 /* ---------------------------------- */
-/*  Video Modal                       */
+/*  Video Modal — a proper player     */
 /* ---------------------------------- */
-const VideoModal = ({ open, setOpen, videoUrl }) => {
+const VideoModal = ({ open, setOpen, video }) => {
+  const [iframeLoaded, setIframeLoaded] = useState(false);
+
+  const videoMeta = useMemo(() => parseVideoMeta(video), [video]);
+  const rawUrl = videoMeta?.url;
+  const source = videoMeta?.source; // "youtube" | "vimeo" | "mp4" | undefined
+
   const getEmbedUrl = (url) => {
     if (!url) return "";
 
-    // watch?v= → embed/
+    // youtube: watch?v=...
     if (url.includes("watch?v=")) {
       const videoId = url.split("watch?v=")[1]?.split("&")[0];
-      return `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+      return `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
     }
 
-    // youtu.be short link → embed/
+    // youtube: short link youtu.be/...
     if (url.includes("youtu.be/")) {
       const videoId = url.split("youtu.be/")[1]?.split("?")[0];
-      return `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+      return `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
     }
 
-    // already embed
-    if (url.includes("embed")) {
-      return url;
+    // youtube: already an /embed/ url
+    if (url.includes("youtube.com/embed")) {
+      return url.includes("autoplay") ? url : `${url}${url.includes("?") ? "&" : "?"}autoplay=1`;
+    }
+
+    // vimeo: vimeo.com/12345
+    if (url.includes("vimeo.com/")) {
+      const videoId = url.split("vimeo.com/")[1]?.split(/[?&]/)[0];
+      return `https://player.vimeo.com/video/${videoId}?autoplay=1`;
     }
 
     return url;
   };
 
-  const embedUrl = getEmbedUrl(videoUrl);
+  const embedUrl = getEmbedUrl(rawUrl);
+  const isDirectFile = source === "mp4" || /\.(mp4|webm|ogg)(\?|$)/i.test(rawUrl || "");
+
+  const handleOpenChange = (next) => {
+    if (!next) setIframeLoaded(false);
+    setOpen(next);
+  };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogOverlay className="bg-black/80 backdrop-blur-sm" />
-      <DialogContent className="w-[95vw] max-w-5xl overflow-hidden border-none bg-black p-0">
-        <div className="relative aspect-video w-full">
-          {embedUrl && (
-            <iframe
-              src={embedUrl}
-              title="Video Player"
-              className="h-full w-full"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogOverlay className="bg-black/85 backdrop-blur-sm" />
+      <DialogContent className="w-[95vw] max-w-5xl overflow-hidden border-none bg-black p-0 gap-0">
+        {/* Header bar */}
+        <div className="flex items-center justify-between gap-4 border-b border-white/10 bg-gradient-to-r from-slate-900 to-slate-800 px-4 py-3">
+          <p className="font-bengali line-clamp-1 text-sm font-medium text-white/90">
+            {video?.title || "Video"}
+          </p>
+       
+        </div>
+
+        {/* Player */}
+        <div className="relative aspect-video w-full bg-black">
+          {!rawUrl ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center">
+              <AlertCircle className="h-8 w-8 text-white/40" />
+              <p className="font-bengali text-sm text-white/60">
+                এই ভিডিওর লিংক পাওয়া যায়নি
+              </p>
+            </div>
+          ) : (
+            <>
+              {!iframeLoaded && !isDirectFile && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-white/50" />
+                </div>
+              )}
+
+              {isDirectFile ? (
+                <video
+                  key={rawUrl}
+                  src={rawUrl}
+                  controls
+                  autoPlay
+                  className="h-full w-full"
+                  onLoadedData={() => setIframeLoaded(true)}
+                />
+              ) : (
+                <iframe
+                  key={embedUrl}
+                  src={embedUrl}
+                  title={video?.title || "Video Player"}
+                  className={`h-full w-full transition-opacity duration-300 ${
+                    iframeLoaded ? "opacity-100" : "opacity-0"
+                  }`}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  onLoad={() => setIframeLoaded(true)}
+                />
+              )}
+            </>
           )}
         </div>
+
+        {/* Footer: sub title, if present */}
+        {video?.sub_title && (
+          <div className="border-t border-white/10 bg-slate-900 px-4 py-3">
+            <p className="font-bengali line-clamp-2 text-xs text-white/60">
+              {video.sub_title}
+            </p>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

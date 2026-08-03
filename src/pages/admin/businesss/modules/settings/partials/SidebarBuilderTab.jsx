@@ -26,10 +26,11 @@ import {
   Loader2,
   Lock,
   Plus,
+  RotateCcw,
   Save,
   Trash2
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import IconRenderer from "@/components/partials/IconRenderer";
@@ -43,18 +44,20 @@ const DEFAULT_GROUPS = [
     id: "overview",
     title: "Overview",
     locked: true,
-    items: [{ id: "dashboard", label: "Dashboard", iconKey: "dashboard", system: true }],
+    items: [{ id: "dashboard", label: "Dashboard", iconKey: "dashboard", system: true , url: "/dashboard"}],
   },
   {
     id: "default-content",
     title: "Default Content",
     locked: true,
+    // items are always derived from module_type === "system" modules (see syncing effect below)
     items: [],
   },
   {
     id: "content-management",
     title: "Content Management",
     locked: true,
+    // items are derived from module_type === "custom" modules (see syncing effect below)
     items: [],
   },
   {
@@ -62,15 +65,118 @@ const DEFAULT_GROUPS = [
     title: "Settings",
     locked: true,
     items: [
-      { id: "settings", label: "Business Overview", iconKey: "settings", system: true },
-      { id: "navigations", label: "Pages", iconKey: "pages", system: true },
-      { id: "builder", label: "Menu Builder", iconKey: "pages", system: true },
-      { id: "sidebar-builder", label: "Sidebar Builder", iconKey: "pages", system: true },
-      { id: "modules", label: "Modules Manager", iconKey: "pages", system: true },
-      { id: "account-settings", label: "Accounts", iconKey: "pages", system: true },
+      { id: "businessSetting", label: "Business Overview", iconKey: "settings", system: true,url: "/settings?tab=businessSetting" },
+      { id: "navigations", label: "Pages", iconKey: "pages", system: true ,url: "/navigations"},
+      { id: "builder", label: "Menu Builder", iconKey: "pages", system: true ,url: "/navigations/builder"},
+      { id: "sidebarBuilder", label: "Sidebar Builder", iconKey: "pages", system: true ,url: "/settings?tab=sidebarBuilder"},
+      { id: "categories", label: "Categories", iconKey: "pages", system: true ,url: "/categories"},
+      { id: "manageModule", label: "Modules Manager", iconKey: "pages", system: true ,url: "/settings?tab=manageModule"},
+      { id: "accountSetting", label: "Accounts", iconKey: "pages", system: true ,url: "/settings?tab=accountSetting"},
     ],
   },
 ];
+
+// Builds a locked (non-removable), reorderable item list for a module group.
+// `savedItems` (if any) determines order + label/icon overrides; the module list
+// itself is always the source of truth for *which* items exist.
+const buildLockedItemsFromModules = (modules, savedItems = []) => {
+  const savedOrder = (savedItems || []).map((i) => i.id);
+  const ordered = [...modules].sort((a, b) => {
+    const aIndex = savedOrder.indexOf(a.id);
+    const bIndex = savedOrder.indexOf(b.id);
+    return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex);
+  });
+
+  return ordered.map((module) => {
+    console.log("module:", module);
+    const saved = (savedItems || []).find((i) => i.id === module.id);
+    return {
+      id: module.id,
+      label: saved?.label || module.title,
+      iconKey: saved?.icon_key || "module",
+      module_slug: module.title_slug,
+      system: true, // locked: reorder-only, cannot be removed, never shown in Available Modules
+      url: module?.meta?.url || null,
+    };
+  });
+};
+
+// Builds the full groups array from scratch. Pass `savedGroups` (from saved
+// settings) to respect existing order/labels/removed-items; pass null/undefined
+// to get a completely fresh default layout (used for the Reset action).
+const buildGroupsFromModules = (systemModules, customModules, savedGroups) => {
+  const hasSavedSidebar = Boolean(savedGroups?.length);
+
+  const savedDefaultContent = savedGroups?.find((g) => g.id === "default-content");
+  const savedContentManagement = savedGroups?.find((g) => g.id === "content-management");
+
+  // Default Content: always fully synced from system modules. Order/labels/icons
+  // come from saved data if present, but items themselves cannot be removed.
+  const defaultContentItems = buildLockedItemsFromModules(systemModules, savedDefaultContent?.items);
+
+  // Content Management: if we already have a saved list, respect it exactly
+  // (so removed items stay removed / available). Otherwise default-populate
+  // with every custom module.
+  const contentManagementItems = savedContentManagement
+    ? savedContentManagement.items
+      .map((saved) => {
+        const module = customModules.find((m) => m.id === saved.id);
+        if (!module) return null; // module no longer exists / no longer custom
+        return {
+          id: module.id,
+          label: saved.label || module.title,
+          iconKey: saved.icon_key || "module",
+          module_slug: module.title_slug,
+          system: false,
+        };
+      })
+      .filter(Boolean)
+    : customModules.map((module) => ({
+      id: module.id,
+      label: module.title,
+      iconKey: "module",
+      module_slug: module.title_slug,
+      system: false,
+    }));
+
+  const nextGroups = DEFAULT_GROUPS.map((defaultGroup) => {
+    if (defaultGroup.id === "default-content") {
+      return { ...defaultGroup, items: defaultContentItems };
+    }
+    if (defaultGroup.id === "content-management") {
+      return { ...defaultGroup, items: contentManagementItems };
+    }
+
+    // overview / settings: hardcoded system items, reorder + label/icon overrides only
+    const savedGroup = savedGroups?.find((g) => g.id === defaultGroup.id);
+    if (!savedGroup) return defaultGroup;
+
+    const orderedItems = (savedGroup.items || [])
+      .map((saved) => {
+        const original = defaultGroup.items.find((item) => item.id === saved.id);
+        if (!original) return null;
+        return {
+          ...original,
+          label: saved.label || original.label,
+          iconKey: saved.icon_key || original.iconKey,
+          url: saved.url || original.url,
+        };
+      })
+      .filter(Boolean);
+    return { ...defaultGroup, items: orderedItems.length ? orderedItems : defaultGroup.items };
+  });
+
+  if (hasSavedSidebar) {
+    const savedGroupOrder = savedGroups.map((g) => g.id);
+    nextGroups.sort((a, b) => {
+      const aIndex = savedGroupOrder.indexOf(a.id);
+      const bIndex = savedGroupOrder.indexOf(b.id);
+      return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex);
+    });
+  }
+
+  return nextGroups;
+};
 
 const EditMenuItemDialog = ({ open, onOpenChange, item, onSave }) => {
   const [label, setLabel] = useState("");
@@ -174,7 +280,7 @@ const SortableItem = ({ item, index, groupId, onEdit, onRemove }) => {
       </div>
       <div className="flex items-center gap-2">
         {item.system && <Lock className="h-3.5 w-3.5 text-muted-foreground" />}
-        {!item.system && item.module_slug && (
+        {item.module_slug && (
           <Badge variant="outline" className="text-xs">{item.module_slug}</Badge>
         )}
         <Button
@@ -205,6 +311,7 @@ const SidebarBuilderTab = () => {
   const [allModules, setAllModules] = useState([]);
   const [selectedModuleIds, setSelectedModuleIds] = useState([]);
   const [editTarget, setEditTarget] = useState(null);
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
 
   const {
     data: settingsResponse,
@@ -214,17 +321,11 @@ const SidebarBuilderTab = () => {
     url: `/admin/business-settings`,
   });
 
-  // useEffect(async () => {
-  //   await refetchSettings()
-  // }, [])
-
   const settings = settingsResponse?.data?.settings?.meta || {}
-
 
   const { data: modulesResponse, isLoading: modulesLoading } = useApiQuery({
     url: "/admin/business-modules",
   });
-
 
   const { mutate: saveOrder, isLoading: saving } = useApiMutation({
     url: "/admin/update-business-meta",
@@ -235,47 +336,30 @@ const SidebarBuilderTab = () => {
     setAllModules(modulesResponse?.data?.data || []);
   }, [modulesResponse]);
 
+  // Split modules by type: system modules always live in "Default Content",
+  // custom modules live in "Content Management".
+  const systemModules = useMemo(
+    () => allModules.filter((module) => module.module_type === "system"),
+    [allModules],
+  );
+  const customModules = useMemo(
+    () => allModules.filter((module) => module.module_type === "custom"),
+    [allModules],
+  );
+
   useEffect(() => {
+    // wait until modules are loaded so we don't briefly wipe groups with an empty module list
+    if (modulesLoading) return;
+
     const savedGroups = settings?.business_sidebar?.groups;
-    if (!savedGroups?.length) return;
-
-    const nextGroups = DEFAULT_GROUPS.map((defaultGroup) => {
-      const savedGroup = savedGroups.find((g) => g.id === defaultGroup.id);
-      if (!savedGroup) return defaultGroup;
-
-      if (defaultGroup.id === "content-management") {
-        const items = (savedGroup.items || []).map((saved) => ({
-          id: saved.id,
-          label: saved.label,
-          iconKey: saved.icon_key || "module",
-          module_slug: saved.module_slug,
-          system: false,
-        }));
-        return { ...defaultGroup, items };
-      }
-
-      const orderedItems = (savedGroup.items || [])
-        .map((saved) => {
-          const original = defaultGroup.items.find((item) => item.id === saved.id);
-          if (!original) return null;
-          return { ...original, label: saved.label || original.label, iconKey: saved.icon_key || original.iconKey };
-        })
-        .filter(Boolean);
-      return { ...defaultGroup, items: orderedItems.length ? orderedItems : defaultGroup.items };
-    });
-
-    const savedGroupOrder = savedGroups.map((g) => g.id);
-    nextGroups.sort((a, b) => {
-      const aIndex = savedGroupOrder.indexOf(a.id);
-      const bIndex = savedGroupOrder.indexOf(b.id);
-      return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex);
-    });
-
-    setGroups(nextGroups);
-  }, [settings]);
+    setGroups(buildGroupsFromModules(systemModules, customModules, savedGroups));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings, systemModules, customModules, modulesLoading]);
 
   const contentManagementIds = groups.find((g) => g.id === "content-management")?.items.map((i) => i.id) || [];
-  const availableModules = allModules.filter((module) => !contentManagementIds.includes(module.id));
+  // Only custom modules can ever appear in the "Available Modules" panel; system
+  // modules are auto-managed and never removable/available.
+  const availableModules = customModules.filter((module) => !contentManagementIds.includes(module.id));
 
   const toggleModuleSelect = (moduleId) => {
     setSelectedModuleIds((prev) =>
@@ -286,7 +370,7 @@ const SidebarBuilderTab = () => {
   const handleAddSelected = () => {
     if (selectedModuleIds.length === 0) return;
 
-    const modulesToAdd = allModules.filter((module) => selectedModuleIds.includes(module.id));
+    const modulesToAdd = customModules.filter((module) => selectedModuleIds.includes(module.id));
 
     setGroups((prev) =>
       prev.map((group) =>
@@ -343,11 +427,22 @@ const SidebarBuilderTab = () => {
   };
 
   const handleItemRemove = (groupId, item) => {
+    // system items (Default Content) never expose a remove button, but guard here too
+    if (item.system) return;
     setGroups((prev) =>
       prev.map((group) =>
         group.id === groupId ? { ...group, items: group.items.filter((i) => i.id !== item.id) } : group,
       ),
     );
+  };
+
+  const handleReset = () => {
+    // Rebuild a fresh default layout, ignoring any saved order/labels/removed items.
+    // This only updates local state — nothing is persisted until "Save Order" is clicked.
+    setGroups(buildGroupsFromModules(systemModules, customModules, null));
+    setSelectedModuleIds([]);
+    setResetConfirmOpen(false);
+    toast.success("Sidebar reset to default. Click Save Order to apply.");
   };
 
   const handleSave = async () => {
@@ -361,6 +456,7 @@ const SidebarBuilderTab = () => {
               label: item.label,
               icon_key: item.iconKey,
               module_slug: item.module_slug,
+              url: item.url,
             })),
           })),
         },
@@ -445,19 +541,30 @@ const SidebarBuilderTab = () => {
                 Drag a group to reorder it, drag items within a group to rearrange them, or edit an item's title and icon
               </CardDescription>
             </div>
-            <Button onClick={handleSave} disabled={saving} className="gap-2">
-              {saving ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4" />
-                  Save Order
-                </>
-              )}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="destructive"
+                onClick={() => setResetConfirmOpen(true)}
+                disabled={saving}
+                className="gap-2"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Reset
+              </Button>
+              <Button onClick={handleSave} disabled={saving} className="gap-2">
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" />
+                    Save Order
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="pt-6 space-y-4">
@@ -493,6 +600,27 @@ const SidebarBuilderTab = () => {
         item={editTarget?.item}
         onSave={handleItemEdit}
       />
+
+      <Dialog open={resetConfirmOpen} onOpenChange={setResetConfirmOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reset sidebar to default?</DialogTitle>
+            <DialogDescription>
+              This will discard all custom order, labels, icons, and removed items — Default Content and
+              Content Management will be rebuilt from scratch. This won't be saved until you click "Save Order".
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setResetConfirmOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleReset} className="gap-2">
+              <RotateCcw className="h-4 w-4" />
+              Reset
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

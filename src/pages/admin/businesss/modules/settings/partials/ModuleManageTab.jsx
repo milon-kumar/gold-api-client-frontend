@@ -30,8 +30,11 @@ const ModuleManageTab = () => {
     refetch: refetchModules,
   } = useApiQuery({
     url: "/admin/business-modules",
+    params: {
+      module_type: "custom",
+    },
   });
-
+    
   const modules = modulesResponse?.data?.data || [];
 
   const { mutate: deleteModule, isLoading: deleting } = useApiMutation({

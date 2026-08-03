@@ -391,13 +391,13 @@ function VariantPicker({ value, onChange }) {
   );
 }
 
-const emptyNavbar = () => ({
+const emptyNavbar = (settings = {}) => ({
   id: null, // null means new navbar (will be created in backend)
   name: "",
   is_active: true,
   left: {
     logo_type: "image", // image | text | both
-    logo_url: "",
+    logo_url: settings?.logo_full_path || "",
     logo_text: "",
     link: "/",
     height: 40,
@@ -607,9 +607,10 @@ function SortableButtonItem({ item, index, onUpdate, onRemove }) {
 /* ==================================================================
    Main Builder
 ================================================================== */
-export const HeaderMenuBuilder = ({ allActivePages = [] }) => {
+export const HeaderMenuBuilder = ({ allActivePages = [],settings ={} }) => {
+  //console.log("HeaderMenuBuilder settings:", settings);
   const [navbars, setNavbars] = useState([]); // All saved navbars list
-  const [current, setCurrent] = useState(emptyNavbar()); // Currently being edited
+  const [current, setCurrent] = useState(emptyNavbar(settings)); // Currently being edited
   const [searchTerm, setSearchTerm] = useState("");
   const [checked, setChecked] = useState([]);
   const [customLabel, setCustomLabel] = useState("");

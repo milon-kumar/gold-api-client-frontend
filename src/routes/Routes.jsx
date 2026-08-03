@@ -165,7 +165,7 @@ const router = createBrowserRouter([
                         element: <WhatWeWant />
                     },
                     {
-                        path: "founding-president",
+                        path: "about-us",
                         element: <FoundingPresident />
                     },
 
