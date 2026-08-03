@@ -77,7 +77,7 @@ const PresidentCard = ({ content }) => (
           </svg>
         </div>
       )}
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent p-6 pt-16 text-white">
+      {/* <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent p-6 pt-16 text-white">
         <span className="mb-2 block h-0.5 w-10 rounded-full bg-primary transition-all duration-300 group-hover:w-16" />
         <h3 className="text-lg font-bold leading-snug">
           ড. মুহাম্মাদ আসাদুল্লাহ আল-গালিব
@@ -85,34 +85,13 @@ const PresidentCard = ({ content }) => (
         <p className="mt-1 text-sm text-white/80">
           প্রতিষ্ঠাতা ও আমীর — আহলেহাদীছ আন্দোলন বাংলাদেশ
         </p>
-      </div>
-    </div>
-
-    {/* quick facts */}
-    <div className="mt-5 grid grid-cols-3 gap-3">
-      {[
-        { value: "৫০+", label: "রচিত গ্রন্থ" },
-        { value: "৩৬", label: "বছর অধ্যাপনা" },
-        { value: "১০+", label: "প্রতিষ্ঠিত সংস্থা" },
-      ].map((f) => (
-        <div
-          key={f.label}
-          className="rounded-2xl border border-slate-200/80 bg-white p-4 text-center shadow-sm"
-        >
-          <p className="text-xl font-extrabold text-primary">{f.value}</p>
-          <p className="mt-0.5 text-[11px] font-medium text-slate-500">
-            {f.label}
-          </p>
-        </div>
-      ))}
+      </div> */}
     </div>
   </div>
 );
 
 /* ---- Biography body (right side) ---- */
 const Biography = ({ content }) => {
-  const blocks = parseDescription(content?.description);
-
   return (
     <div>
       {/* intro / short description */}
@@ -128,31 +107,7 @@ const Biography = ({ content }) => {
 
       {/* full biography, section-wise */}
       <div className="space-y-4">
-        {blocks.map((block, i) =>
-          block.isHeading ? (
-            <div key={i} className="flex items-center gap-3 pt-6 first:pt-0">
-              <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <BookOpen className="h-4 w-4" />
-              </span>
-              <h3 className="text-lg font-bold text-slate-900 md:text-xl">
-                {block.text}
-              </h3>
-              <span className="h-px flex-1 bg-gradient-to-r from-slate-200 to-transparent" />
-            </div>
-          ) : isListLine(block.raw) ? (
-            <p
-              key={i}
-              className="ml-1 flex items-start gap-3 text-[15px] leading-relaxed text-slate-600"
-            >
-              <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary/60" />
-              {block.raw}
-            </p>
-          ) : (
-            <p key={i} className="text-[15px] leading-loose text-slate-600">
-              {block.raw}
-            </p>
-          ),
-        )}
+        <p dangerouslySetInnerHTML={{ __html: content?.description }} />
       </div>
     </div>
   );
@@ -230,8 +185,8 @@ const AboutUs = () => {
     isLoading: foundingPresidentModuleLoading,
   } = useApiQuery({
     url: "/module",
-    queryKey: [MODULES.FOUNDING_PRESIDENT],
-    params: { module_slug: MODULES.FOUNDING_PRESIDENT },
+    queryKey: slug,
+    params: { module_slug: slug },
   });
 
   const foundingPresidentContent = foundingPresidentQuery?.data;
