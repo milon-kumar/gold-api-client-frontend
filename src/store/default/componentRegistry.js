@@ -1482,7 +1482,7 @@ export const COMPONENT_REGISTRY = {
                 label: "Card image height (px)",
                 type: "slider",
                 group: "style",
-                default: 50,
+                default: 200,
                 min: 180,
                 max: 400,
                 step: 1,
@@ -1492,7 +1492,7 @@ export const COMPONENT_REGISTRY = {
                 label: "Image Fit",
                 type: "radio",
                 group: "style",
-                default: "contain",
+                default: "cover",
                 options: [
                   { label: "Cover", value: "cover" },
                   { label: "Contain", value: "contain" },
