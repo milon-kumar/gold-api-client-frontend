@@ -1,13 +1,16 @@
+import { useMemo, useState } from "react";
 import {
   BarChart3,
   Home,
   Layers2,
-  Loader2,
-  Users
+  Search,
+  Users,
+  X,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { IconRenderer } from "@/components/ui/icon-renderer";
 import { useApiQuery } from "@/hooks/useAppQuery.js";
 import { useAuth } from "@/hooks/useAuth.js";
@@ -15,6 +18,9 @@ import { setModule } from "@/store/features/moudleSlice";
 import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 import { setActiveTab } from "@/store/features/businessSettingSlice.js";
+import DynamicIconRender from "./DynamicIconRender";
+import { cn } from "@/lib/utils";
+
 const businessDefaultSidebar = [
   {
     id: "overview",
@@ -53,11 +59,33 @@ const menus = {
   business: [{ icon: Home, label: "Dashboard", to: "/admin/dashboard" }],
 };
 
+const SidebarMenuSkeleton = ({ groupCount = 3, itemsPerGroup = 3 }) => (
+  <div className="space-y-6" aria-hidden="true">
+    {Array.from({ length: groupCount }).map((_, groupIndex) => (
+      <div key={groupIndex} className="space-y-2">
+        <div className="h-3 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+        <div className="space-y-1.5">
+          {Array.from({ length: itemsPerGroup }).map((_, itemIndex) => (
+            <div key={itemIndex} className="flex items-center gap-2 rounded-md px-3 py-2">
+              <div className="h-4 w-4 shrink-0 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+              <div
+                className="h-3 animate-pulse rounded bg-gray-200 dark:bg-gray-800"
+                style={{ width: `${55 + ((itemIndex * 17) % 35)}%` }}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
 const AdminSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispath = useDispatch();
   const { user } = useAuth();
+  const [search, setSearch] = useState("");
 
   const { data: getBusinessModulesResponse } = useApiQuery({
     url: `/admin/business-module-group/${user?.business_id}`,
@@ -72,12 +100,6 @@ const AdminSidebar = () => {
     url: `/admin/business-settings`,
   });
 
-  const rawSidebar = settingsResponse?.data?.settings?.meta?.business_sidebar;
-  const settings = Array.isArray(rawSidebar)
-    ? rawSidebar
-    : Array.isArray(rawSidebar?.groups) && rawSidebar.groups.length > 0
-      ? rawSidebar.groups
-      : businessDefaultSidebar;
 
   const handleModuleSet = (item) => {
     if (user?.type === "super_admin") {
@@ -95,16 +117,16 @@ const AdminSidebar = () => {
     const settingTabs = ["businessSetting", "manageModule", "sidebarBuilder", "accountSetting"];
     let to;
     if (item?.url) {
-      if(settingTabs.includes(item.id)) {
+      if (settingTabs.includes(item.id)) {
         dispath(
           setActiveTab(item.id)
         )
       }
       to = item.url;
     } else {
-      if(item.module_slug === "about-us"){
+      if (item.module_slug === "about-us") {
         to = `/${item.module_slug || item.id}`
-      }else{
+      } else {
         to = `/module/${item.module_slug || item.id}`
       }
     }
@@ -119,6 +141,71 @@ const AdminSidebar = () => {
     return location.pathname === `/admin/${slug}` || location.pathname.startsWith(`/admin/${slug}/`);
   };
 
+
+  const {
+    data: modulesResponse,
+    isLoading: modulesLoading,
+    refetch: refetchModules,
+  } = useApiQuery({
+    url: "/admin/business-modules",
+  });
+
+  const modules = modulesResponse?.data?.data || [];
+
+  const defaultModules = modules.filter((module) => module.module_type === "system");
+  const customModules = modules.filter((module) => module.module_type !== "system");
+
+    const businessMenus = {
+    overview: [
+      {
+        id: "dashboard",
+        label: "Dashboard",
+        icon_key: "LayoutDashboard",
+        url:"/dashboard",
+      }
+    ],
+
+    'default-content': defaultModules.map((module) => ({
+      id: module.id,
+      label: module.title,
+      icon_key: module.meta?.sidebar_menu_icon || "folder",
+      module_slug: module.title_slug,
+    })),
+    'content-management': customModules.map((module) => ({
+      id: module.id,
+      label: module.title,
+      icon_key: module.meta?.sidebar_menu_icon || "folder",
+      module_slug: module.title_slug,
+    })),
+    management: [
+      { id: "businessSetting", label: "Business Overview", icon_key: "Building2", system: true,url: "/settings?tab=businessSetting" },
+      { id: "navigations", label: "Pages", icon_key: "FileStack", system: true ,url: "/navigations"},
+      { id: "builder", label: "Menu Builder", icon_key: "TableOfContents", system: true ,url: "/navigations/builder"},
+      { id: "categories", label: "Categories", icon_key: "Tags", system: true ,url: "/categories"},
+      { id: "manageModule", label: "Modules Manager", icon_key: "Package", system: true ,url: "/settings?tab=manageModule"},
+      { id: "accountSetting", label: "Accounts", icon_key: "UserRoundCog", system: true ,url: "/settings?tab=accountSetting"},
+    ],
+  }
+
+  const isBusinessMenuLoading = settingsLoading || modulesLoading;
+
+  const query = search.trim().toLowerCase();
+  const filteredBusinessMenus = useMemo(() => {
+    if (!query) return businessMenus;
+    return Object.fromEntries(
+      Object.entries(businessMenus).map(([groupId, items]) => [
+        groupId,
+        items.filter((item) => item.label.toLowerCase().includes(query)),
+      ])
+    );
+  }, [query, modules]);
+
+  const filteredSuperAdminMenu = useMemo(() => {
+    const list = menus[user?.type] || [];
+    if (!query) return list;
+    return list.filter((item) => item.label.toLowerCase().includes(query));
+  }, [query, user?.type]);
+
   return (
     <aside className="fixed left-0 top-0 z-20 hidden h-full w-55 flex-col border-r bg-white dark:bg-gray-950 dark:border-gray-800 lg:flex">
       <div className="flex h-14 items-center border-b px-4 dark:border-gray-800">
@@ -127,10 +214,33 @@ const AdminSidebar = () => {
           <span>{settingsResponse?.data?.business?.name || "Dashboard"}</span>
         </div>
       </div>
+
+      {/* Compact search box, sits above the menu list */}
+      <div className="border-b px-3 py-2 dark:border-gray-800">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search menu…"
+            className={cn("h-8 pl-8 text-xs", search && "pr-7")}
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
+
       <nav className="flex-1 space-y-1 p-4 overflow-y-auto hide-scrollbar">
         {user?.type === "super_admin" && (
           <>
-            {menus[user?.type]?.map((item) => (
+            {filteredSuperAdminMenu.map((item) => (
               <Button
                 key={item.label}
                 variant={location?.pathname === item?.to ? "secondary" : "ghost"}
@@ -147,36 +257,45 @@ const AdminSidebar = () => {
 
         {user?.type === "business" && (
           <>
-            {settingsLoading ? (
-              <div className="flex justify-center items-center h-full">
-                <Loader2 className="h-6 w-6 animate-spin" />
-              </div>
+            {isBusinessMenuLoading ? (
+              <SidebarMenuSkeleton />
             ) : (
-              settings.map((group) => (
-                <div key={group.id} className="mb-5">
-                  <h3 className="px-3 mb-2 text-xs font-semibold uppercase text-muted-foreground">
-                    {GROUP_LABELS[group.id] || group.id}
-                  </h3>
-                  <div className="space-y-1">
-                    {group.items.map((item) => {
-                      return (
-                        <Button
-                          key={item.id}
-                          variant={isSidebarItemActive(item) ? "secondary" : "ghost"}
-                          className="w-full justify-start gap-2"
-                          onClick={() => handleSidebarItemClick(item)}
-                        >
-                          <div className="p-1 rounded">
-                            <IconRenderer icon={item?.icon_key} className="h-4 w-4 text-blue-600" />
-                          </div>
-                          {item.label}
-                        </Button>
-                      )
-                    })}
+              filteredBusinessMenus && Object.keys(filteredBusinessMenus).map((groupId) => {
+                const group = filteredBusinessMenus[groupId];
+                if (group.length === 0) return null;
+                return (
+                  <div key={groupId} className="mb-5">
+                    <h3 className="px-3 mb-2 text-xs font-semibold uppercase text-muted-foreground">
+                      {GROUP_LABELS[groupId] || groupId}
+                    </h3>
+                    <div className="space-y-1">
+                      {group.map((item) => {
+                        return (
+                          <Button
+                            key={item.id}
+                            variant={isSidebarItemActive(item) ? "secondary" : "ghost"}
+                            className="w-full justify-start gap-2"
+                            onClick={() => handleSidebarItemClick(item)}
+                          >
+                            <div className="p-1 rounded">
+                              <DynamicIconRender name={item?.icon_key} className="h-4 w-4 text-blue-600" />
+                            </div>
+                            {item.label}
+                          </Button>
+                        )
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))
+                )
+              })
             )}
+            {!isBusinessMenuLoading &&
+              query &&
+              Object.values(filteredBusinessMenus).every((group) => group.length === 0) && (
+                <p className="px-3 py-6 text-center text-xs text-muted-foreground">
+                  No menu items match &quot;{search}&quot;
+                </p>
+              )}
           </>
         )}
       </nav>

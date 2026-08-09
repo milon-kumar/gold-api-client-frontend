@@ -325,6 +325,9 @@ const SidebarBuilderTab = () => {
 
   const { data: modulesResponse, isLoading: modulesLoading } = useApiQuery({
     url: "/admin/business-modules",
+    params:{
+      module_type_exclude: "system"
+    }
   });
 
   const { mutate: saveOrder, isLoading: saving } = useApiMutation({

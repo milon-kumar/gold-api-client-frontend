@@ -31,11 +31,13 @@ const ModuleManageTab = () => {
   } = useApiQuery({
     url: "/admin/business-modules",
     params: {
-      module_type: "custom",
+      module_type_exclude: "system",
     },
   });
     
   const modules = modulesResponse?.data?.data || [];
+
+  
 
   const { mutate: deleteModule, isLoading: deleting } = useApiMutation({
     url: `/admin/business-modules/${deleteTarget?.id}`,
