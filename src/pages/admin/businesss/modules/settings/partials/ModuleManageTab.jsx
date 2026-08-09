@@ -109,7 +109,7 @@ const ModuleManageTab = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                {modules.map((module) => {
                 const isActive = module.status === "active";
- 
+                console.log("manage ment module", module);
                 return (
                   <div
                     key={module.id}
@@ -175,13 +175,22 @@ const ModuleManageTab = () => {
                       )}
  
                       <div className="flex items-center justify-between pt-1">
-                        <code className="rounded bg-gray-100 px-1.5 py-0.5 text-[11px] text-muted-foreground">
+                        <div className="gap-3">
+                           <code className="rounded bg-gray-100 px-1.5 py-0.5 text-[11px] text-muted-foreground">
                           {module.title_slug}
                         </code>
+                        {
+                          module.module_type && (
+                            <span className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] capitalize font-medium backdrop-blur-sm">{module.module_type}</span>
+                          )
+
+                        }
+                        </div>
+                       
                         {module.meta?.category_required && (
-                          <Badge variant="outline" className="h-5 text-[10px]">
-                            Category Required
-                          </Badge>
+                            <Badge variant="outline" className="h-5 text-[10px]">
+                              Category Required
+                            </Badge>
                         )}
                       </div>
                     </div>

@@ -1,7 +1,7 @@
 // List.jsx
 import React, { useState } from 'react';
 import { toast } from "sonner";
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import {
     Card,
     CardContent,
@@ -59,8 +59,9 @@ const OrganizationsListing = () => {
     const [openDeleteModal, setOpenDeleteModal] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
     const [viewingItem, setViewingItem] = useState(null);
+    const [searchParams] = useSearchParams();
+    const slug = searchParams.get('slug') || null;
 
-    // Fetch module items
     const {
         data: response,
         loading: itemsLoading,
@@ -107,7 +108,7 @@ const OrganizationsListing = () => {
     };
 
     const handleEditItem = (item) => {
-        navigate(`/admin/organizations/save/${item?.id}`);
+        navigate(`/admin/organizations/save/${item?.id}?slug=${encodeURIComponent(slug)}`);
     };
 
     const handleDeleteItem = (item) => {
@@ -233,7 +234,7 @@ const OrganizationsListing = () => {
                 primaryAction={{
                     title: "Add Organization",
                     icon: "plus",
-                    onClick: () => navigate("/admin/organizations/save")
+                    onClick: () => navigate(`/admin/organizations/save?slug=${encodeURIComponent(slug)}`)
                 }}
                 secondaryAction={{
                     title: "Refresh",
@@ -304,7 +305,7 @@ const OrganizationsListing = () => {
                         <p className="text-muted-foreground">No organizations found</p>
                         <Button
                             variant="link"
-                            onClick={() => navigate("/admin/organizations/save")}
+                            onClick={() => navigate(`/admin/organizations/save?slug=${encodeURIComponent(slug)}`)}
                             className="mt-2"
                         >
                             Add your first organization

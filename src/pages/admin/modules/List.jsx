@@ -349,13 +349,13 @@ const activeCount = moduleList.filter((m) => m.status === "active").length;
             className="pl-8 rounded-sm h-9 text-sm"
           />
         </div>
-        <div>
+        {/* <div>
           <Button
             onClick={() => navigate("/admin/modules/save")}
           >
             Create Module
           </Button>
-        </div>
+        </div> */}
       </div>
       {/* Table */}
       {modulesLoading ? (

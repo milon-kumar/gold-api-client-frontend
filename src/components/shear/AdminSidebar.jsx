@@ -87,11 +87,6 @@ const AdminSidebar = () => {
   const { user } = useAuth();
   const [search, setSearch] = useState("");
 
-  const { data: getBusinessModulesResponse } = useApiQuery({
-    url: `/admin/business-module-group/${user?.business_id}`,
-    enabled: !!user?.business_id,
-  });
-
   const {
     data: settingsResponse,
     isLoading: settingsLoading,
@@ -135,11 +130,30 @@ const AdminSidebar = () => {
       slug: to,
     });
   };
+const getItemPath = (item) => {
+  if (item?.url) return item.url;
+  if (item.module_slug === "about-us") return "/about-us";
+  return `/module/${item.module_slug || item.id}`;
+};
+const isSidebarItemActive = (item) => {
+  const targetPath = getItemPath(item);
+  const [targetPathname, targetSearch] = targetPath.split("?");
+  const fullTargetPathname = `/admin${targetPathname}`;
 
-  const isSidebarItemActive = (item) => {
-    const slug = item.module_slug || item.id;
-    return location.pathname === `/admin/${slug}` || location.pathname.startsWith(`/admin/${slug}/`);
-  };
+  const pathMatches =
+    location.pathname === fullTargetPathname ||
+    location.pathname.startsWith(`${fullTargetPathname}/`);
+
+  if (!pathMatches) return false;
+
+  if (!targetSearch) return true;
+  const targetParams = new URLSearchParams(targetSearch);
+  const currentParams = new URLSearchParams(location.search);
+
+  return Array.from(targetParams.entries()).every(
+    ([key, value]) => currentParams.get(key) === value
+  );
+};
 
 
   const {
@@ -152,7 +166,7 @@ const AdminSidebar = () => {
 
   const modules = modulesResponse?.data?.data || [];
 
-  const defaultModules = modules.filter((module) => module.module_type === "system");
+  const defaultModules = modules.filter((module) => module.module_type === "system" && module.status === "active");
   const customModules = modules.filter((module) => module.module_type !== "system");
 
     const businessMenus = {
@@ -169,7 +183,7 @@ const AdminSidebar = () => {
       id: module.id,
       label: module.title,
       icon_key: module.meta?.sidebar_menu_icon || "folder",
-      module_slug: module.title_slug,
+      url : `/${module.title_slug}?slug=${module.title_slug}`,
     })),
     'content-management': customModules.map((module) => ({
       id: module.id,

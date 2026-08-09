@@ -106,6 +106,7 @@ const Save = () => {
             phone: staff.phone || '',
             status: staff.status || 'active',
             meta: {
+                ...staff.meta,
                 position: staff.meta.position || '',
             }
         });
@@ -184,7 +185,7 @@ const Save = () => {
             const response = await staffMutation(payload);
             if (response?.success) {
                 toast.success(response?.message || "Staff saved successfully");
-                navigate('/admin/staffs');
+                navigate('/admin/all-staff');
             } else {
                 toast.error(response?.message || "Failed to save staff");
             }
@@ -226,7 +227,7 @@ const Save = () => {
                 title={id && id !== 'new' ? 'Edit Staff Member' : 'Add New Staff'}
                 subtitle={id && id !== 'new' ? `Update staff information` : `Create a new staff account`}
                 showBackButton={true}
-                onBackClick={() => navigate('/admin/staffs')}
+                onBackClick={() => navigate('/admin/all-staff')}
                 primaryAction={{
                     onClick: handleSubmit,
                     disabled: saving,

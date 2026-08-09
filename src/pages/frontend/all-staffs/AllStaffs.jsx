@@ -1,11 +1,19 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { useApiQuery } from "@/hooks/useAppQuery";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Mail, Phone, Users, AlertCircle, ChevronRight } from "lucide-react";
+import {
+  Mail,
+  Phone,
+  Users,
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  MoreHorizontal,
+} from "lucide-react";
 import PageHeroRenderer from "@/components/renderers/PageHeroRenderer";
 import { useLocation } from "react-router";
 
@@ -93,34 +101,160 @@ const StaffCardSkeleton = () => (
 );
 
 /* ---------------------------------- */
+/*  Pagination helpers                */
+/* ---------------------------------- */
+
+// Builds a page-number list with "…" gaps for large page counts, e.g.
+// [1, "dots", 4, 5, 6, "dots", 20] instead of rendering every page button.
+const DOTS = "dots";
+
+function buildPaginationRange(current, total, siblingCount = 1) {
+  const totalPageNumbers = siblingCount * 2 + 5;
+
+  if (totalPageNumbers >= total) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+
+  const leftSiblingIndex = Math.max(current - siblingCount, 1);
+  const rightSiblingIndex = Math.min(current + siblingCount, total);
+
+  const showLeftDots = leftSiblingIndex > 2;
+  const showRightDots = rightSiblingIndex < total - 1;
+
+  if (!showLeftDots && showRightDots) {
+    const leftItemCount = 3 + siblingCount * 2;
+    const leftRange = Array.from({ length: leftItemCount }, (_, i) => i + 1);
+    return [...leftRange, DOTS, total];
+  }
+
+  if (showLeftDots && !showRightDots) {
+    const rightItemCount = 3 + siblingCount * 2;
+    const rightRange = Array.from(
+      { length: rightItemCount },
+      (_, i) => total - rightItemCount + i + 1
+    );
+    return [1, DOTS, ...rightRange];
+  }
+
+  const middleRange = Array.from(
+    { length: rightSiblingIndex - leftSiblingIndex + 1 },
+    (_, i) => leftSiblingIndex + i
+  );
+  return [1, DOTS, ...middleRange, DOTS, total];
+}
+
+/* ---------------------------------- */
+/*  Pagination controls                */
+/* ---------------------------------- */
+const StaffPagination = ({ pagination, onPageChange }) => {
+  const { current_page: currentPage, last_page: lastPage, from, to, total } = pagination || {};
+
+  const pageNumbers = useMemo(
+    () => (lastPage > 1 ? buildPaginationRange(currentPage, lastPage) : []),
+    [currentPage, lastPage]
+  );
+
+  if (!lastPage || lastPage <= 1) return null;
+
+  return (
+    <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-slate-100 pt-6 sm:flex-row">
+      <p className="text-sm text-slate-500">
+        Showing <span className="font-medium text-slate-700">{from}</span>–
+        <span className="font-medium text-slate-700">{to}</span> of{" "}
+        <span className="font-medium text-slate-700">{total}</span> staff
+      </p>
+
+      <div className="flex items-center gap-1.5">
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-8 w-8"
+          disabled={currentPage <= 1}
+          onClick={() => onPageChange(currentPage - 1)}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+
+        {pageNumbers.map((page, index) =>
+          page === DOTS ? (
+            <span
+              key={`dots-${index}`}
+              className="flex h-8 w-8 items-center justify-center text-slate-400"
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </span>
+          ) : (
+            <Button
+              key={page}
+              variant={page === currentPage ? "default" : "outline"}
+              size="icon"
+              className={
+                page === currentPage
+                  ? "h-8 w-8 bg-emerald-600 hover:bg-emerald-700"
+                  : "h-8 w-8"
+              }
+              onClick={() => onPageChange(page)}
+            >
+              {page}
+            </Button>
+          )
+        )}
+
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-8 w-8"
+          disabled={currentPage >= lastPage}
+          onClick={() => onPageChange(currentPage + 1)}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+/* ---------------------------------- */
 /*  Main Page                         */
 /* ---------------------------------- */
 const AllStaffs = () => {
-  const { pathname } = useLocation()
+  const { pathname } = useLocation();
   const slug = pathname.split("/").filter(Boolean).pop();
-
-
+  const [page, setPage] = useState(1);
 
   const {
     data: staffItemQuery,
     isLoading: staffItemLoading,
+    isFetching: staffItemFetching,
     error: staffItemError,
   } = useApiQuery({
     url: "/staffs",
-    queryKey: ["staffs"],
+    queryKey: ["staffs", page],
     params: {
       limit: 6,
+      paginate: true,
+      page,
     },
   });
 
-  const staffItems = staffItemQuery?.data;
+  // The API wraps the paginator inside `data`: { success, message, data: { data: [...], current_page, ... } }
+  const staffPagination = staffItemQuery?.data;
+  const staffItems = staffPagination?.data;
+
   const { data: getPageResponse, isLoading, refetch } = useApiQuery({
     url: `/page-by-slug/${slug}`,
     enabled: !!slug,
   });
 
-  const page = getPageResponse?.data
-  const meta = page?.meta ? JSON.parse(page.meta) : {};
+  const page_ = getPageResponse?.data;
+  const meta = page_?.meta ? JSON.parse(page_.meta) : {};
+
+  const handlePageChange = (nextPage) => {
+    if (nextPage < 1 || nextPage > (staffPagination?.last_page || 1)) return;
+    setPage(nextPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       <PageHeroRenderer
@@ -162,7 +296,7 @@ const AllStaffs = () => {
           </div>
         )}
 
-        {/* loading state */}
+        {/* loading state (first load only — page-change refetches use the dimmed-grid state below) */}
         {staffItemLoading && (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -186,13 +320,21 @@ const AllStaffs = () => {
           </div>
         )}
 
-        {/* staff grid */}
+        {/* staff grid + pagination */}
         {!staffItemLoading && staffItems?.length > 0 && (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {staffItems.map((staff) => (
-              <StaffCard key={staff.id} staff={staff} />
-            ))}
-          </div>
+          <>
+            <div
+              className={`grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 transition-opacity duration-200 ${
+                staffItemFetching ? "opacity-50" : "opacity-100"
+              }`}
+            >
+              {staffItems.map((staff) => (
+                <StaffCard key={staff.id} staff={staff} />
+              ))}
+            </div>
+
+            <StaffPagination pagination={staffPagination} onPageChange={handlePageChange} />
+          </>
         )}
       </main>
     </div>

@@ -1,7 +1,7 @@
 // Save.jsx
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate, useSearchParams } from 'react-router';
 import { toast } from "sonner";
 import useImageUpload from '@/hooks/use-image-upload';
 
@@ -51,7 +51,7 @@ import {
   Search,
   Share2,
 } from 'lucide-react';
-import {FiTwitter as Twitter,} from 'react-icons/fi';
+import { FiTwitter as Twitter, } from 'react-icons/fi';
 import { RICH_TEXT_VARIANTS, RichTextEditor } from '@/components/ui/rich-text-editor';
 
 /* ------------------------------------------------------------------
@@ -80,7 +80,8 @@ const Save = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [existingImageUrl, setExistingImageUrl] = useState('');
-
+  const [searchParams] = useSearchParams();
+  const slug = searchParams.get('slug') || null;
   // Form state
   const [formData, setFormData] = useState({
     title: '',
@@ -260,7 +261,7 @@ const Save = () => {
       const response = await itemMutation(payload);
       if (response?.success) {
         toast.success(response?.message || "Organization saved successfully");
-        navigate('/admin/organizations');
+        navigate(`/admin/organizations?slug=${encodeURIComponent(slug)}`);
       } else {
         toast.error(response?.message || "Failed to save organization");
       }
@@ -296,7 +297,7 @@ const Save = () => {
         title={id && id !== 'new' ? 'Edit Organization' : 'Add New Organization'}
         subtitle={id && id !== 'new' ? `Update organization information` : `Add a new organization to the module`}
         showBackButton={true}
-        onBackClick={() => navigate('/admin/organizations')}
+        onBackClick={() => navigate(`/admin/organizations?slug=${encodeURIComponent(slug)}`)}
         primaryAction={{
           onClick: handleSubmit,
           disabled: saving,
@@ -368,8 +369,8 @@ const Save = () => {
                     value={formData.description}
                     onChange={(content) => {
                       handleInputChange({
-                        target:{
-                          name:'description',
+                        target: {
+                          name: 'description',
                           value: content
                         }
                       })

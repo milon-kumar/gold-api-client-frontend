@@ -205,7 +205,7 @@ const Save = () => {
       const response = await itemMutation(payload);
       if (response?.success) {
         toast.success(response?.message || "Photo saved successfully");
-        navigate(`/admin/photos?slug=${encodeURIComponent(slug)}`);
+        navigate(`/admin/photo-gallery?slug=${encodeURIComponent(slug)}`);
       } else {
         toast.error(response?.message || "Failed to save photo");
       }
@@ -247,7 +247,7 @@ const Save = () => {
             : `Add a new photo to the module`
         }
         showBackButton={true}
-        onBackClick={() => navigate(`/admin/photos?slug=${encodeURIComponent(slug)}`)}
+        onBackClick={() => navigate(`/admin/photo-gallery?slug=${encodeURIComponent(slug)}`)}
         primaryAction={{
           onClick: handleSubmit,
           disabled: saving,

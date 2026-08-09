@@ -118,7 +118,7 @@ export default function PhotoGallery() {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
-              src={asset(lightbox?.image_url)}
+              src={lightbox?.image_full_path}
               alt={lightbox.title}
               className="max-w-full max-h-[85vh] rounded-xl object-contain"
             />

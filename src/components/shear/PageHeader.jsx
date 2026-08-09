@@ -9,7 +9,8 @@ import {
     Save,
     Trash2,
     RefreshCw,
-    MoreVertical
+    MoreVertical,
+    Loader2
 } from 'lucide-react';
 import {
     DropdownMenu,
@@ -126,8 +127,19 @@ const PageHeader = ({
                             disabled={primaryAction.disabled}
                             className={'capitalize'}
                         >
-                            {primaryAction.icon && renderIcon(primaryAction.icon)}
-                            {primaryAction.title}
+                            {
+                                primaryAction?.disabled ? (
+                                     <>
+                                     <Loader2 className='animate-spin'/>
+                                     Loading...
+                                    </>
+                                ): (
+                                    <>
+                                        {primaryAction.icon && renderIcon(primaryAction.icon)}
+                                        {primaryAction.title}
+                                    </>
+                                )
+                            }
                         </Button>
                     )}
 

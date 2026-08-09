@@ -114,7 +114,7 @@ const Save = () => {
         data: itemGetQuery,
         isLoading: itemGetLoading,
     } = useApiQuery({
-        url: `/admin/module-items/${id}`,
+        url: `/admin/business-module-items/${id}`,
         enabled: !!id && id !== 'new',
         params: {
             module_slug: slug || MODULES?.VIDEOS || 'videos',
@@ -147,14 +147,12 @@ const Save = () => {
                 source: meta.source || 'youtube',
             });
 
-            // Set video preview
             if (meta.url) {
                 setVideoPreview(meta.url);
             }
         }
     }, [itemGetQuery]);
 
-    // Create/Update mutation
     const {
         mutate: itemMutation,
         isLoading: itemMutationLoading,
@@ -239,7 +237,7 @@ const Save = () => {
             const response = await itemMutation(payload);
             if (response?.success) {
                 toast.success(response?.message || "Video saved successfully");
-                navigate(`/admin/videos?slug=${encodeURIComponent(slug)}`);
+                navigate(`/admin/video-gallery?slug=${encodeURIComponent(slug)}`);
             } else {
                 toast.error(response?.message || "Failed to save video");
             }
@@ -276,7 +274,7 @@ const Save = () => {
                 title={id && id !== 'new' ? 'Edit Video' : 'Add New Video'}
                 subtitle={id && id !== 'new' ? `Update video information` : `Add a new video to the module`}
                 showBackButton={true}
-                onBackClick={() => navigate(`/admin/videos?slug=${encodeURIComponent(slug)}`)}
+                onBackClick={() => navigate(`/admin/video-gallery?slug=${encodeURIComponent(slug)}`)}
                 primaryAction={{
                     onClick: handleSubmit,
                     disabled: saving,

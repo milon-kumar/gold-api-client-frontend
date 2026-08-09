@@ -51,6 +51,7 @@ import DeleteConfirmation from '@/components/shear/DeleteConfirmation';
 import StatusBadge from '@/components/shear/StatusBadge';
 import FeaturedBadge from '@/components/shear/FeaturedBadge';
 import { MODULES } from '@/store/default/modules';
+import { getWords } from '@/lib/helper';
 
 // YouTube Video Player Component
 const YouTubeVideoPlayer = ({ videoId, onClose }) => {
@@ -98,8 +99,10 @@ const VideoListing = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [searchParams] = useSearchParams();
 
+  console.log("searchParams - ",searchParams)
   const slug = searchParams.get('slug') || null;
-  // Fetch module items
+  
+  console.log("Slug video Listing - ",slug)
   const {
     data: response,
     loading: itemsLoading,
@@ -151,7 +154,7 @@ const VideoListing = () => {
   };
 
   const handleEditItem = (item) => {
-    navigate(`/admin/videos/save/${item?.id}?slug=${encodeURIComponent(slug)}`);
+    navigate(`/admin/video-gallery/save/${item?.id}?slug=${encodeURIComponent(slug)}`);
   };
 
   const handleDeleteItem = (item) => {
@@ -257,12 +260,12 @@ const VideoListing = () => {
             </h3>
             {item.sub_title && (
               <p className="mt-1 text-sm text-muted-foreground line-clamp-1">
-                {item.sub_title}
+                {getWords(item.sub_title)}
               </p>
             )}
             {item.sub_description && (
               <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
-                {item.sub_description}
+                {getWords(item.sub_description,30)}
               </p>
             )}
           </div>
@@ -321,10 +324,10 @@ const VideoListing = () => {
 
                 <TableCell>
                   <div className="space-y-1">
-                    <p className="font-medium line-clamp-1">{item.title}</p>
+                    <p className="font-medium line-clamp-1">{getWords(item.title,10)}</p>
                     {item.sub_description && (
                       <p className="text-xs text-muted-foreground line-clamp-1">
-                        {item.sub_description}
+                        {getWords(item.sub_description,12)}
                       </p>
                     )}
                   </div>
@@ -332,7 +335,7 @@ const VideoListing = () => {
 
                 <TableCell>
                   <p className="text-sm text-muted-foreground line-clamp-1">
-                    {item.sub_title || '—'}
+                    {getWords(item.sub_title,10) || '—'}
                   </p>
                 </TableCell>
 
@@ -495,7 +498,7 @@ const VideoListing = () => {
         primaryAction={{
           title: "Add Video",
           icon: "plus",
-          onClick: () => navigate(`/admin/videos/save?slug=${encodeURIComponent(slug)}`)
+          onClick: () => navigate(`/admin/video-gallery/save?slug=${encodeURIComponent(slug)}`)
         }}
         secondaryAction={{
           title: "Refresh",
@@ -586,7 +589,7 @@ const VideoListing = () => {
             <p className="text-muted-foreground">No videos found</p>
             <Button
               variant="link"
-              onClick={() => navigate("/admin/videos/save")}
+              onClick={() => navigate("/admin/video-gallery/save")}
               className="mt-2"
             >
               Add your first video

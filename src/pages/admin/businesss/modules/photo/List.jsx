@@ -114,7 +114,7 @@ const PhotosListing = () => {
   };
 
   const handleEditItem = (item) => {
-    navigate(`/admin/photos/save/${item?.id}?slug=${encodeURIComponent(slug)}`);
+    navigate(`/admin/photo-gallery/save/${item?.id}?slug=${encodeURIComponent(slug)}`);
   };
 
   const handleDeleteItem = (item) => {
@@ -374,7 +374,7 @@ const PhotosListing = () => {
         primaryAction={{
           title: "Add Photo",
           icon: "plus",
-          onClick: () => navigate(`/admin/photos/save?slug=${encodeURIComponent(slug)}`)
+          onClick: () => navigate(`/admin/photo-gallery/save?slug=${encodeURIComponent(slug)}`)
         }}
         secondaryAction={{
           title: "Refresh",
@@ -465,7 +465,7 @@ const PhotosListing = () => {
             <p className="text-muted-foreground">No photos found</p>
             <Button
               variant="link"
-              onClick={() => navigate("/admin/photos/save")}
+              onClick={() => navigate("/admin/photo-gallery/save")}
               className="mt-2"
             >
               Add your first photo

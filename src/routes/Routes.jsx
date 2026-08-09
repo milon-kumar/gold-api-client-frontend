@@ -130,7 +130,7 @@ const router = createBrowserRouter([
                     },
                     {
                         path: "businesses/new",
-                        element: <BusinessSave/>
+                        element: <BusinessSave />
                     },
                     {
                         path: "modules",
@@ -147,10 +147,10 @@ const router = createBrowserRouter([
                     // Manage Dynamic Modules 
                     {
                         path: "module/:moduleSlug?",
-                        element : <ModuleItems />
-                    },{
+                        element: <ModuleItems />
+                    }, {
                         path: "module/:moduleSlug?/:id?",
-                        element : <ModuleItemsSave />
+                        element: <ModuleItemsSave />
                     },
                     {
                         path: "president-message",
@@ -170,15 +170,14 @@ const router = createBrowserRouter([
                     },
 
                     {
-                        path: "staffs",
+                        path: "all-staff",
                         element: <StaffList />
                     },
                     {
-                        path: "staffs/save/:id?",
+                        path: "all-staff/save/:id?",
                         element: <StaffSave />
                     },
 
-                    // Content Management
                     {
                         path: "categories",
                         element: <CategoryList />
@@ -205,12 +204,20 @@ const router = createBrowserRouter([
                         element: <SliderSave />
                     },
                     {
-                        path: "videos",
+                        path: "video-gallery",
                         element: <VideosList />
                     },
                     {
-                        path: "videos/save/:id?",
+                        path: "video-gallery/save/:id?",
                         element: <VideosSave />
+                    },
+                    {
+                        path: "photo-gallery",
+                        element: <PhotosList />
+                    },
+                    {
+                        path: "photo-gallery/save/:id?",
+                        element: <PhotosSave />
                     },
                     {
                         path: "audios",
@@ -260,41 +267,34 @@ const router = createBrowserRouter([
                         path: "social-activities/save/:id?",
                         element: <SocialActivitiesSave />
                     },
-                    {
-                        path: "photos",
-                        element: <PhotosList />
-                    },
-                    {
-                        path: "photos/save/:id?",
-                        element: <PhotosSave />
-                    },
+
                     {
                         path: "settings",
                         element: <Settings />
                     },
                     {
                         path: "navigations",
-                        element:<NavigationList/>
+                        element: <NavigationList />
                     },
                     {
                         path: "navigations/save/:id?",
-                        element:<NavigationSave/>
+                        element: <NavigationSave />
                     },
                     {
                         path: "navigations/builder",
-                        element:<NavigationBuilder/>
+                        element: <NavigationBuilder />
                     },
                     {
                         path: "navigations/custom-page/:id?",
-                        element: <CustomPageBuilder/>
+                        element: <CustomPageBuilder />
                     },
                     {
                         path: "settings/themes",
-                        element: <Themes/>
+                        element: <Themes />
                     },
                     {
                         path: "settings/themes/builder/:id?",
-                        element: <ThemeBuilder/>
+                        element: <ThemeBuilder />
                     }
                 ]
             }

@@ -1,7 +1,10 @@
 // List.jsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { toast } from "sonner";
 import { useNavigate } from 'react-router';
+import { DragDropProvider } from '@dnd-kit/react';
+import { useSortable } from '@dnd-kit/react/sortable';
+import { move } from '@dnd-kit/helpers';
 import {
     Card,
     CardContent,
@@ -51,12 +54,53 @@ import {
     Search,
     UserPlus,
     RefreshCw,
+    GripVertical,
 } from 'lucide-react';
 import { useApiQuery } from '@/hooks/useAppQuery';
 import { useApiMutation } from '@/hooks/useAppMutation';
 import PageHeader from '@/components/shear/PageHeader';
 import DeleteConfirmation from '@/components/shear/DeleteConfirmation';
 import StatusBadge from '@/components/shear/StatusBadge';
+import { cn } from '@/lib/utils';
+
+/* ---------------------------------- */
+/*  Sortable row                      */
+/* ---------------------------------- */
+// useSortable is a hook, so each row needs to be its own component —
+// it can't be called inside the .map() callback of the parent.
+const SortableStaffRow = ({ staff, index, disabled, children }) => {
+    const { ref, handleRef, isDragging } = useSortable({
+        id: staff.id,
+        index,
+        disabled,
+    });
+
+    return (
+        <TableRow
+            ref={ref}
+            className={cn(
+                'group transition-colors hover:bg-muted/30',
+                isDragging && 'bg-blue-50/70 opacity-60'
+            )}
+        >
+            <TableCell className="w-8">
+                <button
+                    ref={handleRef}
+                    type="button"
+                    disabled={disabled}
+                    title={disabled ? 'Clear search/filters to reorder' : 'Drag to reorder'}
+                    className={cn(
+                        'flex h-8 w-8 items-center justify-center rounded text-muted-foreground',
+                        disabled ? 'cursor-not-allowed opacity-30' : 'cursor-grab hover:bg-muted active:cursor-grabbing'
+                    )}
+                >
+                    <GripVertical className="h-4 w-4" />
+                </button>
+            </TableCell>
+            {children}
+        </TableRow>
+    );
+};
 
 const StaffListing = () => {
     const navigate = useNavigate();
@@ -68,7 +112,11 @@ const StaffListing = () => {
     const [selectedStaff, setSelectedStaff] = useState(null);
     const [viewingStaff, setViewingStaff] = useState(null);
 
-    // Fetch staff data
+    // Local, re-orderable copy of the staff list. Kept separate from the
+    // raw query response so a drag can update the UI immediately, without
+    // waiting for a refetch.
+    const [orderedStaffs, setOrderedStaffs] = useState([]);
+
     const {
         data: response,
         loading: staffLoading,
@@ -79,10 +127,33 @@ const StaffListing = () => {
             search: searchTerm || undefined,
             status: statusFilter !== 'all' ? statusFilter : undefined,
             email_verified: emailVerifiedFilter !== 'all' ? emailVerifiedFilter : undefined,
+            // Ask the backend to return staff already sorted by sort_order.
+            sort_by: 'sort_order',
+            sort_direction: 'asc',
         }
     });
 
-    const staffs = response?.data?.data || [];
+    // Keep the local, draggable list in sync with fresh server data.
+    // Client-side sort is a safety net in case a given endpoint/filter
+    // combination doesn't apply sort_by itself.
+    useEffect(() => {
+        const data = response?.data?.data;
+        if (Array.isArray(data)) {
+            const sorted = [...data].sort(
+                (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
+            );
+            setOrderedStaffs(sorted);
+        } else {
+            setOrderedStaffs([]);
+        }
+    }, [response]);
+
+    const staffs = orderedStaffs;
+
+    // Reordering only makes sense against the full, unfiltered list — a
+    // dragged position inside filtered results doesn't map to a real
+    // sort_order. Disable drag while any search/filter is active.
+    const canReorder = !searchTerm && statusFilter === 'all' && emailVerifiedFilter === 'all';
 
     // Delete mutation
     const {
@@ -92,6 +163,54 @@ const StaffListing = () => {
         url: `/admin/staffs/${selectedStaff?.id}`,
         method: 'DELETE'
     });
+
+    // Reorder mutation — sends the full new order so the backend can
+    // rewrite every affected row's sort_order in one request.
+    const {
+        mutate: staffReorderMutation,
+        isLoading: staffReorderLoading
+    } = useApiMutation({
+        url: '/admin/staffs/reorder',
+        method: 'POST',
+    });
+
+    const persistOrder = async (newOrder) => {
+        const payload = {
+            orders: newOrder.map((staff, index) => ({
+                id: staff.id,
+                sort_order: index + 1,
+            })),
+        };
+
+        try {
+            const res = await staffReorderMutation(payload);
+            if (!res?.success) {
+                toast.error(res?.message || 'Failed to save new order');
+                refetchStaff(); // revert to whatever the server actually has
+            }
+        } catch (e) {
+            console.log('Staff reorder error - ', e);
+            toast.error('Failed to save new order');
+            refetchStaff();
+        }
+    };
+
+    const handleDragEnd = (event) => {
+        if (!canReorder) return;
+
+        setOrderedStaffs((items) => {
+            const newOrder = move(items, event);
+
+            // Only hit the API if the order actually changed (drag cancelled
+            // / dropped back in place shouldn't trigger a save).
+            const changed = newOrder.some((staff, index) => staff.id !== items[index]?.id);
+            if (changed) {
+                persistOrder(newOrder);
+            }
+
+            return newOrder;
+        });
+    };
 
     const handleDelete = async () => {
         try {
@@ -114,7 +233,7 @@ const StaffListing = () => {
     };
 
     const handleEditStaff = (staff) => {
-        navigate(`/admin/staffs/save/${staff?.id}`);
+        navigate(`/admin/all-staff/save/${staff?.id}`);
     };
 
     const handleDeleteStaff = (staff) => {
@@ -254,7 +373,7 @@ const StaffListing = () => {
                 primaryAction={{
                     title: "Add Staff",
                     icon: "plus",
-                    onClick: () => navigate("/admin/staffs/save")
+                    onClick: () => navigate("/admin/all-staff/save")
                 }}
                 secondaryAction={{
                     title: "Refresh",
@@ -276,19 +395,6 @@ const StaffListing = () => {
                         />
                     </div>
 
-                    {/* <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="w-[150px]">
-                            <Filter className="h-4 w-4 mr-2" />
-                            <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Status</SelectItem>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="inactive">Inactive</SelectItem>
-                            <SelectItem value="pending">Pending</SelectItem>
-                        </SelectContent>
-                    </Select> */}
-
                     <Select value={emailVerifiedFilter} onValueChange={setEmailVerifiedFilter}>
                         <SelectTrigger className="w-[150px]">
                             <SelectValue placeholder="Verification" />
@@ -301,8 +407,11 @@ const StaffListing = () => {
                     </Select>
                 </div>
 
-                <div className="text-sm text-muted-foreground">
-                    {staffs.length} staff{staffs.length !== 1 ? 's' : ''} found
+                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <span>{staffs.length} staff{staffs.length !== 1 ? 's' : ''} found</span>
+                    <span className="hidden text-xs md:inline">
+                        {canReorder ? '• Drag rows to reorder' : '• Clear search/filters to reorder'}
+                    </span>
                 </div>
             </div>
 
@@ -314,7 +423,7 @@ const StaffListing = () => {
                         <p className="text-muted-foreground">No staff members found</p>
                         <Button
                             variant="link"
-                            onClick={() => navigate("/admin/staffs/save")}
+                            onClick={() => navigate("/admin/all-staff/save")}
                             className="mt-2"
                         >
                             Add your first staff member
@@ -323,122 +432,127 @@ const StaffListing = () => {
                 </Card>
             ) : (
                 <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
-                    <Table>
-                        <TableHeader>
-                            <TableRow className="bg-muted/40">
-                                <TableHead className="w-12">#</TableHead>
-                                <TableHead>Staff</TableHead>
-                                <TableHead>Contact</TableHead>
-                                <TableHead>Position</TableHead>
-                                <TableHead>Verification</TableHead>
-                                <TableHead>Joined</TableHead>
-                                <TableHead>Last Login</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-
-                        <TableBody>
-                            {staffs.map((staff, index) => (
-                                <TableRow
-                                    key={staff.id}
-                                    className="group transition-colors hover:bg-muted/30"
-                                >
-                                    <TableCell className="font-medium">
-                                        {index + 1}
-                                    </TableCell>
-
-                                    <TableCell>
-                                        <div className="flex items-center gap-3">
-                                            <Avatar className="h-10 w-10 border">
-                                                <AvatarImage src={staff.avatar_full_path} alt={staff.name} />
-                                                <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">
-                                                    {getInitials(staff.name)}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <p className="font-medium">{staff.name}</p>
-                                                <p className="text-xs text-muted-foreground capitalize">
-                                                    {staff.type}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </TableCell>
-
-                                    <TableCell>
-                                        <div className="space-y-1">
-                                            <div className="flex items-center gap-2 text-sm">
-                                                <Mail className="h-3 w-3 text-muted-foreground" />
-                                                <span>{staff.email}</span>
-                                            </div>
-                                            {staff.phone && (
-                                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                    <Phone className="h-3 w-3" />
-                                                    <span>{staff.phone}</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </TableCell>
-
-                                    <TableCell>
-                                        <span className='border px-2 py-1 rounded-full'>{staff?.meta?.position}</span>
-                                    </TableCell>
-
-                                    <TableCell>
-                                        {staff.email_verified_at ? (
-                                            <Badge className="bg-green-100 text-green-800 border-green-200">
-                                                ✓ Verified
-                                            </Badge>
-                                        ) : (
-                                            <Badge variant="outline" className="text-muted-foreground">
-                                                ✗ Unverified
-                                            </Badge>
-                                        )}
-                                    </TableCell>
-
-                                    <TableCell className="text-sm text-muted-foreground">
-                                        {formatDate(staff.created_at)}
-                                    </TableCell>
-                                    <TableCell>
-                                        {
-                                            staff.last_login_at ? formatDate(staff.last_login_at) : "No Login yeat"
-                                        }
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex justify-end">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="h-8 w-8"
-                                                    >
-                                                        <MoreVertical className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onClick={() => handleViewStaff(staff)}>
-                                                        <Eye className="h-4 w-4 mr-2" />
-                                                        View Details
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => handleEditStaff(staff)}>
-                                                        <Pencil className="h-4 w-4 mr-2" />
-                                                        Edit
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem
-                                                        onClick={() => handleDeleteStaff(staff)}
-                                                        className="text-red-600"
-                                                    >
-                                                        <Trash2 className="h-4 w-4 mr-2" />
-                                                        Delete
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </div>
-                                    </TableCell>
+                    <DragDropProvider onDragEnd={handleDragEnd}>
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="bg-muted/40">
+                                    <TableHead className="w-8" />
+                                    <TableHead className="w-12">#</TableHead>
+                                    <TableHead>Staff</TableHead>
+                                    <TableHead>Contact</TableHead>
+                                    <TableHead>Position</TableHead>
+                                    <TableHead>Verification</TableHead>
+                                    <TableHead>Joined</TableHead>
+                                    <TableHead>Last Login</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+
+                            <TableBody>
+                                {staffs.map((staff, index) => (
+                                    <SortableStaffRow
+                                        key={staff.id}
+                                        staff={staff}
+                                        index={index}
+                                        disabled={!canReorder}
+                                    >
+                                        <TableCell className="font-medium">
+                                            {index + 1}
+                                        </TableCell>
+
+                                        <TableCell>
+                                            <div className="flex items-center gap-3">
+                                                <Avatar className="h-10 w-10 border">
+                                                    <AvatarImage src={staff.avatar_full_path} alt={staff.name} />
+                                                    <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">
+                                                        {getInitials(staff.name)}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <p className="font-medium">{staff.name}</p>
+                                                    <p className="text-xs text-muted-foreground capitalize">
+                                                        {staff.type}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+
+                                        <TableCell>
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-2 text-sm">
+                                                    <Mail className="h-3 w-3 text-muted-foreground" />
+                                                    <span>{staff.email}</span>
+                                                </div>
+                                                {staff.phone && (
+                                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                        <Phone className="h-3 w-3" />
+                                                        <span>{staff.phone}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </TableCell>
+
+                                        <TableCell>
+                                            <span className='border px-2 py-1 rounded-full'>{staff?.meta?.position}</span>
+                                        </TableCell>
+
+                                        <TableCell>
+                                            {staff.email_verified_at ? (
+                                                <Badge className="bg-green-100 text-green-800 border-green-200">
+                                                    ✓ Verified
+                                                </Badge>
+                                            ) : (
+                                                <Badge variant="outline" className="text-muted-foreground">
+                                                    ✗ Unverified
+                                                </Badge>
+                                            )}
+                                        </TableCell>
+
+                                        <TableCell className="text-sm text-muted-foreground">
+                                            {formatDate(staff.created_at)}
+                                        </TableCell>
+                                        <TableCell>
+                                            {
+                                                staff.last_login_at ? formatDate(staff.last_login_at) : "No Login yeat"
+                                            }
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex justify-end">
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8"
+                                                        >
+                                                            <MoreVertical className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem onClick={() => handleViewStaff(staff)}>
+                                                            <Eye className="h-4 w-4 mr-2" />
+                                                            View Details
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem onClick={() => handleEditStaff(staff)}>
+                                                            <Pencil className="h-4 w-4 mr-2" />
+                                                            Edit
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            onClick={() => handleDeleteStaff(staff)}
+                                                            className="text-red-600"
+                                                        >
+                                                            <Trash2 className="h-4 w-4 mr-2" />
+                                                            Delete
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </div>
+                                        </TableCell>
+                                    </SortableStaffRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </DragDropProvider>
                 </div>
             )}
 

@@ -194,7 +194,7 @@ const AboutUs = () => {
   const { data: staffItemQuery, isLoading: staffItemLoading } = useApiQuery({
     url: "/staffs",
     queryKey: ["staffs"],
-    params: { limit: 6 },
+    params: { limit: 4 },
   });
 
   const { data: getPageResponse, isLoading, refetch } = useApiQuery({

@@ -12,9 +12,14 @@ export const formatDate = (date, format = "DD MMM YY", locale = "en") => {
   return dayjs(date).locale(locale).format(format);
 };
 
-export const getWords = (text, limit = 20) => {
+export const getWords = (text, limit = 15) => {
   if (!text) return "";
-  return text.trim().split(/\s+/).slice(0, limit).join(" ") + " ...";
+
+  const words = text.trim().split(/\s+/);
+
+  return words.length > limit
+    ? words.slice(0, limit).join(" ") + " ..."
+    : words.join(" ");
 };
 
 export const getHtmlContent = (data, limit) => {
