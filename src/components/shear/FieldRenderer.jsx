@@ -24,19 +24,7 @@ import ResourcePicker from "./ResourcePicker";
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
-/**
- * =====================================================================
- * FIELD RENDERER — Dynamic Form Engine
- * =====================================================================
- * একটি field definition object নেয় এবং সঠিক Input Control render করে।
- * নতুন field type support করতে চাইলে শুধু নিচে একটি case যোগ করুন।
- *
- * Props:
- *  - field  : registry-র field definition
- *  - value  : বর্তমান value
- *  - onChange(newValue) : value change callback
- * =====================================================================
- */
+
 const FieldRenderer = ({ field, value, onChange }) => {
   const fileInputRef = useRef(null);
 
@@ -158,12 +146,9 @@ const FieldRenderer = ({ field, value, onChange }) => {
 
       useEffect(() => {
         if (imageBase64) {
-          onChange(imageBase64); // Base64 save হবে
-          // যদি preview URL রাখতে চাও তাহলে onChange(preview)
+          onChange(imageBase64);
         }
       }, [imageBase64]);
-      /* আপাতত URL input; আপনার Media Uploader থাকলে এখানে বসান —
-         onChange(url) call করলেই বাকি সব কাজ করবে। */
       return (
         <div className="space-y-1.5">
           <div className="flex justify-between items-center">

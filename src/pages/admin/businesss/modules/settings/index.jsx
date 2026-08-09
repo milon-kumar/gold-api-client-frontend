@@ -10,7 +10,7 @@ import AccountSettingTab from "./partials/AccountSettingTab";
 const tabButtons = [
   { key: SETTINGS_TABS.BUSINESS_SETTING, label: "Business Overview" },
   { key: SETTINGS_TABS.MANAGE_MODULE, label: "Module Manager" },
-  { key: SETTINGS_TABS.SIDEBAR_BUILDER, label: "Sidebar Builder" },
+  // { key: SETTINGS_TABS.SIDEBAR_BUILDER, label: "Sidebar Builder" },
   { key: SETTINGS_TABS.ACCOUNT_SETTING, label: "Account Setting" },
 ];
 

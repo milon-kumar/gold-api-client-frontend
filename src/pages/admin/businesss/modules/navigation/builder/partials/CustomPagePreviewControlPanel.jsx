@@ -40,8 +40,6 @@ const CustomPagePreviewControlPanel = ({
     ? settingsResponse.data.settings.meta
     : {};
 
-    console.log("settingMeta - ",settingMeta)
-
   const {
     data: navbarResponse,
     isLoading: navbarLoading,

@@ -103,13 +103,10 @@ const slideFields = [
  * =================================================================== */
 
 export const COMPONENT_REGISTRY = {
-  /* ================================================================
-   * 1. HERO
-   * ============================================================== */
-
   heroCarousel: {
     label: "Hero Carousel",
     icon: "Sparkles",
+    moduleType:"carousel",
     renderer: "hero",
     defaultType: "carousel",
     types: {
@@ -191,6 +188,7 @@ export const COMPONENT_REGISTRY = {
   heroBanner: {
     label: "Hero Banner",
     icon: "Sparkles",
+    moduleType:"banner",
     renderer: "hero",
     defaultType: "banner",
     types: {
@@ -1084,13 +1082,10 @@ export const COMPONENT_REGISTRY = {
       }
     }
   },
-
-  /* ================================================================
-   * 2. INFORMATION  (একটাই type — UI-তে Type selector hide থাকবে)
-   * ============================================================== */
   information: {
     label: "Information",
     icon: "Info",
+    moduleType:"information",
     renderer: "information",
     defaultType: "default",
     types: {
@@ -1373,13 +1368,10 @@ export const COMPONENT_REGISTRY = {
       },
     },
   },
-
-  /* ================================================================
-   * 3. LIST
-   * ============================================================== */
   list: {
-    label: "List",
+    label: "List Component",
     icon: "List",
+    moduleType:"list",
     renderer: "list",
     defaultType: "default",
     types: {
@@ -1653,6 +1645,7 @@ export const COMPONENT_REGISTRY = {
   imageGallery: {
     label: "Image Gallery",
     icon: "Images",
+    moduleType:"image",
     renderer: "imageGallery",
     defaultType: "default",
     types: {
@@ -1673,6 +1666,60 @@ export const COMPONENT_REGISTRY = {
               { key: "subtitle", label: "Subtitle", type: "text", default: "" },
               {
                 key: "imageGallery",
+                label: "Select Image Category",
+                type: "array",
+                default: [],
+                sourceKeys: [
+                  "categories",
+                ],
+                itemFields: [
+                  { key: "image", label: "Image", type: "image", default: "" },
+                ],
+              },
+              {
+                key: "showHeader",
+                label: "Show or hide the section header",
+                type: "boolean",
+                group: "settings",
+                default: true,
+              },
+              {
+                key: "showBadge",
+                label: "Show or hide the badge",
+                type: "boolean",
+                group: "settings",
+                default: true,
+              },
+            ]
+          }
+        }
+      }
+    }
+  },
+  videoGallery: {
+    label: "Video Gallery",
+    icon: "Film",
+    moduleType:"video",
+    renderer: "videoGallery",
+    defaultType: "default",
+    types: {
+      default: {
+        label: "Default",
+        defaultTemplate: "videoGallery",
+        templates: {
+          videoGallery: {
+            label: "Video Gallery",
+            fields: [
+              { key: "badge", label: "Badge", type: "text", default: "" },
+              {
+                key: "title",
+                label: "Title",
+                type: "text",
+                default: "Video Gallery",
+              },
+              { key: "subtitle", label: "Subtitle", type: "text", default: "" },
+              {
+                key: "videoGallery",
                 label: "Select Image Category",
                 type: "array",
                 default: [],

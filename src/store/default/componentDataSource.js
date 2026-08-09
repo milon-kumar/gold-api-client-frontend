@@ -265,6 +265,9 @@ export const DATA_SOURCES = {
 export const getDataSource = (key) => DATA_SOURCES[key] || null;
 
 export const getDataSourceOptions = (keys = []) =>
-  keys
-    ?.filter((key) => DATA_SOURCES[key])
-    ?.map((key) => ({ value: key, label: DATA_SOURCES[key].label }));
+    (Array.isArray(keys) ? keys : [])
+        .filter((key) => DATA_SOURCES[key])
+        .map((key) => ({
+            value: key,
+            label: DATA_SOURCES[key].label,
+        }));
