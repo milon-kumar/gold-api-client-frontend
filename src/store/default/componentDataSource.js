@@ -22,6 +22,118 @@
 import { MODULES } from "@/store/default/modules";
 
 export const DATA_SOURCES = {
+  modules: {
+    label: "List Items",
+    getModuleUrl: (query) => `/admin/business-module-item-by-module-id`,
+    getModuleParams: (params) => ({
+      ...params,
+      status: "active"
+    }),
+    getParams: (params) => ({
+      ...params,
+      is_featured: true,
+      status: "active"
+    }),
+    params: {
+      is_featured: true,
+      status: "active"
+    },
+    getItems: (response) => response?.data?.data || [],
+    display: {
+      titleKey: "name",
+      imageKey: "image_full_path",
+      subtitleKey: "type",
+    },
+    mapItem: (item) => ({
+      title: item.title || "",
+      sub_title: item?.sub_title || "",
+      sub_description: item?.sub_description,
+      description: item.description || "",
+      image: item.image_full_path || item.image || "",
+    }),
+  },
+  image: {
+    label: "Image Category",
+    getModuleUrl: (query) => `/admin/get-business-modules`,
+    getCategoryUrl: (query) => `/admin/get-business-module-categories`,
+    getModuleItem: (query) => `/admin/get-business-module-items`,
+
+    getModuleParams: (params) => ({
+      ...params,
+      status: "active"
+    }),
+    getCategoryParams: (params) => ({
+      ...params,
+      status: "active"
+    }),
+    getItemsParams: (params) => ({
+      ...params,
+      is_featured: true,
+      status: "active"
+    }),
+    params: {
+      is_featured: true,
+      status: "active"
+    },
+    getItems: (response) => response?.data?.data || [],
+    display: {
+      titleKey: "name",
+      imageKey: "image_full_path",
+      subtitleKey: "type",
+    },
+    mapItem: (item) => ({
+      title: item.title || "",
+      sub_title: item?.sub_title || "",
+      sub_description: item?.sub_description,
+      description: item.description || "",
+      image: item.image_full_path || item.image || "",
+    }),
+  },
+  video: {
+    label: "Video Modules",
+    getModuleUrl: (query) => `/admin/get-business-modules`,
+    getCategoryUrl: (query) => `/admin/get-business-module-categories`,
+    getModuleItem: (query) => `/admin/get-business-module-items`,
+
+    getModuleParams: (params) => ({
+      ...params,
+      status: "active"
+    }),
+    getCategoryParams: (params) => ({
+      ...params,
+      status: "active"
+    }),
+    getItemsParams: (params) => ({
+      ...params,
+      is_featured: true,
+      status: "active"
+    }),
+    params: {
+      is_featured: true,
+      status: "active"
+    },
+    getItems: (response) => response?.data?.data || [],
+    display: {
+      titleKey: "name",
+      imageKey: "image_full_path",
+      subtitleKey: "type",
+    },
+    mapItem: (item) => ({
+      title: item.title || "",
+      sub_title: item?.sub_title || "",
+      sub_description: item?.sub_description,
+      description: item.description || "",
+      image: item.image_full_path || item.image || "",
+    }),
+  },
+
+
+
+
+
+
+
+
   /* ---------------- Slider CRUD ---------------- */
   slider: {
     label: "Slider",
@@ -103,27 +215,8 @@ export const DATA_SOURCES = {
     }),
   },
 
-  categories:  {
-    label: "Image Category",
-    url: `/admin/business-module-item-categories?module_slug=${MODULES.PHOTOS}`,
-    params:{
-      is_featured: true,
-      status: "active"
-    },
-    getItems: (response) => response?.data?.data || [],
-    display: {
-      titleKey: "name",
-      imageKey: "image_full_path",
-      subtitleKey: "type",
-    },
-    mapItem: (item) => ({
-      title: item.title || "",
-      sub_title: item?.sub_title || "",
-      sub_description: item?.sub_description,
-      description: item.description || "",
-      image: item.image_full_path || item.image || "",
-    }),
-  },
+
+
   /* ---------------- List CRUDs ---------------- */
   photo: {
     label: "Image",
@@ -214,23 +307,7 @@ export const DATA_SOURCES = {
       image: item.image_full_path || item.image || "",
     }),
   },
-  video: {
-    label: "Video",
-    url: `/admin/business-module-items?module_slug=${MODULES.VIDEOS}`, // ⚠️
-    getItems: (response) => response?.data?.data || [],
-    display: {
-      titleKey: "title",
-      imageKey: "image_full_path",
-      subtitleKey: "sub_title",
-    },
-    mapItem: (item) => ({
-      title: item.title || "",
-      sub_title: item?.sub_title || "",
-      sub_description: item?.sub_description,
-      description: item.description || "",
-      image: item.image_full_path || item.image || "",
-    }),
-  },
+
 
   activity: {
     label: "Activity",
@@ -265,9 +342,9 @@ export const DATA_SOURCES = {
 export const getDataSource = (key) => DATA_SOURCES[key] || null;
 
 export const getDataSourceOptions = (keys = []) =>
-    (Array.isArray(keys) ? keys : [])
-        .filter((key) => DATA_SOURCES[key])
-        .map((key) => ({
-            value: key,
-            label: DATA_SOURCES[key].label,
-        }));
+  (Array.isArray(keys) ? keys : [])
+    .filter((key) => DATA_SOURCES[key])
+    .map((key) => ({
+      value: key,
+      label: DATA_SOURCES[key].label,
+    }));

@@ -531,7 +531,7 @@ const BusinessSettingTab = () => {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         <Card className="shadow-sm">
           <CardHeader className="border-b bg-linear-to-r from-emerald-50 to-teal-50">
             <CardTitle className="flex items-center gap-2 text-xl">

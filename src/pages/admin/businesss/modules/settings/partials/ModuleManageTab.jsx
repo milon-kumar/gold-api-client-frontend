@@ -31,7 +31,7 @@ const ModuleManageTab = () => {
   } = useApiQuery({
     url: "/admin/business-modules",
     params: {
-      module_type_exclude: "system",
+      creation_type: "custom",
     },
   });
     

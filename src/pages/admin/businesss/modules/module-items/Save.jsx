@@ -14,6 +14,7 @@ import StatusSettingsCard from './partials/StatusSettingsCard';
 import SeoCard from './partials/SeoCard';
 import ImageUploadCard from './partials/ImageUploadCard';
 import QuickInfoCard from './partials/QuickInfoCard';
+import VideoInformationCard from './partials/VideoInformationCard';
 
 const emptySeoContent = {
   meta_title: '',
@@ -46,6 +47,9 @@ const Save = () => {
     is_featured: false,
     status: 'active',
     category_id: null,
+    meta:{
+      url: null,
+    }
   });
 
   const [seoContent, setSeoContent] = useState(emptySeoContent);
@@ -90,6 +94,7 @@ const Save = () => {
 
   const moduleData = moduleQuery?.data || {};
   const moduleTitle = moduleData?.title || 'Item';
+  const moduleType = moduleData?.module_type || 'list';
   const moduleMeta = moduleData?.meta || {};
   const requiredCategory = Boolean(moduleMeta?.category_required);
 
@@ -123,6 +128,7 @@ const Save = () => {
       is_featured: Boolean(item.is_featured),
       status: item.status || 'active',
       category_id: item.category_id || null,
+      meta: item.meta
     });
 
     const savedSeo = { ...emptySeoContent, ...(item.meta?.seo_content || {}) };
@@ -227,9 +233,15 @@ const Save = () => {
       category_id: requiredCategory ? formData.category_id : undefined,
       image: imageBase64 || existingImageUrl || null,
       meta: {
+        url: formData.meta.url || null,
         seo_content: seoContent,
       },
     };
+
+    console.log("handel save - ", {
+      formData,
+      payload
+    })
 
     try {
       const response = await itemMutation(payload);
@@ -304,6 +316,22 @@ const Save = () => {
               onImageChange={handleImageChange}
               onRemoveImage={handleRemoveImage}
             />
+
+            {!moduleFetching && moduleType === 'video' && (
+              <VideoInformationCard
+                meta={formData.meta || {}}
+                onChange={(name, value) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    meta: {
+                      ...prev.meta,
+                      [name]: value,
+                    },
+                  }))
+                }
+              />
+            )}
+
             <SeoCard
               seoContent={seoContent}
               onSeoFieldChange={handleSeoFieldChange}

@@ -130,30 +130,32 @@ const AdminSidebar = () => {
       slug: to,
     });
   };
-const getItemPath = (item) => {
-  if (item?.url) return item.url;
-  if (item.module_slug === "about-us") return "/about-us";
-  return `/module/${item.module_slug || item.id}`;
-};
-const isSidebarItemActive = (item) => {
-  const targetPath = getItemPath(item);
-  const [targetPathname, targetSearch] = targetPath.split("?");
-  const fullTargetPathname = `/admin${targetPathname}`;
 
-  const pathMatches =
-    location.pathname === fullTargetPathname ||
-    location.pathname.startsWith(`${fullTargetPathname}/`);
+  const getItemPath = (item) => {
+    if (item?.url) return item.url;
+    if (item.module_slug === "about-us") return "/about-us";
+    return `/module/${item.module_slug || item.id}`;
+  };
 
-  if (!pathMatches) return false;
+  const isSidebarItemActive = (item) => {
+    const targetPath = getItemPath(item);
+    const [targetPathname, targetSearch] = targetPath.split("?");
+    const fullTargetPathname = `/admin${targetPathname}`;
 
-  if (!targetSearch) return true;
-  const targetParams = new URLSearchParams(targetSearch);
-  const currentParams = new URLSearchParams(location.search);
+    const pathMatches =
+      location.pathname === fullTargetPathname ||
+      location.pathname.startsWith(`${fullTargetPathname}/`);
 
-  return Array.from(targetParams.entries()).every(
-    ([key, value]) => currentParams.get(key) === value
-  );
-};
+    if (!pathMatches) return false;
+
+    if (!targetSearch) return true;
+    const targetParams = new URLSearchParams(targetSearch);
+    const currentParams = new URLSearchParams(location.search);
+
+    return Array.from(targetParams.entries()).every(
+      ([key, value]) => currentParams.get(key) === value
+    );
+  };
 
 
   const {
@@ -166,16 +168,16 @@ const isSidebarItemActive = (item) => {
 
   const modules = modulesResponse?.data?.data || [];
 
-  const defaultModules = modules.filter((module) => module.module_type === "system" && module.status === "active");
-  const customModules = modules.filter((module) => module.module_type !== "system");
+  const defaultModules = modules.filter((module) => module.creation_type === "system" && module.status === "active");
+  const customModules = modules.filter((module) => module.creation_type === "custom");
 
-    const businessMenus = {
+  const businessMenus = {
     overview: [
       {
         id: "dashboard",
         label: "Dashboard",
         icon_key: "LayoutDashboard",
-        url:"/dashboard",
+        url: "/dashboard",
       }
     ],
 
@@ -183,7 +185,7 @@ const isSidebarItemActive = (item) => {
       id: module.id,
       label: module.title,
       icon_key: module.meta?.sidebar_menu_icon || "folder",
-      url : `/${module.title_slug}?slug=${module.title_slug}`,
+      url: `/${module.title_slug}?slug=${module.title_slug}`,
     })),
     'content-management': customModules.map((module) => ({
       id: module.id,
@@ -192,12 +194,12 @@ const isSidebarItemActive = (item) => {
       module_slug: module.title_slug,
     })),
     management: [
-      { id: "businessSetting", label: "Business Overview", icon_key: "Building2", system: true,url: "/settings?tab=businessSetting" },
-      { id: "navigations", label: "Pages", icon_key: "FileStack", system: true ,url: "/navigations"},
-      { id: "builder", label: "Menu Builder", icon_key: "TableOfContents", system: true ,url: "/navigations/builder"},
-      { id: "categories", label: "Categories", icon_key: "Tags", system: true ,url: "/categories"},
-      { id: "manageModule", label: "Modules Manager", icon_key: "Package", system: true ,url: "/settings?tab=manageModule"},
-      { id: "accountSetting", label: "Accounts", icon_key: "UserRoundCog", system: true ,url: "/settings?tab=accountSetting"},
+      { id: "businessSetting", label: "Business Overview", icon_key: "Building2", system: true, url: "/settings?tab=businessSetting" },
+      { id: "navigations", label: "Pages", icon_key: "FileStack", system: true, url: "/navigations" },
+      { id: "builder", label: "Menu Builder", icon_key: "TableOfContents", system: true, url: "/navigations/builder" },
+      { id: "categories", label: "Categories", icon_key: "Tags", system: true, url: "/categories" },
+      { id: "manageModule", label: "Modules Manager", icon_key: "Package", system: true, url: "/settings?tab=manageModule" },
+      { id: "accountSetting", label: "Accounts", icon_key: "UserRoundCog", system: true, url: "/settings?tab=accountSetting" },
     ],
   }
 

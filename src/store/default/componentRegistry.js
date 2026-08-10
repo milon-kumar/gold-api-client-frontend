@@ -1383,19 +1383,14 @@ export const COMPONENT_REGISTRY = {
             label: "Card Grid",
             fields: [
               { key: "badge", label: "Badge", type: "text", default: "" },
-              {
-                key: "title",
-                label: "Title",
-                type: "text",
-                default: "Our services",
-              },
+              { key: "title", label: "Title", type: "text", default: "",},
               { key: "subtitle", label: "Subtitle", type: "text", default: "" },
               {
                 key: "items",
                 label: "Items",
                 type: "array",
                 default: [],
-                sourceKeys: "modules",
+                sourceKeys: ['modules'],
                 // [
                 //   "staff",
                 //   "organization",
@@ -1495,22 +1490,31 @@ export const COMPONENT_REGISTRY = {
           listView: {
             label: "List View",
             fields: [
-              {
-                key: "title",
-                label: "Title",
-                type: "text",
-                default: "Highlights",
-              },
+              { key: "badge", label: "Badge", type: "text", default: "" },
+              { key: "title", label: "Title", type: "text", default: "",},
+              { key: "subtitle", label: "Subtitle", type: "text", default: "" },
               {
                 key: "items",
                 label: "Items",
                 type: "array",
                 default: [],
-                sourceKeys: ["organization", "activity"],
+                sourceKeys: ['modules'],
                 itemFields: [
                   {
                     key: "title",
                     label: "Title",
+                    type: "text",
+                    default: "Item",
+                  },
+                  {
+                    key: "sub_title",
+                    label: "Sub Title",
+                    type: "text",
+                    default: "Item",
+                  },
+                  {
+                    key: "sub_description",
+                    label: "Sub Description",
                     type: "text",
                     default: "Item",
                   },
@@ -1520,66 +1524,20 @@ export const COMPONENT_REGISTRY = {
                     type: "textarea",
                     default: "",
                   },
-                ],
-              },
-            ],
-          },
-          timeline: {
-            label: "Timeline",
-            fields: [
-              {
-                key: "title",
-                label: "Title",
-                type: "text",
-                default: "Our journey",
-              },
-              {
-                key: "items",
-                label: "Items",
-                type: "array",
-                default: [],
-                sourceKeys: ["activity"],
-                itemFields: [
-                  { key: "year", label: "Year", type: "text", default: "2024" },
-                  {
-                    key: "title",
-                    label: "Title",
-                    type: "text",
-                    default: "Milestone",
-                  },
-                  {
-                    key: "description",
-                    label: "Description",
-                    type: "textarea",
-                    default: "",
-                  },
-                ],
-              },
-            ],
-          },
-          gallery: {
-            label: "Gallery",
-            fields: [
-              {
-                key: "title",
-                label: "Title",
-                type: "text",
-                default: "Gallery",
-              },
-              {
-                key: "images",
-                label: "Images",
-                type: "array",
-                default: [],
-                sourceKeys: ["image"],
-                itemFields: [
                   { key: "image", label: "Image", type: "image", default: "" },
-                  {
-                    key: "caption",
-                    label: "Caption",
-                    type: "text",
-                    default: "",
-                  },
+                ],
+              },
+              {
+                key: "sectionHeader",
+                label: "Section header Varients",
+                type: "radio",
+                group: "settings",
+                default: "classic",
+                options: [
+                  { label: "Classic", value: "classic" },
+                  { label: "Gradient", value: "gradient" },
+                  { label: "split", value: "split" },
+                  { label: "elegant", value: "elegant" },
                 ],
               },
               {
@@ -1592,52 +1550,42 @@ export const COMPONENT_REGISTRY = {
                   { label: "2 Columns", value: "2" },
                   { label: "3 Columns", value: "3" },
                   { label: "4 Columns", value: "4" },
+                  { label: "5 Columns", value: "5" },
                 ],
               },
               {
-                key: "lightbox",
-                label: "Lightbox",
-                type: "boolean",
+                key: "cardSubTitleWordLimit",
+                label: "Show Sub title words in card",
+                type: "slider",
                 group: "settings",
-                default: true,
-              },
-            ],
-          },
-          news: {
-            label: "News",
-            fields: [
-              {
-                key: "title",
-                label: "Title",
-                type: "text",
-                default: "Latest news",
+                default: 50,
+                min: 20,
+                max: 150,
+                step: 1,
               },
               {
-                key: "items",
-                label: "News Items",
-                type: "array",
-                default: [],
-                sourceKeys: ["activity", "video"],
-                itemFields: [
-                  {
-                    key: "title",
-                    label: "Title",
-                    type: "text",
-                    default: "News headline",
-                  },
-                  { key: "date", label: "Date", type: "text", default: "" },
-                  {
-                    key: "excerpt",
-                    label: "Excerpt",
-                    type: "textarea",
-                    default: "",
-                  },
-                  { key: "image", label: "Image", type: "image", default: "" },
-                  { key: "link", label: "Link", type: "text", default: "#" },
+                key: "cardImageHeight",
+                label: "Card image height (px)",
+                type: "slider",
+                group: "style",
+                default: 200,
+                min: 180,
+                max: 400,
+                step: 1,
+              },
+              {
+                key: "imageFit",
+                label: "Image Fit",
+                type: "radio",
+                group: "style",
+                default: "cover",
+                options: [
+                  { label: "Cover", value: "cover" },
+                  { label: "Contain", value: "contain" },
                 ],
               },
             ],
-          },
+          }
         },
       },
     },
@@ -1661,17 +1609,16 @@ export const COMPONENT_REGISTRY = {
                 key: "title",
                 label: "Title",
                 type: "text",
-                default: "Our services",
+                default: "Image Gallery",
               },
               { key: "subtitle", label: "Subtitle", type: "text", default: "" },
               {
                 key: "imageGallery",
-                label: "Select Image Category",
+                label: "Given gallery content",
                 type: "array",
                 default: [],
-                sourceKeys: [
-                  "categories",
-                ],
+                moduleType:"image",
+                sourceKeys:['image'],
                 itemFields: [
                   { key: "image", label: "Image", type: "image", default: "" },
                 ],
@@ -1698,7 +1645,7 @@ export const COMPONENT_REGISTRY = {
   },
   videoGallery: {
     label: "Video Gallery",
-    icon: "Film",
+    icon: "Videos",
     moduleType:"video",
     renderer: "videoGallery",
     defaultType: "default",
@@ -1720,12 +1667,11 @@ export const COMPONENT_REGISTRY = {
               { key: "subtitle", label: "Subtitle", type: "text", default: "" },
               {
                 key: "videoGallery",
-                label: "Select Image Category",
+                label: "Given gallery content",
                 type: "array",
                 default: [],
-                sourceKeys: [
-                  "categories",
-                ],
+                moduleType:"video",
+                sourceKeys: ['video'],
                 itemFields: [
                   { key: "image", label: "Image", type: "image", default: "" },
                 ],
@@ -1749,7 +1695,7 @@ export const COMPONENT_REGISTRY = {
         }
       }
     }
-  }
+  },
 };
 
 /* =====================================================================

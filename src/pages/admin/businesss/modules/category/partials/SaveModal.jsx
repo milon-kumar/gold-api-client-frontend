@@ -41,7 +41,7 @@ const SaveModal = ({ open, onOpenChange, onSaved }) => {
   });
 
   const modules = modulesResponse?.data?.data || [];
-  const selectedModule = modules.find((module) => module.title_slug === type);
+  const selectedModule = modules.find((module) => module.id === type.id);
 
   const { mutate: categoryMutation, isLoading: saving } = useApiMutation({
     url: "/admin/business-module-item-categories/bulk",
@@ -74,7 +74,7 @@ const SaveModal = ({ open, onOpenChange, onSaved }) => {
     }
 
     const payload = {
-      type,
+      module_id: type.id,
       categories: validRows.map((row) => ({
         title: row.title.trim(),
         description: row.description?.trim() || null,
@@ -128,7 +128,7 @@ const SaveModal = ({ open, onOpenChange, onSaved }) => {
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
-{console.log("Modules data:", modules)}
+
               <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
                 <Command>
                   <CommandInput placeholder="Search module..." />
@@ -139,14 +139,14 @@ const SaveModal = ({ open, onOpenChange, onSaved }) => {
                         key={module.id}
                         value={module.title}
                         onSelect={() => {
-                          setType(module.title_slug);
+                          setType(module);
                           setTypePopoverOpen(false);
                         }}
                       >
                         <Check
                           className={cn("mr-2 h-4 w-4", type === module.title_slug ? "opacity-100" : "opacity-0")}
                         />
-                        {module.title} - ({module?.module_type === 'system' ? 'Page Module' : 'Custom'})
+                        {module.title} - ({module?.creation_type === 'system' ? 'System Module' : 'Custom'})
                       </CommandItem>
                     ))}
                   </CommandGroup>

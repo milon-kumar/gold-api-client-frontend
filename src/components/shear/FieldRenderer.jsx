@@ -307,6 +307,9 @@ const ArrayField = ({ field, value, onChange }) => {
     const merged = mergeIntoShape(fresh, mapped);
     merged._id = fresh._id;
     merged._sourceId = rawItem?.id; // কোন record থেকে এসেছে, track রাখার জন্য
+    merged._sourceResource = mapped?.resource;
+    merged.item = rawItem,
+
     onChange([...items, merged]);
   };
 
@@ -325,6 +328,11 @@ const ArrayField = ({ field, value, onChange }) => {
 
   const isHideAddButton = ['imageGallery'].includes(field?.key)
 
+    // ✅ আগে সেভ করা shape থেকে সর্বশেষ item-টা কোন resource থেকে এসেছিল সেটা বের করা —
+  //    edit mode-এ প্রথমবার Picker খোলার সময় সেই ট্যাবেই যেন ডিফল্ট থাকে
+  const lastPickedResource = [...items]
+    .reverse()
+    .find((item) => item?._sourceResource)?._sourceResource;
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-1">
@@ -338,9 +346,12 @@ const ArrayField = ({ field, value, onChange }) => {
         <div className="flex items-center gap-1">
           {field.sourceKeys?.length > 0 && (
             <ResourcePicker
+              field={field}
               sourceKeys={field.sourceKeys}
+              initialResource={lastPickedResource}
               onPick={addFromSource}
               onUnpick={removeFromSource} /* picked item-এ click = unselect */
+              clearAll={clearAll}
               closeOnPick={false} /* একসাথে একাধিক pick করা যাবে */
               pickedIds={items.map((i) => i._sourceId).filter(Boolean)}
               triggerLabel="Pick"
