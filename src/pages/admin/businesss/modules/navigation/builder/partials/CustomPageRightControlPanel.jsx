@@ -186,6 +186,9 @@ const CustomPageRightControlPanel = ({
               </p>
             </div>
             <ResourcePicker
+              field={{
+                moduleType:templateConfig.moduleType || null 
+              }}
               sourceKeys={templateConfig.sourceKeys}
               closeOnPick
               pickedIds={

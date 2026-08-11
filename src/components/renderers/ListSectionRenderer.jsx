@@ -3,6 +3,8 @@ import SectionHeader from "./SectionHeaderVarients";
 import { imageFitClass } from "@/lib/styleHelper";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router";
+import { StaffCard } from "@/pages/frontend/all-staffs/AllStaffs";
+import ListCardTempalte from "./ListCardTemplate";
 /**
  * =====================================================================
  * LIST RENDERER (Section) — Template Registry Pattern
@@ -10,7 +12,7 @@ import { useNavigate } from "react-router";
  */
 const colsClass = (columns) =>
   ({ 2: "md:grid-cols-2", 3: "md:grid-cols-3", 4: "md:grid-cols-4" })[
-    Number(columns)
+  Number(columns)
   ] || "md:grid-cols-3";
 
 const Header = ({ badge, title, subtitle }) => (
@@ -33,57 +35,113 @@ const Empty = ({ label }) => (
   </p>
 );
 
-const CardGrid = ({ content, settings, styles }) => {
-  const navigate = useNavigate()
-  const handelDetails = (item) =>{
-    navigate(`/details/${item?._sourceId}`)
-  }
+
+
+
+const ListView = ({ content, settings, styles }) => {
+  const navigate = useNavigate();
+  const handelDetails = (item) => {
+    navigate(`/details/${item?._sourceId}`);
+  };
+
+  const moduleType = content?.items?.[0]?._moduleType || 'list';
+
   return (
     <div className="">
-      <SectionHeader
-        variant={settings?.sectionHeader || "classic"}
-        badge={content.badge}
-        title={content.title}
-        subtitle={content.subtitle}
-      />
+      {content.title && (
+        <SectionHeader
+          variant={settings?.sectionHeader || "classic"}
+          badge={content.badge}
+          title={content.title}
+          subtitle={content.subtitle}
+        />
+      )}
+
       {content.items?.length ? (
-        <div className={`grid gap-4 ${colsClass(settings.columns)}`}>
+        <div className="flex flex-col gap-3">
           {content.items.map((item, i) => {
-            const cardContent =
-              item.sub_title || item.sub_description || item.description;
+            const data = item.item || item;
+            const isReversed = i % 2 === 1;
+            const imgSize = styles?.cardImageWidth || 120;
+
+            if (moduleType === 'user') {
+              return (
+                <div
+                  key={item._id || i}
+                  className={cn(
+                    "group flex items-center overflow-hidden rounded-xl border border-slate-200 bg-white transition-all hover:shadow-md",
+                    isReversed ? "flex-row-reverse" : "flex-row"
+                  )}
+                >
+                  {data.avatar_full_path && (
+                    <div
+                      style={{ width: imgSize, height: imgSize }}
+                      className="shrink-0"
+                    >
+                      <img
+                        src={data.avatar_full_path}
+                        alt={data.name}
+                        className={cn(
+                          "h-full w-full transition-transform duration-300 group-hover:scale-105",
+                          imageFitClass[styles?.imageFit] ?? "object-cover"
+                        )}
+                      />
+                    </div>
+                  )}
+                  <div className="flex flex-col justify-center px-4 py-2 min-w-0">
+                    <h3 className="text-base font-semibold text-slate-900 truncate">
+                      {data.name}
+                    </h3>
+                    {data.meta?.position && (
+                      <p className="text-sm text-slate-500 truncate">
+                        {data.meta.position}
+                      </p>
+                    )}
+                    {data.email && (
+                      <p className="text-xs text-slate-400 truncate">{data.email}</p>
+                    )}
+                  </div>
+                </div>
+              );
+            }
+
+            const cardContent = data.sub_title || data.sub_description || data.description;
+
             return (
               <div
                 key={item._id || i}
-                className="overflow-hidden rounded-lg border"
+                className={cn(
+                  "group flex items-center overflow-hidden rounded-xl border border-slate-200 bg-white transition-all hover:shadow-md",
+                  isReversed ? "flex-row-reverse" : "flex-row"
+                )}
               >
-                {item.image && (
+                {data.image_full_path && (
                   <div
-                    style={{ height: styles.cardImageHeight || 200 }}
-                    className="bject-contain"
+                    style={{ width: imgSize, height: imgSize }}
+                    className="shrink-0"
                   >
                     <img
-                      src={item.image}
-                      alt={item.title}
+                      src={data.image_full_path}
+                      alt={data.title}
                       className={cn(
-                        "h-full w-full",
-                        imageFitClass[styles?.imageFit] ?? "object-cover",
+                        "h-full w-full transition-transform duration-300 group-hover:scale-105",
+                        imageFitClass[styles?.imageFit] ?? "object-cover"
                       )}
                     />
                   </div>
                 )}
-
-                <div className="p-4">
-                  <h3 className="text-2xl font-semibold text-slate-900 cursor-pointer" onClick={() => handelDetails(item)}>
-                    {item.title}
+                <div className="flex flex-col justify-center px-4 py-2 min-w-0">
+                  <h3
+                    className="text-base font-semibold text-slate-900 cursor-pointer truncate hover:text-primary"
+                    onClick={() => handelDetails(item)}
+                  >
+                    {data.title}
                   </h3>
                   {cardContent && (
                     <p
-                      className="mt-1 text-base text-slate-500"
+                      className="mt-1 text-sm text-slate-500 line-clamp-2"
                       dangerouslySetInnerHTML={{
-                        __html: getWords(
-                          cardContent,
-                          settings?.cardSubTitleWordLimit || 50,
-                        ),
+                        __html: getWords(cardContent, settings?.cardSubTitleWordLimit || 20),
                       }}
                     />
                   )}
@@ -98,26 +156,6 @@ const CardGrid = ({ content, settings, styles }) => {
     </div>
   );
 };
-
-const ListView = ({ content }) => (
-  <div className="">
-    <Header title={content.title} />
-    {content.items?.length ? (
-      <ul className="space-y-3">
-        {content.items.map((item, i) => (
-          <li key={item._id || i} className="rounded-md border p-4">
-            <p className="text-sm font-medium text-slate-900">{item.title}</p>
-            {item.description && (
-              <p className="mt-1 text-xs text-slate-500">{item.description}</p>
-            )}
-          </li>
-        ))}
-      </ul>
-    ) : (
-      <Empty label="items" />
-    )}
-  </div>
-);
 
 const Timeline = ({ content }) => (
   <div className="">
@@ -213,7 +251,7 @@ const News = ({ content }) => (
 );
 
 const TEMPLATES = {
-  cardGrid: CardGrid,
+  cardGrid: ListCardTempalte,
   listView: ListView,
   timeline: Timeline,
   gallery: Gallery,
@@ -226,6 +264,9 @@ const ListSectionRenderer = ({
   settings = {},
   styles = {},
 }) => {
+
+  console.log("List content - ", content)
+
   const Template = TEMPLATES[template];
   if (!Template) {
     return (

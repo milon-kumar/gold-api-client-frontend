@@ -5,6 +5,7 @@ import StellarBanner from "@/components/frontend/hero/banner/StellarBanner";
 import AuroraBanner from "../frontend/hero/banner/AuroraBanner";
 import GradientBanner from "../frontend/hero/banner/GradientBanner";
 import { motion } from "framer-motion";
+import StandardCarousel from "./StandardCarousel";
 /**
  * =====================================================================
  * HERO RENDERER — Template Registry Pattern
@@ -342,6 +343,7 @@ const TEMPLATES = {
   "banner.auroraBanner": AuroraBanner,
   "carousel.classicCarousel": makeCarousel(TextImageSlide, 700),
   "carousel.simpleCarousel": ColumnSlider,
+  "carousel.standardCarousel": StandardCarousel,
   "carousel.modernCarousel": makeCarousel(TextImageSlide, 440),
   "carousel.imageCarousel": makeCarousel(ImageOnlySlide, 380),
   "carousel.immersiveSlider": makeCarousel(TextImageSlide, 520),

@@ -22,9 +22,9 @@
 import { MODULES } from "@/store/default/modules";
 
 export const DATA_SOURCES = {
-  modules: {
+  information: {
     label: "List Items",
-    getModuleUrl: (query) => `/admin/business-module-item-by-module-id`,
+    getModuleUrl: (query) => `/admin/get-business-module-items`,
     getModuleParams: (params) => ({
       ...params,
       status: "active"
@@ -48,8 +48,38 @@ export const DATA_SOURCES = {
       title: item.title || "",
       sub_title: item?.sub_title || "",
       sub_description: item?.sub_description,
-      description: item.description || "",
+      description: item.sub_description || "",
       image: item.image_full_path || item.image || "",
+    }),
+  },
+  modules: {
+    label: "List Items",
+    getModuleUrl: (query) => `/admin/business-module-item-by-module-id`,
+    getModuleParams: (params) => ({
+      ...params,
+      status: "active"
+    }),
+    getParams: (params) => ({
+      ...params,
+      is_featured: true,
+      status: "active"
+    }),
+    params: {
+      is_featured: true,
+      status: "active"
+    },
+    getItems: (response) => response?.data?.data || [],
+    display: {
+      titleKey: "name",
+      imageKey: "image_full_path",
+      subtitleKey: "type",
+    },
+    mapItem: (item) => ({
+      title: item.title || item.name || " ",
+      sub_title: item?.sub_title || item.email || "",
+      sub_description: item?.sub_description,
+      description: item.sub_description || item.phone || " ",
+      image: item.image_full_path || item.avatar_full_path || "",
     }),
   },
   image: {
@@ -154,30 +184,6 @@ export const DATA_SOURCES = {
     }),
   },
 
-  /* ---------------- Information CRUD (৪টি record) ---------------- */
-  information: {
-    label: "Introduction",
-    url: `/admin/business-modules-by-slugs?module_slugs=[${MODULES.PRESIDENT_MESSAGE},${MODULES.INTRODUCTION},${MODULES.WHAT_WE_WANT},${MODULES.FOUNDING_PRESIDENT}]`, // ⚠️ আপনার endpoint
-    getItems: (response) => response?.data || [],
-    display: {
-      titleKey: "title",
-      imageKey: "image_full_path",
-      subtitleKey: "sub_title",
-    },
-    mapItem: (item) => ({
-      // simple / modern / imageLeft / imageRight টেমপ্লেটের জন্য
-      title: item.title || "",
-      description: item.description || "",
-      image: item.image_full_path || "",
-      badge: item.badge || "",
-      // founder টেমপ্লেটের জন্য (same source, ভিন্ন key —
-      // template অনুযায়ী যেটা লাগবে সেটাই বসবে)
-      founderName: item.name || item.title || "",
-      founderImage: item.image || "",
-      message: item.description || "",
-      designation: item.designation || "",
-    }),
-  },
 
   /* ---------------- Get Staffs ---------------- */
   staff: {

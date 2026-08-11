@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Play, X } from "lucide-react";
 import SectionHeader from "@/components/partials/frontend/SectionHeader";
 import { useApiQuery } from "@/hooks/useAppQuery";
+import VideoCard from "./partials/video-gallery/VideoCard";
+import VideoLightbox from "./partials/video-gallery/VideoLightBox";
 
 /**
  * =====================================================================
@@ -17,25 +19,6 @@ import { useApiQuery } from "@/hooks/useAppQuery";
  * link সরাসরি <iframe src> এ দিলে embed হয় না, তাই এই কনভার্সনটা must।
  * =====================================================================
  */
-
-/** YouTube/Vimeo watch-link হলে embeddable URL রিটার্ন করে, নাহলে null (direct file হিসেবে ধরা হবে) */
-const getEmbedUrl = (url = "") => {
-  if (!url) return null;
-
-  const ytMatch = url.match(
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
-  );
-  if (ytMatch) {
-    return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1&rel=0`;
-  }
-
-  const vimeoMatch = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
-  if (vimeoMatch) {
-    return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`;
-  }
-
-  return null;
-};
 
 const VideoGallery = ({
   template,
@@ -108,9 +91,6 @@ const VideoGallery = ({
 
   const isLoading = resource === "module" && moduleItemsLoading;
   const hasItems = filteredItems?.length > 0;
-
-  // ✅ raw url (YouTube/Vimeo watch-link বা direct file) থেকে embeddable url আলাদা করে রাখা
-  const activeEmbedUrl = lightbox ? getEmbedUrl(lightbox?.meta?.url) : null;
 
   return (
     <section
@@ -187,39 +167,7 @@ const VideoGallery = ({
         ) : hasItems ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
             {filteredItems.map((video, index) => (
-              <motion.div
-                key={video.id ?? index}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.06 }}
-                className="group relative w-full aspect-video rounded-2xl overflow-hidden cursor-pointer bg-gray-900"
-                onClick={() => setLightbox(video)}
-              >
-                {video.image_full_path ? (
-                  <img
-                    src={video.image_full_path}
-                    alt={video.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gray-800" />
-                )}
-
-                <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-colors duration-300" />
-
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-12 h-12 rounded-full bg-white/90 group-hover:bg-white group-hover:scale-110 flex items-center justify-center shadow-lg transition-all duration-300">
-                    <Play className="w-5 h-5 text-gray-900 ml-0.5" fill="currentColor" />
-                  </div>
-                </div>
-
-                <div className="absolute bottom-0 left-0 right-0 p-3 bg-linear-to-t from-black/70 via-black/20 to-transparent">
-                  <p className="text-white text-sm font-semibold line-clamp-2">
-                    {video.title}
-                  </p>
-                </div>
-              </motion.div>
+              <VideoCard key={index} video={video} index={index} onClick={(video) => setLightbox(video)}/>
             ))}
           </div>
         ) : (
@@ -228,71 +176,12 @@ const VideoGallery = ({
           </div>
         )}
       </div>
-
-      {/* Video Player Lightbox */}
-      <AnimatePresence>
-        {lightbox && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4"
-            onClick={() => setLightbox(null)}
-          >
-            <button
-              className="absolute top-6 right-6 text-white/80 hover:text-white cursor-pointer"
-              onClick={() => setLightbox(null)}
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="max-w-4xl w-full"
-            >
-              <div className="w-full aspect-video rounded-xl overflow-hidden bg-black shadow-2xl">
-                {activeEmbedUrl ? (
-                  // ✅ YouTube/Vimeo watch-link কে embed url-এ কনভার্ট করেই iframe-এ দেওয়া হচ্ছে
-                  <iframe
-                    src={activeEmbedUrl}
-                    title={lightbox.title}
-                    className="w-full h-full"
-                    frameBorder="0"
-                    allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-                    allowFullScreen
-                  />
-                ) : lightbox?.meta?.url ? (
-                  // YouTube/Vimeo না হলে সরাসরি video file হিসেবে ধরে native player চালানো
-                  <video
-                    src={lightbox.meta.url}
-                    poster={lightbox.image_full_path || undefined}
-                    className="w-full h-full"
-                    controls
-                    autoPlay
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-white/70 text-sm">
-                    No video source found
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-4 text-center">
-                <h3 className="text-white text-xl font-bold">{lightbox.title}</h3>
-
-                {lightbox.sub_description && (
-                  <p className="text-gray-300 mt-2 max-w-2xl mx-auto">
-                    {lightbox.sub_description}
-                  </p>
-                )}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        {
+          lightbox && (
+            <VideoLightbox video={lightbox} onClose={() => setLightbox(null)}/>
+          )
+        }
+      
     </section>
   );
 };

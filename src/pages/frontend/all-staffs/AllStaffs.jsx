@@ -20,7 +20,7 @@ import { useLocation } from "react-router";
 /* ---------------------------------- */
 /*  Staff Card                        */
 /* ---------------------------------- */
-const StaffCard = ({ staff }) => {
+export const StaffCard = ({ staff }) => {
   const initials = staff?.name?.trim()?.charAt(0) || "?";
 
   return (
@@ -237,7 +237,6 @@ const AllStaffs = () => {
     },
   });
 
-  // The API wraps the paginator inside `data`: { success, message, data: { data: [...], current_page, ... } }
   const staffPagination = staffItemQuery?.data;
   const staffItems = staffPagination?.data;
 

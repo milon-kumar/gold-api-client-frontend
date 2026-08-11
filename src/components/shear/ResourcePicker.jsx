@@ -73,8 +73,12 @@ const ResourcePicker = ({
   const sourceOptions = getDataSourceOptions(sourceKeys);
   const source = getDataSource(activeSourceKey);
 
+
   const { data: modulesResponse, isLoading: modulesLoading } = useApiQuery({
     url: "/admin/business-modules",
+    params:{
+      module_types: field.dataSources,
+    }
   });
 
   const modules = modulesResponse?.data?.data;
@@ -84,6 +88,7 @@ const ResourcePicker = ({
       value: i.id,
     }
   }) || [];
+
 
   const handleResourceChange = (nextResource) => {
     if (nextResource === resource) return;
@@ -124,7 +129,6 @@ const ResourcePicker = ({
     if (resource === "item") return source.getItemsParams(base);
     return base;
   }, [resource, search, page, source, field?.moduleType, selectedModule]);
-
 
   const {
     data: queryResponse,
@@ -174,7 +178,7 @@ const ResourcePicker = ({
     const mapped = source.mapItem ? source.mapItem(rawItem) : rawItem;
     const rest = {
       id: rawItem.id,
-      module_type: field?.moduleType,
+      module_type: field?.moduleType || selectedModule?.module_type,
       ...mapped,
       resource,
     };
@@ -185,7 +189,6 @@ const ResourcePicker = ({
 
   const showLoading = queryLoading || queryFetching;
 
-  console.log("Selected Module - ",selectedModule)
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -203,10 +206,11 @@ const ResourcePicker = ({
           <DialogTitle className="text-xs">
             <div className="space-y-2">
               <p className="capitalize">Select from {resource}</p>
-
+              {console.log("Active source key - ",activeSourceKey)}
               <div className="flex justify-between items-center">
+               
                 {
-                  activeSourceKey !== 'modules' && (
+                  (activeSourceKey !== 'modules' && activeSourceKey !== 'information') && (
                     <div className="flex gap-1">
                   {RESOURCE_TABS.map((tab) => (
                     <Button
@@ -237,7 +241,7 @@ const ResourcePicker = ({
                       />
                     </div>
                   ): null
-                }
+                } 
               </div>
             </div>
           </DialogTitle>
@@ -272,7 +276,7 @@ const ResourcePicker = ({
             {!showLoading &&
               resourceData?.map((item, index) => {
                 const title = item[source.display?.titleKey] || item.title ||item.name || `Item ${index + 1}`;
-                const image = source.display?.imageKey ? item[source.display.imageKey] : null || item.avatar_full_path;
+                const image =(source.display?.imageKey && item[source.display.imageKey]) || item.avatar_full_path || null;
                 const subtitle = source.display?.subtitleKey ? item[source.display.subtitleKey] : null;
                 const isPicked = item.id != null && pickedIds.includes(item.id);
 

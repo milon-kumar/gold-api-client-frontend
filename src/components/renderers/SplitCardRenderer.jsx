@@ -3,7 +3,10 @@
  * INFORMATION RENDERER (SplitCard) — Template Registry Pattern
  * =====================================================================
  */
+import { Link } from "react-router";
+import { Button } from "../ui/button";
 import Badge from "./SectionBadgeVarients";
+import InformationSimpleTempalte from "./InformationSimpleTempalte";
 
 const ImagePlaceholder = ({ className = "", style = {} }) => (
   <div
@@ -29,60 +32,6 @@ const Img = ({ src, className, style = {} }) =>
     />
   );
 
-const SimpleInfo = ({ content,settings,styles }) => (
-  <div className="text-center">
-      <div>
-        {
-          settings?.showBadge ? (
-            <>{content.badge && (
-              <Badge variant={settings?.sectionHeaderBadge || "soft"}>
-                {" "}
-                {content.badge}
-              </Badge>
-            )}
-            </>
-          ) : null
-        }
-        </div>
-     <h2
-          className="mt-3 font-bold text-slate-900"
-          style={{
-            fontSize: `${styles?.headingFontSize}px`,
-          }}
-        >
-          {content.title}
-        </h2>
-        {content.description && (
-          <p
-            className="mt-2 text-slate-600"
-            style={{
-              fontSize: `${styles?.paragraphFontSize}px`,
-            }}
-          >
-            {content.description}
-          </p>
-        )}
-      <Img
-        src={content.image}
-        className={`
-        h-64
-        w-full
-        object-contain
-
-        ${styles?.applyImageScaleOnHover
-                ? "transition-transform duration-300 hover:scale-105"
-                : ""}
-
-        ${styles?.applyImageShadowEffect
-                ? "shadow-sm hover:shadow-md"
-                : ""}
-      `}
-        style={{
-          borderRadius: `${styles?.imageRounded ?? 8}px`,
-        }}
-      />
-  </div>
-);
 
 const ModernInfo = ({ content, settings, styles }) => {
   return (
@@ -100,18 +49,22 @@ const ModernInfo = ({ content, settings, styles }) => {
           ) : null
         }
 
+        {
+          content.title && (
+            <h2
+              className="mt-3 font-bold text-slate-900"
+              style={{
+                fontSize: `${styles?.headingFontSize}px`,
+              }}
+            >
+              {content.title}
+            </h2>
+          )
+        }
 
-        <h2
-          className="mt-3 font-bold text-slate-900"
-          style={{
-            fontSize: `${styles?.headingFontSize}px`,
-          }}
-        >
-          {content.title}
-        </h2>
         {content.description && (
           <p
-            className="mt-2 text-slate-600"
+            className="mt-2 mb-2 text-slate-600"
             style={{
               fontSize: `${styles?.paragraphFontSize}px`,
             }}
@@ -119,7 +72,17 @@ const ModernInfo = ({ content, settings, styles }) => {
             {content.description}
           </p>
         )}
+
+        {
+          content.buttonText && content.buttonLink && (
+            <Link to={content.buttonLink} className="mt-4">
+              <Button>{content.buttonText}</Button>
+            </Link>
+          )
+        }
+        {console.log("What is the content - ", content)}
       </div>
+
       <Img
         src={content.image}
         className={`
@@ -199,7 +162,7 @@ const SideBySide = (imageFirst) => {
 };
 
 const TEMPLATES = {
-  simple: SimpleInfo,
+  simple: InformationSimpleTempalte,
   modern: ModernInfo,
   founder: FounderInfo,
   imageLeft: SideBySide(true),

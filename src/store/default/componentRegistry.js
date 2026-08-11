@@ -122,7 +122,8 @@ export const COMPONENT_REGISTRY = {
                 label: "Slides",
                 type: "array",
                 default: [],
-                sourceKeys: ["slider"],
+                dataSources: ['image','video'],
+                sourceKeys: ['modules'],
                 itemFields: [
                   {
                     key: "title",
@@ -151,7 +152,8 @@ export const COMPONENT_REGISTRY = {
                 label: "Slides",
                 type: "array",
                 default: [],
-                sourceKeys: ["photo"],
+                dataSources: ['image','video'],
+                sourceKeys: ['modules'],
                 itemFields: [
                   { key: "image", label: "Image", type: "image", default: "" },
                 ],
@@ -179,6 +181,36 @@ export const COMPONENT_REGISTRY = {
                 group: "settings",
                 default: true,
               }
+            ],
+          },
+          standardCarousel: {
+            label: "Standard Slider Carousel",
+            fields: [
+              {
+                key: "slides",
+                label: "Slides",
+                type: "array",
+                default: [],
+                dataSources: ['image','video'],
+                sourceKeys: ['modules'],
+                itemFields: [
+                  {
+                    key: "title",
+                    label: "Title",
+                    type: "text",
+                    default: "Item",
+                  },
+                  {
+                    key: "description",
+                    label: "Description",
+                    type: "textarea",
+                    default: "",
+                  },
+                  { key: "image", label: "Image", type: "image", default: "" },
+                ],
+              },
+              ...autoplayFields,
+              ...carouselStyles,
             ],
           },
         },
@@ -1095,6 +1127,7 @@ export const COMPONENT_REGISTRY = {
         templates: {
           simple: {
             label: "Simple",
+            moduleType:"information",
             sourceKeys: ["information"],
             fields: [
               { key: "badge", label: "Badge", type: "text", default: "Why us", visible: false },
@@ -1102,7 +1135,7 @@ export const COMPONENT_REGISTRY = {
                 key: "title",
                 label: "Title",
                 type: "text",
-                default: "About us",
+                default: "",
               },
               {
                 key: "description",
@@ -1124,6 +1157,20 @@ export const COMPONENT_REGISTRY = {
                 default: "#",
               },
               {
+                key: "useGradentBg",
+                label: "Use gradent color as background",
+                type: "boolean",
+                group: "settings",
+                default: true,
+              },
+              {
+                key: "useImageAsBg",
+                label: "Use image as background",
+                type: "boolean",
+                group: "settings",
+                default: false,
+              },
+              {
                 key: "headingFontSize",
                 label: "Control heading font size (px)",
                 type: "slider",
@@ -1131,7 +1178,15 @@ export const COMPONENT_REGISTRY = {
                 default: 22,
                 min: 8,
                 max: 180
-              }, {
+              },{
+                key: "headingPb",
+                label: "Padding bottom of headding(px)",
+                type: "slider",
+                group: "style",
+                default: 5,
+                min: 1,
+                max: 100
+              },{
                 key: "paragraphFontSize",
                 label: "Control paragraph font size (px)",
                 type: "slider",
@@ -1147,6 +1202,22 @@ export const COMPONENT_REGISTRY = {
                 default: 5,
                 min: 5,
                 max: 100
+              },{
+                key: "bgOverlayOpacity",
+                label: "Background Overlay Opacity",
+                type: "slider",
+                group: "style",
+                default: 0,
+                min: 1,
+                max: 0.05
+              },{
+                key: "bgBlurAmount",
+                label: "Image bg blur amount",
+                type: "slider",
+                group: "style",
+                default: 5,
+                min: 5,
+                max: 20
               }, {
                 key: "applyImageScaleOnHover",
                 label: "Apply image scale effect on hover",
@@ -1160,18 +1231,40 @@ export const COMPONENT_REGISTRY = {
                 group: "style",
                 default: false,
               },
+              {
+                key: "sectionGradentBG",
+                label: "Section Background Gradent Color",
+                type: "gradent",
+                group: "style",
+                default: "bg-linear-to-r from-cyan-500 to-blue-500",
+              },
+              {
+                key: "headingColor",
+                label: "Title color",
+                type: "color",
+                group: "style",
+                default: "",
+              },
+              {
+                key: "paragraphColor",
+                label: "Description Color",
+                type: "color",
+                group: "style",
+                default: "",
+              },
             ],
           },
           modern: {
             label: "Modern",
+            moduleType:"information",
             sourceKeys: ["information"],
             fields: [
-              { key: "badge", label: "Badge", type: "text", default: "Why us" },
+              { key: "badge", label: "Badge", type: "text", default: "" },
               {
                 key: "title",
                 label: "Title",
                 type: "text",
-                default: "A modern headline",
+                default: "",
               },
               {
                 key: "description",
@@ -1264,9 +1357,10 @@ export const COMPONENT_REGISTRY = {
           },
           imageLeft: {
             label: "Image Left",
+            moduleType:"information",
             sourceKeys: ["information"],
             fields: [
-              { key: "badge", label: "Badge", type: "text", default: "Why us", visible: false },
+              { key: "badge", label: "Badge", type: "text", default: "", visible: false },
 
               {
                 key: "title",
@@ -1334,6 +1428,7 @@ export const COMPONENT_REGISTRY = {
           },
           imageRight: {
             label: "Image Right",
+            moduleType:"information",
             sourceKeys: ["information"],
             fields: [
               { key: "badge", label: "Badge", type: "text", default: "Why us", visible: false },
@@ -1390,16 +1485,8 @@ export const COMPONENT_REGISTRY = {
                 label: "Items",
                 type: "array",
                 default: [],
+                dataSources: ['list','image','video','user'],
                 sourceKeys: ['modules'],
-                // [
-                //   "staff",
-                //   "organization",
-                //   "photo",
-                //   "anual_plan",
-                //   "regular_activities",
-                //   "archives",
-                //   "video",
-                // ]
                 itemFields: [
                   {
                     key: "title",
@@ -1439,6 +1526,17 @@ export const COMPONENT_REGISTRY = {
                   { label: "Gradient", value: "gradient" },
                   { label: "split", value: "split" },
                   { label: "elegant", value: "elegant" },
+                ],
+              },
+              {
+                key: "layoutType",
+                label: "Show layout type",
+                type: "radio",
+                group: "settings",
+                default: "grid",
+                options: [
+                  { label: "Grid", value: "grid" },
+                  { label: "Carousel", value: "carousel" },
                 ],
               },
               {
@@ -1498,6 +1596,7 @@ export const COMPONENT_REGISTRY = {
                 label: "Items",
                 type: "array",
                 default: [],
+                dataSources: ['list','image','video','user'],
                 sourceKeys: ['modules'],
                 itemFields: [
                   {
@@ -1697,11 +1796,6 @@ export const COMPONENT_REGISTRY = {
     }
   },
 };
-
-/* =====================================================================
- * REGISTRY ACCESS HELPERS
- * Builder কখনো Registry-তে সরাসরি হাত দেবে না — এই helper গুলো ব্যবহার করবে
- * =================================================================== */
 
 export const getComponentConfig = (component) =>
   COMPONENT_REGISTRY[component] || null;

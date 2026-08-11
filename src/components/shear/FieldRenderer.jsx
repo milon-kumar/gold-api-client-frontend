@@ -23,6 +23,7 @@ import {
 import ResourcePicker from "./ResourcePicker";
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
+import GradentColorPicker from "./GradentColorPicker";
 
 
 const FieldRenderer = ({ field, value, onChange }) => {
@@ -138,7 +139,18 @@ const FieldRenderer = ({ field, value, onChange }) => {
           </div>
         </Wrapper>
       );
-
+    case "gradent":
+      if (field?.visible === false) {
+        return null;
+      }
+      return (
+        <Wrapper label={field.label}>
+          <GradentColorPicker
+            value={value}
+            onChange={onChange}
+          />
+        </Wrapper>
+      );
     case "image":
       if (field?.visible === false) {
         return null;
@@ -308,9 +320,10 @@ const ArrayField = ({ field, value, onChange }) => {
     merged._id = fresh._id;
     merged._sourceId = rawItem?.id; // কোন record থেকে এসেছে, track রাখার জন্য
     merged._sourceResource = mapped?.resource;
+    merged._moduleType = mapped?.module_type;
     merged.item = rawItem,
 
-    onChange([...items, merged]);
+      onChange([...items, merged]);
   };
 
   /* Picker-এ picked item-এ আবার click → toggle করে remove */
@@ -328,7 +341,7 @@ const ArrayField = ({ field, value, onChange }) => {
 
   const isHideAddButton = ['imageGallery'].includes(field?.key)
 
-    // ✅ আগে সেভ করা shape থেকে সর্বশেষ item-টা কোন resource থেকে এসেছিল সেটা বের করা —
+  // ✅ আগে সেভ করা shape থেকে সর্বশেষ item-টা কোন resource থেকে এসেছিল সেটা বের করা —
   //    edit mode-এ প্রথমবার Picker খোলার সময় সেই ট্যাবেই যেন ডিফল্ট থাকে
   const lastPickedResource = [...items]
     .reverse()
