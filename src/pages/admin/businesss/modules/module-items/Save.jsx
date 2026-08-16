@@ -15,6 +15,8 @@ import SeoCard from './partials/SeoCard';
 import ImageUploadCard from './partials/ImageUploadCard';
 import QuickInfoCard from './partials/QuickInfoCard';
 import VideoInformationCard from './partials/VideoInformationCard';
+import ListTypeBookInfo from './partials/ListTypeBookInfo';
+import ListTypeSimpleInfo from './partials/ListTypeSimpleInfo';
 
 const emptySeoContent = {
   meta_title: '',
@@ -29,6 +31,7 @@ const emptySeoContent = {
   canonical_url: '',
   robots: 'index, follow',
 };
+
 
 const Save = () => {
   const { moduleSlug, id } = useParams();
@@ -47,8 +50,9 @@ const Save = () => {
     is_featured: false,
     status: 'active',
     category_id: null,
-    meta:{
+    meta: {
       url: null,
+      seo_content: emptySeoContent
     }
   });
 
@@ -233,15 +237,11 @@ const Save = () => {
       category_id: requiredCategory ? formData.category_id : undefined,
       image: imageBase64 || existingImageUrl || null,
       meta: {
+        ...formData.meta,        
         url: formData.meta.url || null,
         seo_content: seoContent,
       },
     };
-
-    console.log("handel save - ", {
-      formData,
-      payload
-    })
 
     try {
       const response = await itemMutation(payload);
@@ -257,7 +257,7 @@ const Save = () => {
       setSaving(false);
     }
   };
-
+  
   if (moduleFetching || itemGetLoading) {
     return (
       <div className="w-full min-h-screen bg-gray-50">
@@ -303,11 +303,32 @@ const Save = () => {
               onFeaturedChange={(checked) => handleFieldChange('is_featured', checked)}
               onStatusChange={(value) => handleFieldChange('status', value)}
             />
-
-
+            
+            {
+                moduleMeta.list_type === 'simple' && (
+                  <ListTypeSimpleInfo
+                    moduleMeta={moduleMeta}
+                    formData={formData}
+                    setFormData={setFormData}
+                    itemGetLoading={itemGetLoading}
+                  />
+                )
+            }
           </div>
 
           <div className="lg:col-span-1 space-y-6">
+            {
+              moduleMeta.list_type === 'book' && (
+                <ListTypeBookInfo
+                  moduleMeta={moduleMeta}
+                  formData={formData}
+                  setFormData={setFormData}
+                  itemGetLoading={itemGetLoading}
+                />
+              )
+            }
+
+
             <ImageUploadCard
               preview={currentImagePreview}
               imageError={imageError}

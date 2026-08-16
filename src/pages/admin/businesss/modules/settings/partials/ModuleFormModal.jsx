@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -28,7 +28,6 @@ import {
   Music,
   User,
   ArrowLeftRight,
-  Check,
   ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -38,17 +37,33 @@ import { generateSlug } from "@/lib/helper";
 import { RICH_TEXT_VARIANTS, RichTextEditor } from "@/components/ui/rich-text-editor";
 import { cn } from "@/lib/utils";
 import DynamicIconPicker from "@/components/shear/DynamicIconPicker";
+import { SearchableSelectPopover } from "@/components/ui/searchable-select-popover";
 
+const listTypes = [
+  { label: 'Default', value: 'default' },
+  { label: 'Book', value: 'book' },
+  { label: 'Simple', value: 'simple' },
+];
+
+
+// ---- Form state: শুধু module এর নিজস্ব content fields ----
 const emptyForm = {
   slug: "",
   title: "",
   sub_title: "",
   short_description: "",
   description: "",
+};
+
+// ---- Meta state: এইখানে যা কিছু যোগ করবেন, সেটাই payload.meta এ চলে যাবে ----
+// নতুন meta field লাগলে শুধু এখানে key-default value বসান, আর UI তে
+// updateMetaField("new_key", value) কল করলেই কাজ শেষ।
+const emptyMeta = {
   category_required: false,
   seo_enabled: true,
   sortable: true,
   sidebar_menu_icon: "",
+  list_type: 'default',
 };
 
 // Each module type gets its own accent so the picker reads at a glance,
@@ -127,14 +142,10 @@ const getModuleMeta = (key) => MODULE_TYPES.find((m) => m.key === key);
 const ModuleFormModal = ({ open, onOpenChange, module, onSaved }) => {
   const [tab, setTab] = useState("general");
   const [form, setForm] = useState(emptyForm);
-  const [seoUseModuleImage, setSeoUseModuleImage] = useState(false);
+  const [meta, setMeta] = useState(emptyMeta);
   const [moduleType, setModuleType] = useState(module?.module_type || null);
   const isEdit = Boolean(module?.id);
 
-  const ogFileInputRef = useRef(null);
-  const twitterFileInputRef = useRef(null);
-
-  console.log("Module for edit",module);
   const {
     image: imageBase64,
     preview,
@@ -144,35 +155,12 @@ const ModuleFormModal = ({ open, onOpenChange, module, onSaved }) => {
     setImageUrl,
   } = useImageUpload(5);
 
-  const {
-    image: ogImageBase64,
-    preview: ogImagePreview,
-    error: ogImageError,
-    handleImageChange: handleOgImageChange,
-    resetImage: resetOgImage,
-    setImageUrl: setOgImageUrl,
-  } = useImageUpload(5);
-
-  const {
-    image: twitterImageBase64,
-    preview: twitterImagePreview,
-    error: twitterImageError,
-    handleImageChange: handleTwitterImageChange,
-    resetImage: resetTwitterImage,
-    setImageUrl: setTwitterImageUrl,
-  } = useImageUpload(5);
-
   const { mutate: createModule, isLoading: creating } = useApiMutation({
     url: "/admin/business-modules",
     method: "POST",
   });
 
-  const { mutate: updateModule, isLoading: updating } = useApiMutation({
-    url: `/admin/business-modules/${module?.id}`,
-    method: "PUT",
-  });
-
-  const isSaving = creating || updating;
+  const isSaving = creating;
 
   useEffect(() => {
     setForm((prev) => ({ ...prev, slug: generateSlug(prev.title) }));
@@ -182,21 +170,20 @@ const ModuleFormModal = ({ open, onOpenChange, module, onSaved }) => {
     if (!open) return;
 
     if (module) {
-      const savedSeo = { ...emptyForm.seo_content, ...(module.meta?.seo_content || {}) };
-      const usingModuleImage =
-        Boolean(module.image) && savedSeo.og_image === module.image && savedSeo.twitter_image === module.image;
-
       setForm({
         slug: module.title_slug || "",
         title: module.title || "",
         sub_title: module.sub_title || "",
         short_description: module.short_description || "",
         description: module.description || "",
+      });
+
+      setMeta({
         category_required: Boolean(module.meta?.category_required),
         seo_enabled: module.meta?.seo_enabled ?? true,
         sortable: module.meta?.sortable ?? true,
-        seo_content: savedSeo,
-        sidebar_menu_icon: module.meta.sidebar_menu_icon || "",
+        sidebar_menu_icon: module.meta?.sidebar_menu_icon || "",
+        list_type: module.meta.list_type,
       });
 
       // initialize module type when editing
@@ -207,65 +194,17 @@ const ModuleFormModal = ({ open, onOpenChange, module, onSaved }) => {
       } else {
         resetImage();
       }
-
-      setSeoUseModuleImage(usingModuleImage);
-      if (usingModuleImage) {
-        resetOgImage();
-        resetTwitterImage();
-      } else {
-        setOgImageUrl({ image: savedSeo.og_image, preview: savedSeo.og_image });
-        setTwitterImageUrl({ image: savedSeo.twitter_image, preview: savedSeo.twitter_image });
-      }
     } else {
       setForm(emptyForm);
+      setMeta(emptyMeta);
       resetImage();
-      resetOgImage();
-      resetTwitterImage();
-      setSeoUseModuleImage(false);
       // reset module type when opening a fresh create modal
       setModuleType(null);
     }
   }, [open, module]);
 
-  useEffect(() => {
-    if (!seoUseModuleImage) return;
-    const moduleImageValue = imageBase64 || module?.image || "";
-    setForm((prev) => ({
-      ...prev,
-      seo_content: { ...prev.seo_content, og_image: moduleImageValue, twitter_image: moduleImageValue },
-    }));
-  }, [seoUseModuleImage, imageBase64]);
-
-  useEffect(() => {
-    if (seoUseModuleImage || !ogImageBase64) return;
-    setForm((prev) => ({ ...prev, seo_content: { ...prev.seo_content, og_image: ogImageBase64 } }));
-  }, [ogImageBase64, seoUseModuleImage]);
-
-  useEffect(() => {
-    if (seoUseModuleImage || !twitterImageBase64) return;
-    setForm((prev) => ({ ...prev, seo_content: { ...prev.seo_content, twitter_image: twitterImageBase64 } }));
-  }, [twitterImageBase64, seoUseModuleImage]);
-
   const updateField = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
-  const updateSeoField = (key, value) => setForm((prev) => ({ ...prev, seo_content: { ...prev.seo_content, [key]: value } }));
-
-  const handleToggleSeoModuleImage = (checked) => {
-    setSeoUseModuleImage(checked);
-    if (checked) {
-      resetOgImage();
-      resetTwitterImage();
-    }
-  };
-
-  const handleRemoveOgImage = () => {
-    resetOgImage();
-    updateSeoField("og_image", "");
-  };
-
-  const handleRemoveTwitterImage = () => {
-    resetTwitterImage();
-    updateSeoField("twitter_image", "");
-  };
+  const updateMetaField = (key, value) => setMeta((prev) => ({ ...prev, [key]: value }));
 
   const handleSave = async () => {
     if (!form.title.trim()) {
@@ -287,10 +226,7 @@ const ModuleFormModal = ({ open, onOpenChange, module, onSaved }) => {
       image: imageBase64 || module?.image || null,
       module_type: moduleType || "custom",
       meta: {
-        category_required: form.category_required,
-        seo_enabled: form.seo_enabled ?? true,
-        sortable: form.sortable ?? true,
-        sidebar_menu_icon: form.sidebar_menu_icon || "",
+        ...meta,
       },
     };
 
@@ -325,28 +261,29 @@ const ModuleFormModal = ({ open, onOpenChange, module, onSaved }) => {
                 {isEdit ? "Update the module details below" : "Fill in the details to create a new module"}
               </DialogDescription>
             </div>
-            {
-              moduleType ? (
-                <div className="mr-8">
-                  <Button variant="outline" size="sm" onClick={() => setModuleType(null)} className="gap-1.5">
-                    <ArrowLeftRight className="h-3.5 w-3.5" />
-                    {moduleType ? selectedMeta?.label : "Change Type"}
-                  </Button>
-                </div>
-              ):(
-                <div className="mr-8">
-                  {console.log("Tab - ",tab)}
-                  <Button variant="outline" size="sm" onClick={() => {
+            {moduleType ? (
+              <div className="mr-8">
+                <Button variant="outline" size="sm" onClick={() => setModuleType(null)} className="gap-1.5">
+                  <ArrowLeftRight className="h-3.5 w-3.5" />
+                  {moduleType ? selectedMeta?.label : "Change Type"}
+                </Button>
+              </div>
+            ) : (
+              <div className="mr-8">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
                     setTab("general");
-                    setModuleType(module?.module_type || 'list');
-                  }} className="gap-1.5">
-                    <ArrowLeft className="h-3.5 w-3.5" />
-                    Back to General
-                  </Button>
-                </div>
-              )
-            }
-
+                    setModuleType(module?.module_type || "list");
+                  }}
+                  className="gap-1.5"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  Back to General
+                </Button>
+              </div>
+            )}
           </div>
         </DialogHeader>
 
@@ -366,19 +303,12 @@ const ModuleFormModal = ({ open, onOpenChange, module, onSaved }) => {
                     hoverBorder
                   )}
                 >
-                  <div
-                    className={cn(
-                      "flex h-11 w-11 items-center justify-center rounded-lg transition-colors",
-                      bg
-                    )}
-                  >
+                  <div className={cn("flex h-11 w-11 items-center justify-center rounded-lg transition-colors", bg)}>
                     <Icon className={cn("h-5 w-5", accent)} />
                   </div>
                   <div>
                     <div className="text-sm font-semibold text-gray-900">{label}</div>
-                    <div className="mt-0.5 text-xs leading-snug text-muted-foreground">
-                      {description}
-                    </div>
+                    <div className="mt-0.5 text-xs leading-snug text-muted-foreground">{description}</div>
                   </div>
                 </button>
               ))}
@@ -388,8 +318,12 @@ const ModuleFormModal = ({ open, onOpenChange, module, onSaved }) => {
           <div>
             <Tabs defaultValue={tab} className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger className="cursor-pointer" value="general">General</TabsTrigger>
-                <TabsTrigger className="cursor-pointer" value="advanced">Advanced</TabsTrigger>
+                <TabsTrigger className="cursor-pointer" value="general">
+                  General
+                </TabsTrigger>
+                <TabsTrigger className="cursor-pointer" value="advanced">
+                  Advanced
+                </TabsTrigger>
               </TabsList>
 
               <div className="mt-4 h-137.5 overflow-hidden hide-scrollbar">
@@ -397,17 +331,29 @@ const ModuleFormModal = ({ open, onOpenChange, module, onSaved }) => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Title</Label>
-                      <Input value={form.title} onChange={(e) => updateField("title", e.target.value)} placeholder="Module title" />
+                      <Input
+                        value={form.title}
+                        onChange={(e) => updateField("title", e.target.value)}
+                        placeholder="Module title"
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label>Module Slug</Label>
-                      <Input value={form.slug} onChange={(e) => updateField("slug", e.target.value)} placeholder="module-slug" />
+                      <Input
+                        value={form.slug}
+                        onChange={(e) => updateField("slug", e.target.value)}
+                        placeholder="module-slug"
+                      />
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <Label>Sub Title</Label>
-                    <Input value={form.sub_title} onChange={(e) => updateField("sub_title", e.target.value)} placeholder="Sub title" />
+                    <Input
+                      value={form.sub_title}
+                      onChange={(e) => updateField("sub_title", e.target.value)}
+                      placeholder="Sub title"
+                    />
                   </div>
 
                   <div className="space-y-2">
@@ -478,30 +424,76 @@ const ModuleFormModal = ({ open, onOpenChange, module, onSaved }) => {
                       <p className="text-sm font-medium">Category Required</p>
                       <p className="text-xs text-muted-foreground">Require a category selection for this module</p>
                     </div>
-                    <Switch checked={form.category_required} onCheckedChange={(checked) => updateField("category_required", checked)} />
+                    <Switch
+                      checked={meta.category_required}
+                      onCheckedChange={(checked) => updateMetaField("category_required", checked)}
+                    />
                   </div>
+                  {
+                    moduleType === 'list' && (
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="w-[70%]">
+                          <p className="text-sm font-medium">Chose Your Listing Type</p>
+                          <p className="text-xs text-muted-foreground">Default listing type are module default . available listing type have book,simple_list etc...</p>
+                        </div>
+                        <div className="w-[30%]">
+                           <SearchableSelectPopover
+                              items={listTypes}
+                              value={meta.list_type}
+                              onSelect={(value) => updateMetaField("list_type", value)}
+                              placeholder="Select List Type"
+                              searchPlaceholder="Search list type..."
+                              emptyText="No list type found."
+                            />
+                        </div>
+                       
+                      </div>
+                    )
+                  }
+
 
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
                       <p className="text-sm font-medium">SEO enabled</p>
                       <p className="text-xs text-muted-foreground">Enable SEO for this module (default: true)</p>
                     </div>
-                    <Switch checked={form.seo_enabled ?? true} onCheckedChange={(checked) => updateField("seo_enabled", checked)} />
+                    <Switch
+                      checked={meta.seo_enabled ?? true}
+                      onCheckedChange={(checked) => updateMetaField("seo_enabled", checked)}
+                    />
                   </div>
+
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
                       <p className="text-sm font-medium">Sortable</p>
-                      <p className="text-xs text-muted-foreground">Allow sorting of items in this module (default: true)</p>
+                      <p className="text-xs text-muted-foreground">
+                        Allow sorting of items in this module (default: true)
+                      </p>
                     </div>
-                    <Switch checked={form.sortable ?? true} onCheckedChange={(checked) => updateField("sortable", checked)} />
+                    <Switch
+                      checked={meta.sortable ?? true}
+                      onCheckedChange={(checked) => updateMetaField("sortable", checked)}
+                    />
                   </div>
-                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
                       <p className="text-sm font-medium">Sidebar menu icon</p>
                       <p className="text-xs text-muted-foreground">Display an icon in the sidebar for this module</p>
                     </div>
-                    <DynamicIconPicker value={form.sidebar_menu_icon} onChange={(value) => updateField("sidebar_menu_icon", value)} />
+                    <DynamicIconPicker
+                      value={meta.sidebar_menu_icon}
+                      onChange={(value) => updateMetaField("sidebar_menu_icon", value)}
+                    />
                   </div>
+
+                  {/*
+                    নতুন meta field যোগ করতে চাইলে:
+                    1. উপরে emptyMeta object এ default value যোগ করুন
+                    2. initialize useEffect এ module.meta থেকে সেই key পড়ুন
+                    3. এখানে একটা Switch/Input বসিয়ে updateMetaField("key", value) কল করুন
+                    payload বানানোর জায়গায় কিছু বদলাতে হবে না, কারণ পুরো meta state ই spread হয়ে যায়।
+                  */}
                 </TabsContent>
               </div>
             </Tabs>
