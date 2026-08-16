@@ -179,6 +179,7 @@ const ResourcePicker = ({
     const rest = {
       id: rawItem.id,
       module_type: field?.moduleType || selectedModule?.module_type,
+      module: field?.moduleType || selectedModule,
       ...mapped,
       resource,
     };

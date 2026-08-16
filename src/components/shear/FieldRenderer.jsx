@@ -321,6 +321,7 @@ const ArrayField = ({ field, value, onChange }) => {
     merged._sourceId = rawItem?.id; // কোন record থেকে এসেছে, track রাখার জন্য
     merged._sourceResource = mapped?.resource;
     merged._moduleType = mapped?.module_type;
+    merged._module = mapped?.module;
     merged.item = rawItem,
 
       onChange([...items, merged]);

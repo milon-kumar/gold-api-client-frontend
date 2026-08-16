@@ -1,13 +1,16 @@
 import { getWords } from "@/lib/helper";
 import SectionHeader from "./SectionHeaderVarients";
-import { imageFitClass } from "@/lib/styleHelper";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router";
 import { StaffCard } from "@/pages/frontend/all-staffs/AllStaffs";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../ui/carousel";
 import VideoCard from "./partials/video-gallery/VideoCard";
 import VideoLightbox from "./partials/video-gallery/VideoLightBox";
-import { useState } from "react";
+import DefaultListItemCard from "./partials/default-list/DefaultListItemCard";
+import BookListItemCard from "./partials/book-list/BookListItemCard";
+import SimpleListItemCard from "./partials/simple-list/SimpleListItemCard";
+
+import { useMemo, useState } from "react";
 import ImageCard from "./partials/image-gallery/ImageCard";
 import ImageLightbox from "./partials/image-gallery/ImageLightbox";
 
@@ -34,11 +37,19 @@ const ListCardTempalte = ({ content, settings, styles }) => {
     const {
         cardSubTitleWordLimit = 50,
         columns = "4",
-        layoutType = "grid", // grid | carousel
+        layoutType = "grid", 
         sectionHeader = "classic",
     } = settings || {};
 
     const moduleType = content?.items?.[0]?._moduleType || 'list';
+    const module = content?.items?.[0]?._module || {};
+
+    const listType = useMemo(() => {
+        if (module) {
+            return module?.meta?.list_type
+        }
+    }, [module])
+
 
     const renderCard = (item, i) => {
         switch (moduleType) {
@@ -49,11 +60,11 @@ const ListCardTempalte = ({ content, settings, styles }) => {
                     <div key={item._id || i}>
                         <VideoCard video={item.item} index={i} onClick={(item) => {
                             setSelectedItem({
-                                item:{
+                                item: {
                                     ...item
                                 }
                             })
-                        }}/>
+                        }} />
                         {
                             selectedItem && (
                                 <VideoLightbox video={selectedItem.item} onClose={() => setSelectedItem(null)} />
@@ -61,65 +72,60 @@ const ListCardTempalte = ({ content, settings, styles }) => {
                         }
                     </div>
                 )
-            case 'image' :
+            case 'image':
                 return (
                     <div key={item._id || i}>
-                        <ImageCard photo={item.item} index={i}  onClick={(item) => {
+                        <ImageCard photo={item.item} index={i} onClick={(item) => {
                             setSelectedItem({
-                                item:{
+                                item: {
                                     ...item
                                 }
                             })
-                        }}/>
+                        }} />
                         {
                             selectedItem && (
-                                <ImageLightbox image={selectedItem.item} onClose={() => setSelectedItem(null)}/>
+                                <ImageLightbox image={selectedItem.item} onClose={() => setSelectedItem(null)} />
                             )
                         }
                     </div>
-                )    
-            default: {
-                const cardContent = item.sub_title || item.sub_description || item.description;
-                return (
-                    <div
-                        key={item._id || i}
-                        className="overflow-hidden rounded-lg border h-full"
-                    >
-                        {item.image && (
-                            <div
-                                style={{ height: styles?.cardImageHeight || 200 }}
-                                className="object-contain"
-                            >
-                                <img
-                                    src={item.image}
-                                    alt={item.title}
-                                    className={cn(
-                                        "h-full w-full",
-                                        imageFitClass[styles?.imageFit] ?? "object-cover",
-                                    )}
-                                />
-                            </div>
-                        )}
-
-                        <div className="p-4">
-                            <h3
-                                className="text-2xl font-semibold text-slate-900 cursor-pointer"
-                                onClick={() => handelDetails(item)}
-                            >
-                                {item.title}
-                            </h3>
-                            {cardContent && (
-                                <p
-                                    className="mt-1 text-base text-slate-500"
-                                    dangerouslySetInnerHTML={{
-                                        __html: getWords(cardContent, cardSubTitleWordLimit),
-                                    }}
-                                />
-                            )}
-                        </div>
-                    </div>
-                );
-            }
+                )
+            case 'list':
+                switch (listType) {
+                    case 'book':
+                        return (
+                            <BookListItemCard 
+                                i={i}
+                                item={item}
+                                settings={settings}
+                                styles={styles}
+                            />
+                        )
+                    case 'simple':
+                        return (
+                            <SimpleListItemCard
+                                i={i}
+                                item={item}
+                                settings={settings}
+                                styles={styles}
+                            />
+                        )
+                    default:
+                        return <DefaultListItemCard
+                            i={i}
+                            item={item}
+                            handelDetails={handelDetails}
+                            settings={settings}
+                            styles={styles}
+                        />
+                }
+            default:
+                return <DefaultListItemCard
+                    i={i}
+                    item={item}
+                    handelDetails={handelDetails}
+                    settings={settings}
+                    styles={styles}
+                />
         }
     };
 

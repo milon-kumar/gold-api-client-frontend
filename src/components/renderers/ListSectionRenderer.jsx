@@ -36,8 +36,6 @@ const Empty = ({ label }) => (
 );
 
 
-
-
 const ListView = ({ content, settings, styles }) => {
   const navigate = useNavigate();
   const handelDetails = (item) => {
