@@ -77,7 +77,7 @@ const iconMap = {
   Combine: Combine,
 };
 
-export default function DynamicBanner({ content = {}, settings = {}, styles = {} }) {  
+export default function DynamicBanner({ content = {}, settings = {}, styles = {} }) {
   const {
     slogan = "Welcome",
     title = "Build Your Future",
@@ -86,8 +86,17 @@ export default function DynamicBanner({ content = {}, settings = {}, styles = {}
     primaryButtonLink = "/about",
     secondaryButtonTitle = "Learn More",
     secondaryButtonLink = "/contact",
+    rightSectionImage = null,
     stats = [],
   } = content;
+
+  const {
+    showCardOne = true,
+    showCardThree = true,
+    showCardTow = true,
+    useImageInRightSection = false
+  } = settings || {};
+
 
   // Process title for animated display
   const words = title?.trim().split(/\s+/) || [];
@@ -301,86 +310,91 @@ export default function DynamicBanner({ content = {}, settings = {}, styles = {}
           </motion.div>
 
           {/* Right Column - Stats Cards */}
-          <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="relative"
-          >
-            {/* Animated Border Ring */}
-            <motion.div
-              className="absolute -top-20 -right-20 w-60 h-60 rounded-full border-2 border-dashed border-primary/20"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-            />
-
-            <div className="grid grid-cols-2 gap-5 relative z-10">
-              {statsData.map((stat, i) => (
+          {
+            (rightSectionImage && useImageInRightSection) ? (
+              <img src={rightSectionImage} />
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, x: 40 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.3 }}
+                className="relative"
+              >
+                {/* Animated Border Ring */}
                 <motion.div
-                  key={stat.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 + i * 0.1 }}
-                  className="group relative"
+                  className="absolute -top-20 -right-20 w-60 h-60 rounded-full border-2 border-dashed border-primary/20"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+                />
+
+                <div className="grid grid-cols-2 gap-5 relative z-10">
+                  {statsData.map((stat, i) => (
+                    <motion.div
+                      key={stat.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 + i * 0.1 }}
+                      className="group relative"
+                    >
+                      {/* Glow Effect */}
+                      <div
+                        className={`absolute inset-0 bg-linear-to-br ${stat.gradient} rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
+                      />
+
+                      {/* Card */}
+                      <div
+                        className={`relative p-6 rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-white/20 dark:border-gray-700/50 hover:border-primary/30 transition-all duration-300 hover:shadow-2xl ${i === 0 ? "lg:translate-y-8" : ""
+                          } ${i === 3 ? "lg:-translate-y-8" : ""}`}
+                      >
+                        {/* Icon */}
+                        <div
+                          className={`w-14 h-14 rounded-2xl bg-linear-to-br ${stat.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}
+                        >
+                          <IconRenderer icon={stat.icon} size={24} color="white" />
+                        </div>
+
+                        {/* Count */}
+                        <motion.h3
+                          className="text-3xl sm:text-4xl font-black text-foreground"
+                          initial={{ scale: 0.5 }}
+                          animate={{ scale: 1 }}
+                          transition={{ delay: 0.7 + i * 0.1, type: "spring" }}
+                        >
+                          {stat.total}+
+                        </motion.h3>
+
+                        {/* Title */}
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {stat.title}
+                        </p>
+
+                        {/* Hover Line */}
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary/50 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+
+                {/* Floating Trust Badge */}
+                <motion.div
+                  className="absolute -bottom-10 -left-10 p-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20"
+                  animate={{
+                    y: [0, -10, 0],
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
                 >
-                  {/* Glow Effect */}
-                  <div
-                    className={`absolute inset-0 bg-linear-to-br ${stat.gradient} rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
-                  />
-                  
-                  {/* Card */}
-                  <div
-                    className={`relative p-6 rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-white/20 dark:border-gray-700/50 hover:border-primary/30 transition-all duration-300 hover:shadow-2xl ${
-                      i === 0 ? "lg:translate-y-8" : ""
-                    } ${i === 3 ? "lg:-translate-y-8" : ""}`}
-                  >
-                    {/* Icon */}
-                    <div
-                      className={`w-14 h-14 rounded-2xl bg-linear-to-br ${stat.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}
-                    >
-                      <IconRenderer icon={stat.icon} size={24} color="white" />
-                    </div>
-                    
-                    {/* Count */}
-                    <motion.h3
-                      className="text-3xl sm:text-4xl font-black text-foreground"
-                      initial={{ scale: 0.5 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.7 + i * 0.1, type: "spring" }}
-                    >
-                      {stat.total}+
-                    </motion.h3>
-                    
-                    {/* Title */}
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {stat.title}
-                    </p>
-                    
-                    {/* Hover Line */}
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary/50 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+                  <div className="flex items-center gap-3">
+                    <Shield className="w-5 h-5 text-primary" />
+                    <span className="text-sm font-medium">100% Trusted</span>
                   </div>
                 </motion.div>
-              ))}
-            </div>
-
-            {/* Floating Trust Badge */}
-            <motion.div
-              className="absolute -bottom-10 -left-10 p-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20"
-              animate={{
-                y: [0, -10, 0],
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            >
-              <div className="flex items-center gap-3">
-                <Shield className="w-5 h-5 text-primary" />
-                <span className="text-sm font-medium">100% Trusted</span>
-              </div>
-            </motion.div>
-          </motion.div>
+              </motion.div>
+            )
+          }
         </div>
       </div>
 

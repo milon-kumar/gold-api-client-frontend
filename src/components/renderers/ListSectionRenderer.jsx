@@ -263,8 +263,6 @@ const ListSectionRenderer = ({
   styles = {},
 }) => {
 
-  console.log("List content - ", content)
-
   const Template = TEMPLATES[template];
   if (!Template) {
     return (

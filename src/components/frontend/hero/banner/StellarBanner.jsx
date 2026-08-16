@@ -44,16 +44,16 @@ const Shape = ({ children, className, delay = 0 }) => (
 // Icon Renderer - dynamically gets icon from LucideIcons
 const IconRenderer = ({ iconName, size, color, className }) => {
   if (!iconName) return null;
-  
+
   // Get icon from LucideIcons by name
   const IconComponent = LucideIcons[iconName];
-  
+
   if (!IconComponent) {
     // Fallback to Star icon if icon not found
     const FallbackIcon = LucideIcons.Star;
     return <FallbackIcon size={size} color={color} className={className} />;
   }
-  
+
   return <IconComponent size={size} color={color} className={className} />;
 };
 
@@ -197,12 +197,17 @@ const GlowingRing = ({ delay = 0 }) => (
   />
 );
 
-export default function StellarBanner({ 
+export default function StellarBanner({
   content = {},
   settings = {},
   styles = {}
 }) {
-  console.log("content - ", content);
+  console.log("StellarBanner content - settings - ", {
+    content,
+    settings
+  });
+
+
 
   const {
     slogan = "Welcome",
@@ -214,7 +219,15 @@ export default function StellarBanner({
     secondaryButtonLink = "/contact",
     stats = [],
     theme = "cosmic",
+    rightSectionImage = null,
   } = content;
+
+  const {
+    showCardOne = true,
+    showCardThree = true,
+    showCardTow = true,
+    useImageInRightSection = false
+  } = settings || {};
 
   // Process title for animated display
   const words = title?.trim().split(/\s+/) || [];
@@ -283,28 +296,28 @@ export default function StellarBanner({
       {/* Background Effects */}
       <div className="absolute inset-0">
         {/* Primary Orbs */}
-        <Orb 
-          color="#818CF8" 
-          size="600px" 
-          x="-10%" 
-          y="-20%" 
-          delay={0} 
+        <Orb
+          color="#818CF8"
+          size="600px"
+          x="-10%"
+          y="-20%"
+          delay={0}
           duration={10}
         />
-        <Orb 
-          color="#C084FC" 
-          size="500px" 
-          x="70%" 
-          y="60%" 
-          delay={2} 
+        <Orb
+          color="#C084FC"
+          size="500px"
+          x="70%"
+          y="60%"
+          delay={2}
           duration={12}
         />
-        <Orb 
-          color="#F472B6" 
-          size="400px" 
-          x="50%" 
-          y="-10%" 
-          delay={4} 
+        <Orb
+          color="#F472B6"
+          size="400px"
+          x="50%"
+          y="-10%"
+          delay={4}
           duration={8}
         />
 
@@ -440,92 +453,99 @@ export default function StellarBanner({
             )}
           </motion.div>
 
-          {/* Right Column - Stats Cards */}
-          <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="relative"
-          >
-            <div className="grid grid-cols-2 gap-5 relative z-10">
-              {statsData.map((stat, i) => (
+          {
+            (rightSectionImage && useImageInRightSection) ? (
+              <img src={rightSectionImage} />
+            ) : (
+              <>
+                {/* Right Column - Stats Cards */}
                 <motion.div
-                  key={stat.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 + i * 0.1 }}
-                  className="group relative"
+                  initial={{ opacity: 0, x: 40 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.8, delay: 0.3 }}
+                  className="relative"
                 >
-                  {/* Glow Effect */}
-                  <div
-                    className={`absolute inset-0 bg-linear-to-br ${stat.gradient} rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
-                  />
-                  
-                  {/* Card */}
+                  <div className="grid grid-cols-2 gap-5 relative z-10">
+                    {statsData.map((stat, i) => (
+                      <motion.div
+                        key={stat.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 + i * 0.1 }}
+                        className="group relative"
+                      >
+                        {/* Glow Effect */}
+                        <div
+                          className={`absolute inset-0 bg-linear-to-br ${stat.gradient} rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
+                        />
+
+                        {/* Card */}
+                        <motion.div
+                          className={`relative p-6 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:border-white/20 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/10 ${i === 0 ? "lg:translate-y-8" : ""
+                            } ${i === 3 ? "lg:-translate-y-8" : ""}`}
+                          whileHover={{ scale: 1.03 }}
+                          transition={{ type: "spring", stiffness: 300 }}
+                        >
+                          {/* Icon - Pass only the name */}
+                          <div
+                            className={`w-14 h-14 rounded-2xl bg-linear-to-br ${stat.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-purple-500/20`}
+                          >
+                            <IconRenderer
+                              iconName={stat.iconName}
+                              size={24}
+                              color="white"
+                            />
+                          </div>
+
+                          {/* Count */}
+                          <motion.h3
+                            className="text-3xl sm:text-4xl font-black text-white"
+                            initial={{ scale: 0.5 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: 0.7 + i * 0.1, type: "spring" }}
+                          >
+                            {stat.total.toLocaleString()}+
+                          </motion.h3>
+
+                          {/* Title */}
+                          <p className="text-sm text-white/60 mt-1">
+                            {stat.title}
+                          </p>
+
+                          {/* Hover Line */}
+                          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-linear-to-r from-transparent via-purple-500/50 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+                        </motion.div>
+                      </motion.div>
+                    ))}
+                  </div>
+
+                  {/* Floating Trust Badge */}
                   <motion.div
-                    className={`relative p-6 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:border-white/20 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/10 ${
-                      i === 0 ? "lg:translate-y-8" : ""
-                    } ${i === 3 ? "lg:-translate-y-8" : ""}`}
-                    whileHover={{ scale: 1.03 }}
-                    transition={{ type: "spring", stiffness: 300 }}
+                    className="absolute -bottom-10 -left-10 p-4 bg-white/5 backdrop-blur-sm rounded-2xl shadow-xl border border-white/10"
+                    animate={{
+                      y: [0, -10, 0],
+                      scale: [1, 1.02, 1],
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
                   >
-                    {/* Icon - Pass only the name */}
-                    <div
-                      className={`w-14 h-14 rounded-2xl bg-linear-to-br ${stat.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-purple-500/20`}
-                    >
-                      <IconRenderer 
-                        iconName={stat.iconName} 
-                        size={24} 
-                        color="white" 
+                    <div className="flex items-center gap-3">
+                      <ShieldIcon className="w-5 h-5 text-cyan-400" />
+                      <span className="text-sm font-medium text-white/80">Secure & Trusted</span>
+                      <motion.div
+                        className="w-2 h-2 rounded-full bg-emerald-400"
+                        animate={{ scale: [1, 1.5, 1] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
                       />
                     </div>
-                    
-                    {/* Count */}
-                    <motion.h3
-                      className="text-3xl sm:text-4xl font-black text-white"
-                      initial={{ scale: 0.5 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.7 + i * 0.1, type: "spring" }}
-                    >
-                      {stat.total.toLocaleString()}+
-                    </motion.h3>
-                    
-                    {/* Title */}
-                    <p className="text-sm text-white/60 mt-1">
-                      {stat.title}
-                    </p>
-                    
-                    {/* Hover Line */}
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-linear-to-r from-transparent via-purple-500/50 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
                   </motion.div>
                 </motion.div>
-              ))}
-            </div>
-
-            {/* Floating Trust Badge */}
-            <motion.div
-              className="absolute -bottom-10 -left-10 p-4 bg-white/5 backdrop-blur-sm rounded-2xl shadow-xl border border-white/10"
-              animate={{
-                y: [0, -10, 0],
-                scale: [1, 1.02, 1],
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            >
-              <div className="flex items-center gap-3">
-                <ShieldIcon className="w-5 h-5 text-cyan-400" />
-                <span className="text-sm font-medium text-white/80">Secure & Trusted</span>
-                <motion.div
-                  className="w-2 h-2 rounded-full bg-emerald-400"
-                  animate={{ scale: [1, 1.5, 1] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                />
-              </div>
-            </motion.div>
-          </motion.div>
+              </>
+            )
+          }
         </div>
       </div>
 

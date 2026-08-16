@@ -274,6 +274,12 @@ export const COMPONENT_REGISTRY = {
                 type: "text",
                 default: "/contact",
               },
+              { 
+                key: "rightSectionImage",
+                label: "Use Image In Right Section",
+                type: "image", 
+                default: "" 
+              },
               {
                 key: "stats",
                 label: "Stats Items",
@@ -445,6 +451,14 @@ export const COMPONENT_REGISTRY = {
                 group: "settings",
                 default: true,
                 visible: false,
+              },
+              {
+                key: "useImageInRightSection",
+                label: "Enable image for right section",
+                type: "boolean",
+                group: "settings",
+                default: false,
+                visible: true,
               },
             ],
           },
@@ -494,6 +508,12 @@ export const COMPONENT_REGISTRY = {
                 type: "text",
                 default: "/contact",
               },
+              { 
+                key: "rightSectionImage",
+                label: "Use Image In Right Section",
+                type: "image", 
+                default: "" 
+              },
               {
                 key: "stats",
                 label: "Stats Items",
@@ -666,6 +686,14 @@ export const COMPONENT_REGISTRY = {
                 default: true,
                 visible: false,
               },
+              {
+                key: "useImageInRightSection",
+                label: "Enable image for right section",
+                type: "boolean",
+                group: "settings",
+                default: false,
+                visible: true,
+              },
             ],
           },
           gradentBanner: {
@@ -713,6 +741,12 @@ export const COMPONENT_REGISTRY = {
                 label: "Secondary Button Link",
                 type: "text",
                 default: "/contact",
+              },
+              { 
+                key: "rightSectionImage",
+                label: "Use Image In Right Section",
+                type: "image", 
+                default: "" 
               },
               {
                 key: "stats",
@@ -885,6 +919,14 @@ export const COMPONENT_REGISTRY = {
                 type: "boolean",
                 group: "settings",
                 default: true,
+                visible: true,
+              },
+              {
+                key: "useImageInRightSection",
+                label: "Enable image for right section",
+                type: "boolean",
+                group: "settings",
+                default: false,
                 visible: true,
               },
             ],
@@ -935,6 +977,12 @@ export const COMPONENT_REGISTRY = {
                 type: "text",
                 default: "/contact",
               },
+              { 
+                key: "rightSectionImage",
+                label: "Use Image In Right Section",
+                type: "image", 
+                default: "" 
+              },
               {
                 key: "stats",
                 label: "Stats Items",
@@ -1106,6 +1154,14 @@ export const COMPONENT_REGISTRY = {
                 type: "boolean",
                 group: "settings",
                 default: true,
+                visible: true,
+              },
+              {
+                key: "useImageInRightSection",
+                label: "Enable image for right section",
+                type: "boolean",
+                group: "settings",
+                default: false,
                 visible: true,
               },
             ],

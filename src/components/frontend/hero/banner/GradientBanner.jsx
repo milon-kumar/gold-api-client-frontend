@@ -57,6 +57,7 @@ export default function GradientHero({
     primaryButtonLink = "/about",
     secondaryButtonTitle = "Learn More",
     secondaryButtonLink = "/contact",
+    rightSectionImage = null,
     stats: bottomStats = [],
     rightSecOneIcon = "Check",
     rightSecOneTitle = "Regular publications",
@@ -74,11 +75,14 @@ export default function GradientHero({
     rightSecThreeDescription = "Connected from all over the country",
   } = content;
 
+
+
   // Destructure settings
   const {
     showCardOne = true,
     showCardTow = true,
     showCardThree = true,
+    useImageInRightSection = false,
   } = settings;
 
   // Get icon components dynamically
@@ -236,136 +240,142 @@ export default function GradientHero({
           </div>
 
           {/* ================= RIGHT: card composition ================= */}
-          <div className="relative hidden min-h-120 lg:block">
-            {/* Card Two - Main Event Card (Middle) */}
-            {showCardTow && (
-              <motion.div
-                {...fadeUp}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                className="absolute left-1/2 top-1/2 w-84 -translate-x-1/2 -translate-y-1/2"
-              >
-                <motion.div
-                  {...float(0, 6)}
-                  className="overflow-hidden rounded-3xl border border-white/10 bg-white/6 shadow-2xl shadow-emerald-950/60 backdrop-blur-xl"
-                >
-                  {/* card header */}
-                  <div className="flex items-center justify-between border-b border-white/10 bg-linear-to-r from-emerald-500/15 to-amber-400/10 px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <IconComponent icon={rightSecTwoIcon} className="h-4 w-4 text-amber-300" />
+          {
+            (rightSectionImage && useImageInRightSection) ? (
+              <img src={rightSectionImage} />
+            ) : (
+              <div className="relative hidden min-h-120 lg:block">
+                {/* Card Two - Main Event Card (Middle) */}
+                {showCardTow && (
+                  <motion.div
+                    {...fadeUp}
+                    transition={{ duration: 0.6, delay: 0.3 }}
+                    className="absolute left-1/2 top-1/2 w-84 -translate-x-1/2 -translate-y-1/2"
+                  >
+                    <motion.div
+                      {...float(0, 6)}
+                      className="overflow-hidden rounded-3xl border border-white/10 bg-white/6 shadow-2xl shadow-emerald-950/60 backdrop-blur-xl"
+                    >
+                      {/* card header */}
+                      <div className="flex items-center justify-between border-b border-white/10 bg-linear-to-r from-emerald-500/15 to-amber-400/10 px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <IconComponent icon={rightSecTwoIcon} className="h-4 w-4 text-amber-300" />
 
-                      <span className="font-bengali text-sm font-semibold text-white">
-                        {rightSecTwoHeaderTitle}
-                      </span>
-                    </div>
-                    <span className="font-bengali rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-xs font-medium text-emerald-300">
-                      {rightSecTwoHeaderBadge}
-                    </span>
-                  </div>
-                  {/* card body */}
-                  <div className="px-6 py-5">
-                    <p className="font-bengali text-lg font-bold leading-snug text-white">
-                      {rightSecTowTitle}
-                    </p>
-                    <div className="font-bengali mt-3 space-y-2 text-sm text-slate-400">
-                      {rightSecTowItems.map((item, idx) => {
-                        const ItemIcon = iconMap[item.icon] || CircleCheck;
-                        return (
-                          <p key={idx} className="flex items-center gap-2">
-                            <IconComponent icon={item.icon || 'CircleCheck'} className="h-3.5 w-3.5 text-emerald-400" />
-                            {item.title}
+                          <span className="font-bengali text-sm font-semibold text-white">
+                            {rightSecTwoHeaderTitle}
+                          </span>
+                        </div>
+                        <span className="font-bengali rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-xs font-medium text-emerald-300">
+                          {rightSecTwoHeaderBadge}
+                        </span>
+                      </div>
+                      {/* card body */}
+                      <div className="px-6 py-5">
+                        <p className="font-bengali text-lg font-bold leading-snug text-white">
+                          {rightSecTowTitle}
+                        </p>
+                        <div className="font-bengali mt-3 space-y-2 text-sm text-slate-400">
+                          {rightSecTowItems.map((item, idx) => {
+                            const ItemIcon = iconMap[item.icon] || CircleCheck;
+                            return (
+                              <p key={idx} className="flex items-center gap-2">
+                                <IconComponent icon={item.icon || 'CircleCheck'} className="h-3.5 w-3.5 text-emerald-400" />
+                                {item.title}
+                              </p>
+                            );
+                          })}
+                        </div>
+                        <div className="mt-5 h-px bg-linear-to-r from-emerald-500/40 via-white/10 to-transparent" />
+                        <p className="font-bengali mt-4 flex items-center gap-2 text-xs text-slate-500">
+                          <IconComponent icon={rightSecTowFooterIcon || 'CardTwoFooterIcon'} className="h-3.5 w-3.5 text-amber-300" />
+
+                          {rightSecTowFooterTitle}
+                        </p>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                )}
+
+                {/* Card One - Top Left Mini Card */}
+                {showCardOne && (
+                  <motion.div
+                    {...fadeUp}
+                    transition={{ duration: 0.6, delay: 0.5 }}
+                    className="absolute -left-2 top-4 w-56"
+                  >
+                    <motion.div
+                      {...float(0.9, 5)}
+                      className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/6 p-4 shadow-xl backdrop-blur-xl"
+                    >
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-400/20">
+                        <IconComponent icon={rightSecOneIcon} className="h-5 w-5 text-amber-300" />
+                      </div>
+                      <div>
+                        <p className="font-bengali text-sm font-bold text-white">
+                          {rightSecOneTitle}
+                        </p>
+                        <p className="font-bengali text-xs text-slate-400">
+                          {rightSecOneSubTitle}
+                        </p>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                )}
+
+                {/* Card Three - Bottom Right Mini Card */}
+                {showCardThree && (
+                  <motion.div
+                    {...fadeUp}
+                    transition={{ duration: 0.6, delay: 0.65 }}
+                    className="absolute -right-2 bottom-8 w-60"
+                  >
+                    <motion.div
+                      {...float(1.7, 5.5)}
+                      className="rounded-2xl border border-white/10 bg-white/6 p-4 shadow-xl backdrop-blur-xl"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-400/20">
+
+                          <IconComponent icon={rightSecThreeIcon || 'CardThreeIcon'} className="h-5 w-5 text-emerald-300" />
+
+                        </div>
+                        <div>
+                          <p className="font-bengali text-sm font-bold text-white">
+                            {rightSecThreeTitle}
                           </p>
-                        );
-                      })}
-                    </div>
-                    <div className="mt-5 h-px bg-linear-to-r from-emerald-500/40 via-white/10 to-transparent" />
-                    <p className="font-bengali mt-4 flex items-center gap-2 text-xs text-slate-500">
-                      <IconComponent icon={rightSecTowFooterIcon || 'CardTwoFooterIcon'} className="h-3.5 w-3.5 text-amber-300" />
+                          <p className="font-bengali text-xs text-slate-400">
+                            {rightSecThreeSubTitle}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-3 flex items-center">
+                        <div className="flex -space-x-2">
+                          {[
+                            "bg-emerald-400",
+                            "bg-amber-300",
+                            "bg-cyan-400",
+                            "bg-violet-400",
+                          ].map((c, i) => (
+                            <span
+                              key={i}
+                              className={`flex h-7 w-7 items-center justify-center rounded-full border-2 border-slate-900 ${c} text-[10px] font-bold text-slate-900`}
+                            />
+                          ))}
+                        </div>
+                        <span className="font-bengali ml-3 text-xs text-slate-400">
+                          {rightSecThreeDescription}
+                        </span>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                )}
 
-                      {rightSecTowFooterTitle}
-                    </p>
-                  </div>
-                </motion.div>
-              </motion.div>
-            )}
-
-            {/* Card One - Top Left Mini Card */}
-            {showCardOne && (
-              <motion.div
-                {...fadeUp}
-                transition={{ duration: 0.6, delay: 0.5 }}
-                className="absolute -left-2 top-4 w-56"
-              >
-                <motion.div
-                  {...float(0.9, 5)}
-                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/6 p-4 shadow-xl backdrop-blur-xl"
-                >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-400/20">
-                    <IconComponent icon={rightSecOneIcon} className="h-5 w-5 text-amber-300" />
-                  </div>
-                  <div>
-                    <p className="font-bengali text-sm font-bold text-white">
-                      {rightSecOneTitle}
-                    </p>
-                    <p className="font-bengali text-xs text-slate-400">
-                      {rightSecOneSubTitle}
-                    </p>
-                  </div>
-                </motion.div>
-              </motion.div>
-            )}
-
-            {/* Card Three - Bottom Right Mini Card */}
-            {showCardThree && (
-              <motion.div
-                {...fadeUp}
-                transition={{ duration: 0.6, delay: 0.65 }}
-                className="absolute -right-2 bottom-8 w-60"
-              >
-                <motion.div
-                  {...float(1.7, 5.5)}
-                  className="rounded-2xl border border-white/10 bg-white/6 p-4 shadow-xl backdrop-blur-xl"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-400/20">
-                      
-                      <IconComponent icon={rightSecThreeIcon || 'CardThreeIcon'} className="h-5 w-5 text-emerald-300" />
-
-                    </div>
-                    <div>
-                      <p className="font-bengali text-sm font-bold text-white">
-                        {rightSecThreeTitle}
-                      </p>
-                      <p className="font-bengali text-xs text-slate-400">
-                        {rightSecThreeSubTitle}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-3 flex items-center">
-                    <div className="flex -space-x-2">
-                      {[
-                        "bg-emerald-400",
-                        "bg-amber-300",
-                        "bg-cyan-400",
-                        "bg-violet-400",
-                      ].map((c, i) => (
-                        <span
-                          key={i}
-                          className={`flex h-7 w-7 items-center justify-center rounded-full border-2 border-slate-900 ${c} text-[10px] font-bold text-slate-900`}
-                        />
-                      ))}
-                    </div>
-                    <span className="font-bengali ml-3 text-xs text-slate-400">
-                      {rightSecThreeDescription}
-                    </span>
-                  </div>
-                </motion.div>
-              </motion.div>
-            )}
-
-            {/* small glowing accents */}
-            <div className="absolute right-10 top-16 h-2.5 w-2.5 rounded-full bg-amber-300/80 blur-[1px]" />
-            <div className="absolute left-14 bottom-4 h-2 w-2 rounded-full bg-emerald-400/80 blur-[1px]" />
-          </div>
+                {/* small glowing accents */}
+                <div className="absolute right-10 top-16 h-2.5 w-2.5 rounded-full bg-amber-300/80 blur-[1px]" />
+                <div className="absolute left-14 bottom-4 h-2 w-2 rounded-full bg-emerald-400/80 blur-[1px]" />
+              </div>
+            )
+          }
         </div>
       </div>
 

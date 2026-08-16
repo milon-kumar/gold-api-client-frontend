@@ -64,6 +64,7 @@ export default function AuroraHero({ content = {}, settings = {}, styles = {} })
     primaryButtonLink = "/about",
     secondaryButtonTitle = "Learn More",
     secondaryButtonLink = "/contact",
+    rightSectionImage = null,
     stats: bottomStats = [],
     rightSecOneIcon = "MapPin",
     rightSecOneTitle = "Regular publications",
@@ -86,6 +87,7 @@ export default function AuroraHero({ content = {}, settings = {}, styles = {} })
     showCardOne = true,
     showCardTow = true,
     showCardThree = true,
+    useImageInRightSection = false,
   } = settings;
 
   // Format stats from content or use default
@@ -203,7 +205,11 @@ export default function AuroraHero({ content = {}, settings = {}, styles = {} })
           </div>
 
           {/* ================= RIGHT: floating cards ================= */}
-          <div className="relative hidden min-h-[480px] lg:block">
+           {
+            (rightSectionImage && useImageInRightSection) ? (
+              <img src={rightSectionImage} />
+            ) : (
+    <div className="relative hidden min-h-[480px] lg:block">
             {/* decorative rotating ring */}
             <div className="absolute left-1/2 top-1/2 h-[26rem] w-[26rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-emerald-400/20 [animation:spin_40s_linear_infinite]" />
             <div className="absolute left-1/2 top-1/2 h-[19rem] w-[19rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/5" />
@@ -326,6 +332,9 @@ export default function AuroraHero({ content = {}, settings = {}, styles = {} })
             <div className="absolute right-16 bottom-2 h-3 w-3 rounded-full bg-emerald-400/80 blur-[1px]" />
             <div className="absolute left-10 top-14 h-2 w-2 rounded-full bg-cyan-300/80 blur-[1px]" />
           </div>
+            )
+          }
+      
         </div>
       </div>
 

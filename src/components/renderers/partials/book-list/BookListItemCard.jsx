@@ -1,13 +1,6 @@
 import React from 'react'
 
 const BookListItemCard = ({ i, item, settings, styles }) => {
-  console.log('BookListItemCard - ', {
-    i,
-    item,
-    settings,
-    styles
-  })
-
   // Safe data extraction
   const {
     title,

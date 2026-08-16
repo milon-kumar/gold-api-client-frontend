@@ -2,13 +2,6 @@ import React from 'react'
 import DynamicIconRender from '@/components/shear/DynamicIconRender'
 
 const SimpleListItemCard = ({ i, item, settings, styles }) => {
-  console.log('SimpleListItemCard - ', {
-    i,
-    item,
-    settings,
-    styles
-  })
-
   // Safe Extraction
   const {
     title,
@@ -24,8 +17,6 @@ const SimpleListItemCard = ({ i, item, settings, styles }) => {
 
   return (
     <div className="group relative bg-white border border-slate-200/80 rounded-xl shadow-xs hover:shadow-md transition-all duration-300 flex flex-col h-full overflow-hidden">
-      
-      {/* Card Header Section */}
       <div className="p-4 bg-linear-to-r from-slate-50 to-white border-b border-slate-100 flex items-start justify-between gap-3">
         <div className="space-y-0.5 flex-1">
           <h3 className="text-base font-bold text-slate-800 group-hover:text-blue-600 transition-colors line-clamp-1">
