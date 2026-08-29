@@ -5,28 +5,25 @@ import Footer, { RootFooter } from "@/components/frontend/footer/Footer";
 import Loading from "@/components/shear/Loading";
 import { Outlet } from "react-router";
 import { useApiQuery } from "@/hooks/useAppQuery";
-import { asset } from "@/lib/helper";
 import RootHomePage from "@/pages/frontend/home/RootHomePage";
 
+/**
+ * Site-wide SEO tags, driven by settings.meta.seo_content
+ * (the same shape saved from the admin "SEO" section:
+ *  { title, description, meta_tags, og_title, og_description })
+ * plus favicon from settings.favicon_full_path (falls back to logo).
+ */
 const SiteSeo = ({ settings }) => {
   const seo = settings?.meta?.seo_content || {};
-  const businessName = settings?.business?.name;
+  const businessName = settings?.name;
 
-  const title = seo.meta_title || businessName || "Website";
-  const description = seo.meta_description || settings?.footer_text || "";
-  const keywords = seo.meta_keywords || "";
-  const robots = seo.robots || "index, follow";
-  const canonical =
-    seo.canonical_url ||
-    (typeof window !== "undefined" ? window.location.origin : "");
+  const title = seo.title || businessName || "Website";
+  const description = seo.description || settings?.footer_text || "";
+  const keywords = seo.meta_tags || "";
 
   const ogTitle = seo.og_title || title;
   const ogDescription = seo.og_description || description;
-  const ogImage = asset(seo.og_image) || settings?.logo_full_path;
-
-  const twitterTitle = seo.twitter_title || ogTitle;
-  const twitterDescription = seo.twitter_description || ogDescription;
-  const twitterImage = asset(seo.twitter_image) || ogImage;
+  const ogImage = settings?.logo_full_path;
 
   // favicon: prefer explicit favicon, fall back to logo
   const faviconHref = settings?.favicon_full_path || settings?.logo_full_path;
@@ -34,10 +31,8 @@ const SiteSeo = ({ settings }) => {
   return (
     <Helmet>
       <title>{title}</title>
-      <meta name="description" content={description} />
+      {description && <meta name="description" content={description} />}
       {keywords && <meta name="keywords" content={keywords} />}
-      <meta name="robots" content={robots} />
-      {canonical && <link rel="canonical" href={canonical} />}
 
       {/* favicon */}
       {faviconHref && <link rel="icon" type="image/x-icon" href={faviconHref} />}
@@ -48,35 +43,31 @@ const SiteSeo = ({ settings }) => {
       <meta property="og:type" content="website" />
       <meta property="og:site_name" content={businessName || title} />
       <meta property="og:title" content={ogTitle} />
-      <meta property="og:description" content={ogDescription} />
+      {ogDescription && <meta property="og:description" content={ogDescription} />}
       {ogImage && <meta property="og:image" content={ogImage} />}
-      {canonical && <meta property="og:url" content={canonical} />}
-
-      {/* Twitter */}
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content={twitterTitle} />
-      <meta name="twitter:description" content={twitterDescription} />
-      {twitterImage && <meta name="twitter:image" content={twitterImage} />}
     </Helmet>
   );
 };
 
 const FrontendLayout = () => {
   const { data: settingResponse, isLoading: settingLoading } = useApiQuery({
-    url: `/settings`,
+    url: `/client/settings`,
   });
 
   const settings = settingResponse?.data?.data || {};
+
+  const navbar = settings?.navbar || {};
+  const footer = settings?.footer || {};
 
   if (settingLoading) {
     return <Loading />;
   }
 
-  if (settings?.business_id === "ROOT") {
-    return <RootLayout settings={settings} />;
-  }
+  // if (settings?.business_id === "ROOT") {
+  //   return <RootLayout settings={settings} />;
+  // }
 
-  return <BusinessLayout settings={settings} />;
+  return <BusinessLayout settings={settings} navbar={navbar} footer={footer} />;
 };
 
 export default FrontendLayout;
@@ -124,29 +115,10 @@ const RootLayout = ({ settings }) => {
   );
 };
 
-const BusinessLayout = ({ settings }) => {
-  const settingMeta = settings?.meta ? settings?.meta : {};
-
-  const { data: navbarResponse, isLoading: navbarLoading } = useApiQuery({
-    url: `/navbars/show/${settingMeta?.navbar_id}`,
-    enabled: !!settingMeta?.navbar_id,
-  });
-
-  const { data: footerResponse, isLoading: footerLoading } = useApiQuery({
-    url: `/footers/show/${settingMeta?.footer_id}`,
-    enabled: !!settingMeta?.footer_id,
-  });
-
-  if (navbarLoading || footerLoading) {
-    return <Loading />;
-  }
-
-  const navbar = navbarResponse?.data || {};
-  const footer = footerResponse?.data || {};
-
+const BusinessLayout = ({ settings, navbar, footer }) => {
   return (
     <div className="min-h-screen bg-background hide-scrollbar">
-      {/* site-wide default SEO + favicon + title, driven by /settings */}
+      {/* site-wide default SEO + favicon + title, driven by settings.meta.seo_content */}
       <SiteSeo settings={settings} />
 
       <Navbar navbar={navbar} />

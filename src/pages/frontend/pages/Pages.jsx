@@ -19,7 +19,7 @@ const Pages = () => {
   const { slug } = useParams();
 
   const { data, isLoading, refetch } = useApiQuery({
-    url: `/page-by-slug/${slug}`,
+    url: `/client/page-by-slug/${slug}`,
     enabled: false,
   });
 
@@ -29,15 +29,20 @@ const Pages = () => {
     }
   }, [slug]);
 
-  const pageContent = data?.data;
+  const pageContent = data?.data?.data;
   const pageConfig = safeJsonParse(pageContent?.meta);
-  const sections = safeJsonParse(pageConfig?.page_config) || [];
+  const sections = data?.data?.data?.meta?.page_config || [];//pageContent?.page_config || [];//safeJsonParse(pageConfig?.page_config) || [];
+
+console.log("sections - ",{
+  sections,
+  meta: data?.data?.data?.meta
+})
 
   const { data: getPageResponse,
     isLoading: getPageLoading,
     refetch: getPageRefetch
   } = useApiQuery({
-    url: `/page-by-slug/${slug}`,
+    url: `/client/page-by-slug/${slug}`,
     enabled: !!slug,
   });
 

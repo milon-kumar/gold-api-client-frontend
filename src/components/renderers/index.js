@@ -3,6 +3,7 @@ import SplitCardRenderer from "./SplitCardRenderer";
 import ListSectionRenderer from "./ListSectionRenderer";
 import ImageGallery from "./ImageGallery"
 import VideoGallery from "./VideoGallery"
+import GoldRets from "./GoldRets"
 /**
  * RENDERER REGISTRY
  * componentRegistry.js-এর `renderer` key → React Component
@@ -18,6 +19,7 @@ export const RENDERERS = {
   list: ListSectionRenderer,
   imageGallery: ImageGallery,
   videoGallery: VideoGallery,
+  gold: GoldRets,
 };
 
 export const getRenderer = (rendererKey) => RENDERERS[rendererKey] || null;

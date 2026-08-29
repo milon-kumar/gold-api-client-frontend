@@ -17,7 +17,7 @@ export default defineConfig({
 
   server: {
     host: true,
-    port: 5050,
+    port: 5051,
      allowedHosts: [
     'org-saas-frontend.test',
     'ahlehadeethbd.org-saas-frontend.test',

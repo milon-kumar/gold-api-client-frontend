@@ -10,32 +10,39 @@ const Home = () => {
 
   const settingMeta = settings?.meta; //safeJsonParse();
 
+  // console.log("What is the setting meta ",{
+  //   settings,
+  //   settingMeta
+  // })
+
   const { data: page, isLoading: pageLoading } = useApiQuery({
-    url: `/page-by-id/${settingMeta?.home_page_id}`,
+    url: `/page-by-id/${settings?.home_page_id}`,
     enabled: !!settingMeta?.home_page_id,
   });
 
   const pageConfig = safeJsonParse(page?.data?.meta);
-  console.log("What is the page - ",{
+  console.log("What is the page - ", {
     pageConfig,
-    pageMeta : page?.data?.meta
+    pageMeta: page?.data?.meta,
   });
-  const sections = safeJsonParse(pageConfig?.page_config) || [];
+  const sections = settings?.home_page?.meta?.page_config || []; //safeJsonParse(pageConfig?.page_config) || [];
+
+  console.log("|what is tyhe section - ", {
+    settings,
+    sections,
+  });
 
   if (pageLoading) {
     return <Loading />;
   }
 
+  // if (!settingMeta?.home_page_id || !sections) {
+  //   return <StaticHome />;
+  // }
 
-  if ((!settingMeta?.home_page_id) || !sections) {
-    return <StaticHome />;
-  }
-
-    if (sections) {
+  if (sections) {
     return <FrontendSectionRenderer sections={sections} />;
   }
 };
 
 export default Home;
-
-

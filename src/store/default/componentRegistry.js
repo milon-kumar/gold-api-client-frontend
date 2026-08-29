@@ -1851,6 +1851,84 @@ export const COMPONENT_REGISTRY = {
       }
     }
   },
+  gold: {
+    label: "Gold Reat",
+    icon: "CircleStar",
+    moduleType:"gold",
+    renderer: "gold",
+    defaultType: "default",
+    types: {
+      default: {
+        label: "Default",
+        defaultTemplate: "redClassic",
+        templates: {
+          redClassic: {
+            label: "Red Classic Gold Live Rets",
+            fields: [
+              { key: "title", label: "Title", type: "text", default: "",},
+              { key: "subtitle", label: "Subtitle", type: "text", default: "" },
+            ],
+          },
+          emeraldClassic: {
+            label: "Emerald Classic Gold Live Rets",
+            fields: [
+              { key: "title", label: "Title", type: "text", default: "",},
+              { key: "subtitle", label: "Subtitle", type: "text", default: "" },
+            ],
+          },
+          sapphireClassic:{
+            label: "Sapphire Classic Gold Live Rets",
+            fields: [
+              { key: "title", label: "Title", type: "text", default: "",},
+              { key: "subtitle", label: "Subtitle", type: "text", default: "" },
+            ],
+          },
+          plumClassic:{
+            label: "Plum Classic Gold Live Rets",
+            fields: [
+              { key: "title", label: "Title", type: "text", default: "",},
+              { key: "subtitle", label: "Subtitle", type: "text", default: "" },
+            ],
+          },
+          darkShine: {
+            label: "Dark Shine Gold Live Rets",
+            fields: [
+              { key: "title", label: "Title", type: "text", default: "",},
+              { key: "subtitle", label: "Subtitle", type: "text", default: "" },
+            ],
+          },
+          assayStamp:{
+             label: "Assay Stamp template",
+            fields: [
+              { key: "title", label: "Title", type: "text", default: "",},
+              { key: "subtitle", label: "Subtitle", type: "text", default: "" },
+            ],
+          },
+          minimalLight:{
+             label: "minimal Light template",
+            fields: [
+              { key: "title", label: "Title", type: "text", default: "",},
+              { key: "subtitle", label: "Subtitle", type: "text", default: "" },
+            ],
+          },
+          chalkboard:{
+             label: "Chalk Board template",
+            fields: [
+              { key: "title", label: "Title", type: "text", default: "",},
+              { key: "subtitle", label: "Subtitle", type: "text", default: "" },
+            ],
+          },
+          neonTicker:{
+             label: "Neon Ticker Template",
+            fields: [
+              { key: "title", label: "Title", type: "text", default: "",},
+              { key: "subtitle", label: "Subtitle", type: "text", default: "" },
+            ],
+          },
+        },
+      },
+    },
+  },
 };
 
 export const getComponentConfig = (component) =>

@@ -4,6 +4,12 @@ import { getComponentConfig } from "@/store/default/componentRegistry";
 const FrontendSectionRenderer = ({ sections }) => {
   const visibleSections = sections?.filter((s) => s.is_visible);
 
+
+  console.log("FrontendSectionRenderer - ",{
+    sections
+  })
+
+
   return (
     <div>
       {visibleSections.map((section) => (
@@ -17,6 +23,9 @@ const FrontendSectionRenderer = ({ sections }) => {
               const config = getComponentConfig(component.component);
               const Renderer = getRenderer(config?.renderer);
 
+              console.log("What is the Renderer - ",{Renderer,
+                ren: config?.renderer,
+              })
               return (
                 <div
                   key={component.id}
